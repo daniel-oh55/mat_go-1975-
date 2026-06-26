@@ -6,6 +6,21 @@ Entries are listed in reverse chronological order (newest first).
 
 ---
 
+## 2026-06-26 - Engine Boundary and Core Rule Spec Must Precede Implementation
+
+**Decision**  
+Engine implementation will not begin until engine boundaries and MVP core rule scope are documented in `docs/03_engine_boundary.md` and `docs/04_game_rule_spec.md`. Open Decisions listed in the rule spec must be resolved before implementing the affected rule.
+
+**Reason**  
+The engine is the reusable foundation of the project. Implementing rules, scoring, AI, or state transitions before boundaries are documented risks introducing UI, content, and platform concerns into the engine. Unresolved rule decisions (e.g., how multiple same-month field cards are handled) would force rework during implementation.
+
+**Impact**  
+- Milestone 2 implementation PRs must follow the boundaries defined in `docs/03_engine_boundary.md`.
+- Rule implementation must follow `docs/04_game_rule_spec.md`.
+- Each Open Decision in the rule spec must be resolved before coding the affected rule module.
+
+---
+
 ## 2026-06-26 - Advanced Matgo Rules Are Deferred as Ruleset Options
 
 **Decision**  
