@@ -6,6 +6,21 @@ Entries are listed in reverse chronological order (newest first).
 
 ---
 
+## 2026-06-26 - MVP Rule Open Decisions Are Resolved Before Engine Implementation
+
+**Decision**  
+The MVP rule Open Decisions OD-1 through OD-6 are resolved in `docs/12_open_decision_resolution.md` before Milestone 2 engine implementation begins.
+
+**Reason**  
+Engine implementation should not rely on implicit or ad-hoc rule choices. Resolving these decisions before coding reduces rework and keeps implementation PRs small and testable.
+
+**Impact**  
+- Milestone 2 implementation PRs use the resolved MVP defaults.
+- Advanced rule behavior remains deferred to `Ruleset` expansion.
+- Claude Code must not invent alternative rule behavior during implementation.
+
+---
+
 ## 2026-06-26 - Monetization Is Designed Early but Implemented Late
 
 **Decision**  
