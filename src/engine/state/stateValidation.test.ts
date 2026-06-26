@@ -114,6 +114,41 @@ describe('validateGameState', () => {
   });
 });
 
+describe('validateGameState — phase/pendingDecision consistency', () => {
+  it('detects duplicate player IDs', () => {
+    const state = freshState();
+    const duplicatePlayers = [state.players[0]!, state.players[0]!];
+    const broken: GameState = { ...state, players: duplicatePlayers };
+    const result = validateGameState(broken);
+    expect(result.valid).toBe(false);
+    expect(result.errors.some((e) => e.includes('Duplicate player IDs'))).toBe(true);
+  });
+
+  it('detects pendingGoStop phase with null pendingDecision', () => {
+    const state = freshState();
+    const broken: GameState = {
+      ...state,
+      phase: 'pendingGoStop',
+      pendingDecision: null,
+    };
+    const result = validateGameState(broken);
+    expect(result.valid).toBe(false);
+    expect(result.errors.some((e) => e.includes('pendingGoStop'))).toBe(true);
+  });
+
+  it('detects playing phase with non-null pendingDecision', () => {
+    const state = freshState();
+    const broken: GameState = {
+      ...state,
+      phase: 'playing',
+      pendingDecision: { type: 'goStop', playerId: 'p1' },
+    };
+    const result = validateGameState(broken);
+    expect(result.valid).toBe(false);
+    expect(result.errors.some((e) => e.includes('"playing"'))).toBe(true);
+  });
+});
+
 describe('assertValidGameState', () => {
   it('does not throw for a valid state', () => {
     expect(() => assertValidGameState(freshState())).not.toThrow();

@@ -2,6 +2,15 @@ import type { Card } from '../types/card.js';
 import type { PlayerId, PlayerKind } from '../types/player.js';
 import type { Ruleset } from '../types/ruleset.js';
 
+/**
+ * Phases of a game session.
+ *
+ * 'ready'        — Reserved for future use (e.g. pre-game lobby). Not used in
+ *                  the MVP engine: newGame() returns 'playing' immediately.
+ * 'playing'      — Normal turn; the current player selects a card to play.
+ * 'pendingGoStop'— A score threshold was reached; awaiting CHOOSE_GO or CHOOSE_STOP.
+ * 'ended'        — The game is over; no further actions are legal.
+ */
 export type GamePhase = 'ready' | 'playing' | 'pendingGoStop' | 'ended';
 
 export interface EnginePlayer {

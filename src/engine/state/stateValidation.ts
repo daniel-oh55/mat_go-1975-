@@ -14,9 +14,11 @@ const TOTAL_CARD_COUNT = 48;
  * Checks:
  * - Exactly 48 cards across all zones combined
  * - No card appears in more than one zone (no duplicate CardId)
+ * - No duplicate player IDs
  * - playerHands and capturedCards have an entry for each player
  * - scoreState and goStopState have an entry for each player
  * - currentTurn references a known player
+ * - phase/pendingDecision consistency
  */
 export function validateGameState(state: GameState): GameStateValidationResult {
   const errors: string[] = [];
@@ -79,6 +81,19 @@ export function validateGameState(state: GameState): GameStateValidationResult {
   // Must have exactly 2 players for MVP
   if (state.players.length !== 2) {
     errors.push(`Expected 2 players, got ${state.players.length}`);
+  }
+
+  // Duplicate player IDs
+  if (playerIds.size !== state.players.length) {
+    errors.push('Duplicate player IDs detected');
+  }
+
+  // phase / pendingDecision consistency
+  if (state.phase === 'pendingGoStop' && state.pendingDecision === null) {
+    errors.push('phase is "pendingGoStop" but pendingDecision is null');
+  }
+  if (state.phase === 'playing' && state.pendingDecision !== null) {
+    errors.push('phase is "playing" but pendingDecision is not null');
   }
 
   return { valid: errors.length === 0, errors };
