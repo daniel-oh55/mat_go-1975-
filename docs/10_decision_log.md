@@ -6,6 +6,21 @@ Entries are listed in reverse chronological order (newest first).
 
 ---
 
+## 2026-06-26 - Advanced Matgo Rules Are Deferred as Ruleset Options
+
+**Decision**  
+Only core Matgo rules (2-player, 48-card deck, basic capture, scoring, Go/Stop) are implemented in the MVP. Advanced rules (쪽, 따닥, 뻑, 폭탄, 흔들기, 총통, 피박, 광박, 고박, 멍박, 나가리, regional rules, NPC-specific rules) are deferred and will be added later as `Ruleset` configuration options.
+
+**Reason**  
+Implementing all rule variants before the core loop is validated introduces complexity that makes the engine harder to test and reason about. Advanced rules can be layered on top of a stable core without changing the engine's fundamental structure.
+
+**Impact**  
+- MVP engine implementation covers only the core rule set listed in `docs/02_mvp_scope.md`.
+- Advanced rules must not require changes to the engine core when added later.
+- `Ruleset` is designed as a configuration object from the start, even if it only holds default values in the MVP.
+
+---
+
 ## 2026-06-26 - Architecture Uses Layered Boundaries
 
 **Decision**  
