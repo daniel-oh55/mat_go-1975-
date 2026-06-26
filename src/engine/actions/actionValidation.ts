@@ -15,12 +15,10 @@ export interface ActionValidationResult {
  * checks if the submitted action is a member of that set.
  *
  * Comparison rules:
- * - PLAY_CARD / AI_PLAY_CARD: matched by type + cardId
+ * - PLAY_CARD / AI_PLAY_CARD: matched by type + cardId + targetFieldCardId
+ *   (both absent = match; mismatched or one missing = no match)
  * - CHOOSE_GO / CHOOSE_STOP: matched by type only
  * - START_GAME / RESOLVE_PENDING_DECISION: matched by type only
- *
- * NOTE (M2-PR5): targetFieldCardId will be included in the comparison
- * once field matching is implemented.
  */
 export function validateAction(
   state: GameState,
@@ -48,12 +46,11 @@ function actionsMatch(a: GameAction, b: GameAction): boolean {
   if (a.type !== b.type) return false;
 
   if (a.type === 'PLAY_CARD' && b.type === 'PLAY_CARD') {
-    return a.cardId === b.cardId;
-    // NOTE (M2-PR5): also compare targetFieldCardId when present
+    return a.cardId === b.cardId && a.targetFieldCardId === b.targetFieldCardId;
   }
 
   if (a.type === 'AI_PLAY_CARD' && b.type === 'AI_PLAY_CARD') {
-    return a.cardId === b.cardId;
+    return a.cardId === b.cardId && a.targetFieldCardId === b.targetFieldCardId;
   }
 
   // For type-only actions (CHOOSE_GO, CHOOSE_STOP, START_GAME,

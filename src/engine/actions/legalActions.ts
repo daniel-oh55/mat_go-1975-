@@ -1,20 +1,19 @@
 import type { GameAction, PlayCardAction, AiPlayCardAction } from '../types/action.js';
 import type { GameState } from '../state/gameState.js';
+import { findMatchingFieldCards } from '../rules/matching.js';
 
 /**
  * Returns all legal GameActions for the current state.
  *
  * Rules by phase:
- * - 'playing'      : one PLAY_CARD (human) or AI_PLAY_CARD (ai) per card in
- *                    the current player's hand.
+ * - 'playing'      : one PLAY_CARD (human) or AI_PLAY_CARD (ai) per card-and-
+ *                    target combination. When a hand card has 2+ same-group
+ *                    field cards, one action is generated per valid target
+ *                    (targetFieldCardId set). When 0 or 1 match, targetFieldCardId
+ *                    is omitted.
  * - 'pendingGoStop': only CHOOSE_GO and CHOOSE_STOP are legal.
  * - 'ended'        : no legal actions (empty array).
  * - 'ready'        : no legal actions (not used in MVP; newGame starts at 'playing').
- *
- * NOTE (M2-PR5): When field matching is implemented, cards with multiple
- * same-month field candidates will include targetFieldCardId options.
- * The current implementation omits targetFieldCardId because field matching
- * is not yet available.
  */
 export function getLegalActions(state: GameState): GameAction[] {
   switch (state.phase) {
@@ -35,24 +34,40 @@ function getPlayingActions(state: GameState): GameAction[] {
   const currentPlayer = state.players.find((p) => p.id === state.currentTurn);
   if (currentPlayer === undefined) return [];
 
-  if (currentPlayer.kind === 'ai') {
-    return hand.map(
-      (card): AiPlayCardAction => ({
-        type: 'AI_PLAY_CARD',
-        cardId: card.id,
-      }),
-    );
+  const actions: GameAction[] = [];
+  const isAi = currentPlayer.kind === 'ai';
+
+  for (const card of hand) {
+    const matches = findMatchingFieldCards(card, state.fieldCards);
+
+    if (matches.length < 2) {
+      // 0 or 1 field match: one action, no target required
+      if (isAi) {
+        actions.push({ type: 'AI_PLAY_CARD', cardId: card.id } satisfies AiPlayCardAction);
+      } else {
+        actions.push({ type: 'PLAY_CARD', cardId: card.id } satisfies PlayCardAction);
+      }
+    } else {
+      // 2+ field matches: one action per valid target (OD-2)
+      for (const match of matches) {
+        if (isAi) {
+          actions.push({
+            type: 'AI_PLAY_CARD',
+            cardId: card.id,
+            targetFieldCardId: match.id,
+          } satisfies AiPlayCardAction);
+        } else {
+          actions.push({
+            type: 'PLAY_CARD',
+            cardId: card.id,
+            targetFieldCardId: match.id,
+          } satisfies PlayCardAction);
+        }
+      }
+    }
   }
 
-  // human player
-  return hand.map(
-    (card): PlayCardAction => ({
-      type: 'PLAY_CARD',
-      cardId: card.id,
-      // targetFieldCardId is omitted here; M2-PR5 will add it when
-      // multiple same-month field cards exist (OD-2).
-    }),
-  );
+  return actions;
 }
 
 function getPendingGoStopActions(state: GameState): GameAction[] {
