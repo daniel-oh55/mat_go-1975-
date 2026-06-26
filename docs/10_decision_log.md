@@ -6,6 +6,21 @@ Entries are listed in reverse chronological order (newest first).
 
 ---
 
+## 2026-06-26 - Milestone 2 Requires AI Design, Testing Strategy, and PR Plan Before Implementation
+
+**Decision**  
+Milestone 2 implementation will begin only after MVP AI design (`docs/07_ai_design.md`), engine testing strategy (`docs/08_testing_strategy.md`), and implementation PR plan (`docs/09_pr_plan.md`) are documented and reviewed.
+
+**Reason**  
+The engine must be implemented in small, independently testable PRs. Without a defined AI design and testing strategy, implementation risks drifting into UI, content, or platform concerns. The PR plan ensures each PR has a single, clear purpose.
+
+**Impact**  
+- Milestone 2 PRs follow the sequence and scope defined in `docs/09_pr_plan.md`.
+- AI implementation follows `docs/07_ai_design.md` — correctness-first, random legal action for MVP.
+- Engine validation follows `docs/08_testing_strategy.md` — headless simulation must pass before UI work begins.
+
+---
+
 ## 2026-06-26 - Engine Boundary and Core Rule Spec Must Precede Implementation
 
 **Decision**  
