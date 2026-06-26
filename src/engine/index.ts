@@ -10,3 +10,4 @@ export * from './cards/index.js';
 export * from './rng/index.js';
 export * from './shuffle/index.js';
 export * from './state/index.js';
+export * from './actions/index.js';

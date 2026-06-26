@@ -78,7 +78,7 @@ export function newGame(config: NewGameConfig): GameState {
   return {
     players,
     currentTurn: player1.id,
-    phase: 'ready',
+    phase: 'playing',
     drawPile,
     fieldCards,
     playerHands,

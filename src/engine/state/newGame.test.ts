@@ -64,8 +64,8 @@ describe('newGame', () => {
   });
 
   describe('initial state shape', () => {
-    it('phase is "ready"', () => {
-      expect(makeState().phase).toBe('ready');
+    it('phase is "playing"', () => {
+      expect(makeState().phase).toBe('playing');
     });
 
     it('currentTurn is player 1 id', () => {
