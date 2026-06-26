@@ -2,7 +2,10 @@
  * Game Engine — public API surface
  *
  * This barrel re-exports everything the Application layer needs from the engine.
- * Deck creation, shuffle, distribution, game state, and action application
- * will be added to this file in subsequent Milestone 2 PRs.
+ * Game state, distribution, action application, scoring, and AI will be added
+ * in subsequent Milestone 2 PRs.
  */
 export * from './types/index.js';
+export * from './cards/index.js';
+export * from './rng/index.js';
+export * from './shuffle/index.js';
