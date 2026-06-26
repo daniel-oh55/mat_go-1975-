@@ -6,6 +6,21 @@ Entries are listed in reverse chronological order (newest first).
 
 ---
 
+## 2026-06-26 - Architecture Uses Layered Boundaries
+
+**Decision**  
+The project uses six separated layers: UI, Application, Engine, Content, Platform, and Shared. The Engine layer does not depend on UI, Content, or Platform layers. All cross-layer communication follows the dependency direction defined in `docs/01_architecture.md`.
+
+**Reason**  
+Layered boundaries keep the Matgo engine reusable, testable, and independent from story, presentation, storage, advertising, and platform-specific code. Without clear boundaries, engine logic accumulates UI assumptions and platform calls that make it impossible to test in isolation or reuse in another title.
+
+**Impact**  
+- Future implementation PRs must follow the dependency direction in `docs/01_architecture.md`.
+- PR reviews must reject changes that put rules, scoring, shuffle, or state mutation outside the Engine layer.
+- UI, Content, and Platform features must communicate with the Engine through the Application Layer.
+
+---
+
 ## 2026-06-26 - Engine and Content Must Be Strictly Separated
 
 **Decision**  
