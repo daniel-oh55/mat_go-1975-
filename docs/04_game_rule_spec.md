@@ -81,17 +81,17 @@ Each card in the engine must carry at least the following attributes *(attribute
 
 ## 5. Initial Setup
 
-**Candidate distribution for 2-player Matgo:**
+**MVP distribution for 2-player Matgo: [RESOLVED — OD-1]**
 
 | Location | Card Count | Status |
 |---|---|---|
-| Player 1 hand | 10 | **[OPEN DECISION]** — confirm before implementation |
-| Player 2 hand | 10 | **[OPEN DECISION]** — confirm before implementation |
-| Field | 8 | **[OPEN DECISION]** — confirm before implementation |
+| Player 1 hand | 10 | **[RESOLVED]** — see `docs/12_open_decision_resolution.md` OD-1 |
+| Player 2 hand | 10 | **[RESOLVED]** — see `docs/12_open_decision_resolution.md` OD-1 |
+| Field | 8 | **[RESOLVED]** — see `docs/12_open_decision_resolution.md` OD-1 |
 | Draw pile | 20 | Derived from the above |
 | **Total** | **48** | Must equal 48 after distribution |
 
-> The 10 / 10 / 8 / 20 split is the most commonly used standard for 2-player Matgo and is used as the default candidate. Confirm before starting implementation.
+> Distribution confirmed as 10 / 10 / 8 / 20. Implement this in M2-PR3.
 
 **Setup sequence:**
 1. Build the 48-card deck.
@@ -128,19 +128,18 @@ Cards match by **month**.
 |---|---|
 | No field card of same month | Played/revealed card is placed on the field |
 | Exactly one field card of same month | Current player captures both cards |
-| Two or more field cards of same month | **[OPEN DECISION]** — see below |
+| Two or more field cards of same month | **[RESOLVED — OD-2]** — `GameAction` must include `targetCardId`; see below |
 
-### [OPEN DECISION] — Multiple same-month field cards
+### [RESOLVED — OD-2] — Multiple same-month field cards
 
-When two or more field cards share the same month as the played or revealed card, behavior must be defined before implementation. Options:
+See `docs/12_open_decision_resolution.md` OD-2 for full rationale.
 
-| Option | Description | Trade-off |
-|---|---|---|
-| A — Capture all | Player captures all same-month field cards automatically | Simple; deterministic; no player choice needed |
-| B — Player chooses | Player selects which card to capture (one per play) | More strategic; requires UI decision flow |
-| C — Defer | Treat this case as an edge case handled later | Risk: may be needed for correct MVP simulation |
-
-**Recommendation for MVP:** Option A (capture all same-month cards) unless confirmed otherwise. This keeps the MVP engine deterministic and avoids an additional UI decision prompt.
+**Confirmed behavior:**
+- `GameAction` must include a `targetCardId` (or equivalent) identifying which same-month field card to capture.
+- Engine validates that the selected target is a legal same-month card.
+- For MVP AI and headless simulation: Application Layer or AI auto-selects the first deterministic legal target.
+- Engine does not automatically capture all matching cards by default.
+- A future `Ruleset` option may enable capture-all behavior.
 
 ---
 
@@ -164,20 +163,22 @@ MVP scoring tracks the following captured group counts:
 | 띠 | 띠 | Ribbon cards |
 | 피 | 피 | Chaff (lowest-value cards) |
 
-**[OPEN DECISION] — Exact score table**
+**[RESOLVED — OD-3] — Score table confirmed**
 
-The precise mapping of captured group counts to scores must be confirmed before implementation. A minimal working table sufficient for MVP might be:
+See `docs/12_open_decision_resolution.md` OD-3 for full rationale.
 
-| Category | Threshold | Base score | Over-threshold score |
+| Category | Threshold | Score at threshold | Each additional |
 |---|---|---|---|
-| 광 (brights) | 3 | 2 points | +1 per additional |
+| 광 (brights) | 3 | 3 points | +1 per additional (4 gwang = 4 pts; 5 gwang = 15 pts) |
 | 열 (animals) | 5 | 1 point | +1 per additional |
 | 띠 (ribbons) | 5 | 1 point | +1 per additional |
 | 피 (chaff) | 10 | 1 point | +1 per additional |
 
-> This is a simplified skeleton. Confirm scoring thresholds and values before implementing the scoring module.
+Deferred bonuses (고도리, 홍단/청단/초단, 쌍피, 비광, 피박/광박/고박/멍박) remain as Advanced Ruleset items.
 
-**Go/Stop threshold:** **[OPEN DECISION]** — Most common standard is **7 points** to trigger Go/Stop. Confirm before implementation.
+**[RESOLVED — OD-4] — Go/Stop threshold: 7 points**
+
+See `docs/12_open_decision_resolution.md` OD-4. Default threshold is **7 points**. Configurable via `Ruleset`.
 
 ---
 
@@ -189,9 +190,9 @@ The precise mapping of captured group counts to scores must be confirmed before 
 4. **Go** — Game continues. The player's Go count increases by 1. Turn passes to the opponent.
 5. The engine tracks the number of times a player has declared Go.
 
-**[OPEN DECISION] — Go multiplier**
+**[RESOLVED — OD-5] — Go multiplier deferred**
 
-Whether the MVP includes a score multiplier for multiple Go declarations (e.g., Go count ≥ 2 doubles the winner's score) is to be confirmed. For MVP simplicity, the multiplier may be omitted or set to a fixed value.
+See `docs/12_open_decision_resolution.md` OD-5. MVP tracks `goCount` in `GameState` but does not apply any score multiplier. Go multiplier is deferred to Advanced Ruleset expansion.
 
 ---
 
@@ -202,10 +203,10 @@ The game ends when any of the following conditions are met:
 | Condition | Notes |
 |---|---|
 | A player declares Stop | Primary MVP end condition |
-| Draw pile exhausted with no further legal action | **[OPEN DECISION]** — Does the game end or continue with remaining hand cards? |
+| Draw pile exhausted with no further legal action | **[RESOLVED — OD-6]** — Game ends; higher score wins; tie = draw |
 | Terminal rule condition defined by `Ruleset` | Deferred — not active in MVP default ruleset |
 
-**Priority for MVP:** Stop-based game end is the primary scenario. Confirm draw-pile-exhaustion behavior before implementation.
+See `docs/12_open_decision_resolution.md` OD-6. Nagari and round carry-over rules are deferred.
 
 ---
 
@@ -235,20 +236,20 @@ The game ends when any of the following conditions are met:
 
 ---
 
-## 14. Open Decisions Before Implementation
+## 14. Open Decisions — All Resolved
 
-The following items are unresolved and must be decided before implementing the affected rule. Each is marked in its relevant section above.
+All Open Decisions for MVP Milestone 2 are resolved. See `docs/12_open_decision_resolution.md` for full rationale.
 
-| # | Open Decision | Relevant Section | Priority |
+| # | Decision | Resolution | Resolved In |
 |---|---|---|---|
-| OD-1 | Exact initial deal counts (hand / field / draw pile) | Section 5 | High — needed before any game can start |
-| OD-2 | Multiple same-month field card handling | Section 7 | High — needed for capture resolution |
-| OD-3 | Exact basic score table (thresholds and values) | Section 9 | High — needed before scoring module |
-| OD-4 | Go/Stop threshold (default: 7 points) | Section 9 | High — needed before Go/Stop trigger |
-| OD-5 | Whether MVP includes a Go multiplier | Section 10 | Medium — can default to none for MVP |
-| OD-6 | Draw pile exhaustion end condition | Section 11 | Medium — needed before full-game simulation |
+| OD-1 | Initial deal counts | 10 / 10 / 8 / 20 | `docs/12_open_decision_resolution.md` |
+| OD-2 | Multiple same-month field card handling | `targetCardId` in `GameAction`; engine validates | `docs/12_open_decision_resolution.md` |
+| OD-3 | Basic score table | Gwang 3/4/15, Yeol/Tti 5+, Pi 10+ | `docs/12_open_decision_resolution.md` |
+| OD-4 | Go/Stop threshold | 7 points | `docs/12_open_decision_resolution.md` |
+| OD-5 | Go multiplier | Not applied; `goCount` tracked only | `docs/12_open_decision_resolution.md` |
+| OD-6 | Draw pile exhaustion | Game ends; score comparison; tie = draw | `docs/12_open_decision_resolution.md` |
 
-> Open Decisions are not blockers for documentation milestones. They must be resolved before the engine implementation PR for the affected feature.
+> Milestone 2 implementation PRs may now proceed using these resolved defaults.
 
 ---
 

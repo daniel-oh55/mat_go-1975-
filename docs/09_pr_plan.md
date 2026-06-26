@@ -132,14 +132,14 @@ Each PR must do one thing. Engine PRs must be small, testable, and reviewable in
 |---|---|
 | `CHOOSE_GO` action handling | Game continues; Go count increments |
 | `CHOOSE_STOP` action handling | Game ends; final result calculated |
-| Go multiplier (if applicable) | Based on OD-5 |
+| Go multiplier | Not applied in MVP — `goCount` tracked only (OD-5 resolved) |
 | Game end detection | Stop declared or other terminal condition |
 | `FinalResult` production | Winner, final scores, summary |
 | `GAME_ENDED` event | Emitted with final result data |
 | Post-end action rejection | All actions rejected after game ends |
 | Game end tests | Stop → correct result; further actions rejected |
 
-**Dependency:** Requires M2-PR6. **Requires OD-5 to be resolved first.**
+**Dependency:** Requires M2-PR6. OD-5 resolved — no multiplier in MVP.
 
 ---
 
@@ -172,24 +172,24 @@ Each PR must do one thing. Engine PRs must be small, testable, and reviewable in
 | Final state consistency | Total cards = 48; game ended state correct |
 | Simulation test suite | Passes as part of CI / test run |
 
-**Dependency:** Requires M2-PR8. **Requires OD-6 to be resolved first.**
+**Dependency:** Requires M2-PR8. OD-6 resolved — game ends on exhaustion; score comparison; tie = draw.
 
 ---
 
-## 4. Open Decisions To Resolve Before Milestone 2
+## 4. Open Decisions — All Resolved
 
-These are the Open Decisions from `docs/04_game_rule_spec.md`, with the required resolution deadline for each.
+All Open Decisions OD-1 through OD-6 are resolved in `docs/12_open_decision_resolution.md`.
 
-| ID | Decision | Must be resolved before | Priority |
+| ID | Decision | Resolution | Required Before |
 |---|---|---|---|
-| OD-1 | Exact initial deal counts (hand / field / draw pile) | M2-PR3 | High |
-| OD-2 | Multiple same-month field card handling | M2-PR5 | High |
-| OD-3 | Basic score table (thresholds and values) | M2-PR6 | High |
-| OD-4 | Go/Stop score threshold | M2-PR6 | High |
-| OD-5 | Whether MVP includes a Go multiplier | M2-PR7 | Medium |
-| OD-6 | Draw pile exhaustion end condition | M2-PR9 | Medium |
+| OD-1 | Initial deal counts | 10 / 10 / 8 / 20 | M2-PR3 ✓ |
+| OD-2 | Multiple same-month field card handling | `targetCardId` in `GameAction` | M2-PR5 ✓ |
+| OD-3 | Basic score table | Gwang 3/4/15, Yeol/Tti 5+, Pi 10+ | M2-PR6 ✓ |
+| OD-4 | Go/Stop score threshold | 7 points | M2-PR6 ✓ |
+| OD-5 | Go multiplier | Not applied; `goCount` tracked | M2-PR7 ✓ |
+| OD-6 | Draw pile exhaustion | Game ends; score comparison; tie = draw | M2-PR9 ✓ |
 
-> OD-1 through OD-4 must be resolved before Milestone 2 implementation PRs begin. OD-5 and OD-6 can be resolved just before the PR that requires them.
+> Milestone 2 can begin. All PRs use the resolved defaults above.
 
 ---
 
