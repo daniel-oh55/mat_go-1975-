@@ -6,6 +6,22 @@ Entries are listed in reverse chronological order (newest first).
 
 ---
 
+## 2026-06-26 - Monetization Is Designed Early but Implemented Late
+
+**Decision**  
+The project will document monetization strategy during Milestone 1, but actual ad SDK, billing SDK, product, and entitlement implementation is deferred until release preparation (Milestone 9).
+
+**Reason**  
+The game should generate revenue through ads and simple purchases, but monetization must not contaminate the engine or damage the core player experience. Designing it early prevents future coupling between the engine and monetization state; implementing it late prevents MVP scope creep.
+
+**Impact**  
+- Engine code must never depend on ads, purchases, product IDs, entitlements, or premium status.
+- Monetization must not affect shuffle, hand distribution, scoring, AI difficulty, or win/loss outcome.
+- Release preparation will include AdMob, Google Play Billing, entitlement storage, purchase restore, and policy compliance checks.
+- Monetization strategy is documented in `docs/11_monetization_strategy.md`.
+
+---
+
 ## 2026-06-26 - Milestone 2 Requires AI Design, Testing Strategy, and PR Plan Before Implementation
 
 **Decision**  

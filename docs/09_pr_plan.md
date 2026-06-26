@@ -17,6 +17,9 @@ Each PR must do one thing. Engine PRs must be small, testable, and reviewable in
 - Content work must not begin before engine validation is complete.
 - PRs that violate the dependency direction in `docs/01_architecture.md` must be rejected.
 - PRs that introduce out-of-scope features (story, NPC, ads, platform) during Milestone 2 must be rejected.
+- Milestone 2 PRs must not include monetization code — no ad SDK, no billing SDK, no product IDs, no entitlement logic.
+- Ads, billing, entitlements, and product IDs are deferred until release preparation (Milestone 9).
+- Monetization strategy is documented in `docs/11_monetization_strategy.md`.
 
 ---
 

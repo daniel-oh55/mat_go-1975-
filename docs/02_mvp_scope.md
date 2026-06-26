@@ -66,7 +66,9 @@ The MVP is not a finished product. It is proof that the core game loop works cor
 | Rewards | Requires stable game loop and content layer | Post-engine milestone |
 | Unlock system | Depends on progression and content layer | Post-engine milestone |
 | Achievements | Depends on progression and content layer | Post-engine milestone |
-| Ads | Monetization; not needed during engine development | Release preparation |
+| Ads (AdMob) | Monetization implementation deferred; strategy documented in `docs/11_monetization_strategy.md` | Release preparation |
+| In-app purchases (Google Play Billing) | Monetization implementation deferred; strategy documented in `docs/11_monetization_strategy.md` | Release preparation |
+| Entitlement storage | Depends on billing SDK and purchase restore flow | Release preparation |
 | Online multiplayer | Requires stable engine, server, and networking | Post-release or separate milestone |
 | Rankings | Requires online infrastructure | Post-release |
 | Account/login | Requires server infrastructure | Post-release |
@@ -76,7 +78,6 @@ The MVP is not a finished product. It is proof that the core game loop works cor
 | Advanced animations | Atmosphere; not needed for engine validation | UI polish milestone |
 | Polished UI theme | Atmosphere; functional UI is sufficient for MVP | UI polish milestone |
 | App store release assets | Not needed until near release | Release preparation |
-| In-app purchases | Monetization; irrelevant to engine validation | Release preparation |
 | Complex AI personality | NPC feature; MVP AI only needs to complete a valid game | Content/AI milestone |
 | Dynamic difficulty through card distribution | Prohibited by fairness policy | Never — violates fairness policy |
 | NPC-specific rules | Content feature; must not be baked into engine | Content milestone |
@@ -119,6 +120,13 @@ The MVP does not aim to be:
 - A complete implementation of all Matgo rule variants
 - A long-term play loop with progression
 - A content expansion platform
+
+Monetization-specific non-goals for the MVP:
+
+- No AdMob or ad SDK integration — ads are documented only in `docs/11_monetization_strategy.md`
+- No Google Play Billing integration — in-app purchases are documented only
+- No product IDs, entitlements, or purchase restore implementation
+- No pay-to-win items — prohibited permanently, not just deferred
 
 **The sole purpose of the MVP is to validate the engine.**
 
