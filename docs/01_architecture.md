@@ -17,6 +17,9 @@ The project is not a single Matgo game. The goal is to build a reusable Matgo en
 - Platform services must be isolated behind interfaces.
 - New worlds or stories must not require engine code changes.
 - Completion is prioritized over expansion.
+- Monetization belongs to the Platform and Application layers — never the engine.
+- Engine must not know about ads, purchases, product IDs, entitlements, or premium user state.
+- Monetization must not affect game rules, scoring, shuffle, or AI fairness.
 
 ---
 
@@ -107,13 +110,16 @@ The project is not a single Matgo game. The goal is to build a reusable Matgo en
 - Local storage implementation
 - Capacitor integration
 - Android-specific services
-- Ads
+- Ads (AdMob — deferred to release preparation)
 - Analytics
 - App version, device, and platform APIs
+- Google Play Billing (deferred to release preparation)
+- Purchase restore and entitlement persistence (deferred to release preparation)
 
 **Must not:**
 - Directly mutate engine state
 - Contain game rules
+- Allow monetization state to affect engine shuffle, scoring, or win/loss
 
 ---
 
