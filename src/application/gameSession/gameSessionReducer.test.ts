@@ -446,3 +446,70 @@ describe('gameSessionReducer — full game simulation', () => {
     expect(isValid).toBe(true);
   });
 });
+
+// ─── lastEventMessages cleared on error ──────────────────────────────────────
+
+describe('gameSessionReducer — lastEventMessages cleared on error', () => {
+  // Build a session that has non-empty lastEventMessages by playing one valid action.
+  function sessionWithMessages() {
+    const session = startedSession(0);
+    const la = session.viewModel!.legalPlayActions[0]!;
+    const play =
+      la.targetFieldCardId !== undefined
+        ? { type: 'PLAY_CARD' as const, cardId: la.cardId, targetFieldCardId: la.targetFieldCardId }
+        : { type: 'PLAY_CARD' as const, cardId: la.cardId };
+    const after = gameSessionReducer(session, { type: 'SUBMIT_HUMAN_ACTION', action: play });
+    // Sanity: this session has messages from the action
+    expect(after.lastEventMessages.length).toBeGreaterThan(0);
+    return after;
+  }
+
+  it('SUBMIT_HUMAN_ACTION — clears lastEventMessages when game has ended', () => {
+    const base = sessionWithMessages();
+    const ended = { ...base, phase: 'ended' as const };
+    const next = gameSessionReducer(ended, {
+      type: 'SUBMIT_HUMAN_ACTION',
+      action: { type: 'CHOOSE_STOP' },
+    });
+    expect(next.error).not.toBeNull();
+    expect(next.lastEventMessages).toEqual([]);
+  });
+
+  it('SUBMIT_HUMAN_ACTION — clears lastEventMessages on invalid cardId', () => {
+    const base = sessionWithMessages();
+    // It is now AI's turn; submitting another human action triggers "Not human turn" error.
+    const next = gameSessionReducer(base, {
+      type: 'SUBMIT_HUMAN_ACTION',
+      action: { type: 'PLAY_CARD', cardId: 'invalid-card-id' },
+    });
+    expect(next.error).not.toBeNull();
+    expect(next.lastEventMessages).toEqual([]);
+  });
+
+  it('SUBMIT_HUMAN_ACTION — clears lastEventMessages when no game is active', () => {
+    // Force a session with messages but gameState = null (simulated by idle + override)
+    const idle: GameSessionState = {
+      ...createIdleSession(),
+      lastEventMessages: ['내가 카드를 냈습니다.'],
+    };
+    const next = gameSessionReducer(idle, {
+      type: 'SUBMIT_HUMAN_ACTION',
+      action: { type: 'PLAY_CARD', cardId: 'any' },
+    });
+    expect(next.error).toBe('No active game session');
+    expect(next.lastEventMessages).toEqual([]);
+  });
+
+  it('ADVANCE_AI — clears lastEventMessages when no game is active', () => {
+    const idle: GameSessionState = {
+      ...createIdleSession(),
+      lastEventMessages: ['AI가 카드를 냈습니다.'],
+    };
+    const next = gameSessionReducer(idle, {
+      type: 'ADVANCE_AI',
+      randomProvider: new SeededRandomProvider(0),
+    });
+    expect(next.error).toBe('No active game session');
+    expect(next.lastEventMessages).toEqual([]);
+  });
+});
