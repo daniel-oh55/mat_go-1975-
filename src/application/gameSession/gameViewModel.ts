@@ -1,0 +1,134 @@
+import type { Card, CardId } from '../../engine/types/card.js';
+import type { GameState, PendingDecision } from '../../engine/state/gameState.js';
+import type { FinalResult } from '../../engine/types/result.js';
+import { getLegalActions } from '../../engine/actions/legalActions.js';
+
+/**
+ * A legal PLAY_CARD action the human can submit.
+ * Includes the target field card ID when the played card has two or more
+ * same-month field cards to choose from (OD-2).
+ */
+export interface LegalPlayAction {
+  readonly cardId: CardId;
+  readonly targetFieldCardId?: CardId;
+}
+
+/**
+ * A UI-friendly snapshot derived from GameState.
+ *
+ * Pre-computes everything the UI needs so that components never import
+ * from the engine directly. Derived by buildGameViewModel() after every
+ * engine action.
+ */
+export interface GameViewModel {
+  /** Human player's hand — full Card objects (the player can see these). */
+  readonly humanHand: ReadonlyArray<Card>;
+  /** Number of cards in the AI's hand. UI sees count only, not the cards. */
+  readonly aiHandCount: number;
+  /** Cards currently on the field. */
+  readonly fieldCards: ReadonlyArray<Card>;
+  /** Number of cards remaining in the draw pile. */
+  readonly drawPileCount: number;
+  /** Human player's current total score. */
+  readonly humanScore: number;
+  /** AI player's current total score. */
+  readonly aiScore: number;
+  /** Cards the human player has captured. */
+  readonly humanCaptured: ReadonlyArray<Card>;
+  /** Cards the AI has captured. */
+  readonly aiCaptured: ReadonlyArray<Card>;
+  /** Which player currently holds the turn. */
+  readonly currentTurn: 'human' | 'ai';
+  /** True when it is the human player's turn to act. */
+  readonly isHumanTurn: boolean;
+  /**
+   * Card IDs the human can legally play this turn.
+   * Empty when it is not the human's turn. Used to highlight selectable cards.
+   */
+  readonly legalCardIds: ReadonlySet<CardId>;
+  /**
+   * Full legal PLAY_CARD actions for the human's current turn.
+   * Each entry pairs a card ID with an optional target field card ID.
+   * The UI picks the first entry whose cardId matches the clicked card.
+   */
+  readonly legalPlayActions: ReadonlyArray<LegalPlayAction>;
+  /**
+   * True when the game is in pendingGoStop phase and the human is the
+   * deciding player. The UI should display Go/Stop choice buttons.
+   */
+  readonly isPendingGoStopDecisionForHuman: boolean;
+  /** The pending Go/Stop decision, or null if none is active. */
+  readonly pendingDecision: PendingDecision | null;
+  /** Final result when the game has ended; null otherwise. */
+  readonly finalResult: FinalResult | null;
+  /** Engine phase, constrained to active-game phases (no 'idle'). */
+  readonly phase: 'playing' | 'pendingGoStop' | 'ended';
+}
+
+/**
+ * Derives a GameViewModel from a GameState.
+ * Pure function — has no side effects and does not call the engine directly
+ * except through getLegalActions (which is a pure engine query).
+ */
+export function buildGameViewModel(
+  state: GameState,
+  humanPlayerId: string,
+  aiPlayerId: string,
+): GameViewModel {
+  const humanHand = state.playerHands[humanPlayerId] ?? [];
+  const aiHandCount = (state.playerHands[aiPlayerId] ?? []).length;
+  const humanScore = state.scoreState[humanPlayerId]?.total ?? 0;
+  const aiScore = state.scoreState[aiPlayerId]?.total ?? 0;
+  const humanCaptured = state.capturedCards[humanPlayerId] ?? [];
+  const aiCaptured = state.capturedCards[aiPlayerId] ?? [];
+
+  const isHumanTurn = state.currentTurn === humanPlayerId;
+
+  const legalPlayActions: LegalPlayAction[] = [];
+  if (isHumanTurn && state.phase === 'playing') {
+    const legal = getLegalActions(state);
+    for (const action of legal) {
+      if (action.type === 'PLAY_CARD') {
+        if (action.targetFieldCardId !== undefined) {
+          legalPlayActions.push({ cardId: action.cardId, targetFieldCardId: action.targetFieldCardId });
+        } else {
+          legalPlayActions.push({ cardId: action.cardId });
+        }
+      }
+    }
+  }
+
+  const legalCardIds = new Set<CardId>(legalPlayActions.map((a) => a.cardId));
+
+  const isPendingGoStopDecisionForHuman =
+    state.phase === 'pendingGoStop' &&
+    state.pendingDecision !== null &&
+    state.pendingDecision.playerId === humanPlayerId;
+
+  const enginePhase = state.phase;
+  const phase: 'playing' | 'pendingGoStop' | 'ended' =
+    enginePhase === 'pendingGoStop'
+      ? 'pendingGoStop'
+      : enginePhase === 'ended'
+        ? 'ended'
+        : 'playing';
+
+  return {
+    humanHand,
+    aiHandCount,
+    fieldCards: state.fieldCards,
+    drawPileCount: state.drawPile.length,
+    humanScore,
+    aiScore,
+    humanCaptured,
+    aiCaptured,
+    currentTurn: isHumanTurn ? 'human' : 'ai',
+    isHumanTurn,
+    legalCardIds,
+    legalPlayActions,
+    isPendingGoStopDecisionForHuman,
+    pendingDecision: state.pendingDecision,
+    finalResult: state.finalResult,
+    phase,
+  };
+}
