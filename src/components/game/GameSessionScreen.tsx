@@ -130,7 +130,7 @@ export function GameSessionScreen() {
         aiScore={vm.aiScore}
         drawPileCount={vm.drawPileCount}
         aiHandCount={vm.aiHandCount}
-        isHumanTurn={vm.isHumanTurn}
+        statusDisplay={vm.statusDisplay}
       />
 
       {/* ── 2. AI Area ────────────────────────────────────────────────── */}

@@ -4,6 +4,30 @@ import type { FinalResult } from '../../engine/types/result.js';
 import { getLegalActions } from '../../engine/actions/legalActions.js';
 
 /**
+ * Discriminated identifier for the current game status from the player's perspective.
+ *
+ * 'humanTurn'   — Playing phase, human player's turn to play a card.
+ * 'aiTurn'      — Playing phase, AI player's turn.
+ * 'humanGoStop' — PendingGoStop phase, human player must choose Go or Stop.
+ * 'aiGoStop'    — PendingGoStop phase, AI player is deciding.
+ * 'ended'       — Game has ended.
+ */
+export type GameStatusKind =
+  | 'humanTurn'
+  | 'aiTurn'
+  | 'humanGoStop'
+  | 'aiGoStop'
+  | 'ended';
+
+/** Pre-computed status display for the current game state. */
+export interface GameStatusDisplay {
+  /** Semantic kind — use for styling decisions. */
+  readonly kind: GameStatusKind;
+  /** Korean label ready for display. */
+  readonly label: string;
+}
+
+/**
  * A legal PLAY_CARD action the human can submit.
  * Includes the target field card ID when the played card has two or more
  * same-month field cards to choose from (OD-2).
@@ -69,6 +93,12 @@ export interface GameViewModel {
   readonly finalResult: FinalResult | null;
   /** Engine phase, constrained to active-game phases (no 'idle'). */
   readonly phase: 'playing' | 'pendingGoStop' | 'ended';
+  /**
+   * Pre-computed status display for the current game state.
+   * Encodes both the semantic kind and the Korean label so the UI
+   * does not need to interpret phase + turn flags itself.
+   */
+  readonly statusDisplay: GameStatusDisplay;
 }
 
 /**
@@ -130,6 +160,8 @@ export function buildGameViewModel(
         ? 'ended'
         : 'playing';
 
+  const statusDisplay: GameStatusDisplay = buildStatusDisplay(phase, isHumanTurn, isPendingGoStopDecisionForHuman);
+
   return {
     humanHand,
     aiHandCount,
@@ -148,5 +180,26 @@ export function buildGameViewModel(
     pendingDecision: state.pendingDecision,
     finalResult: state.finalResult,
     phase,
+    statusDisplay,
   };
+}
+
+function buildStatusDisplay(
+  phase: 'playing' | 'pendingGoStop' | 'ended',
+  isHumanTurn: boolean,
+  isPendingGoStopDecisionForHuman: boolean,
+): GameStatusDisplay {
+  if (phase === 'ended') {
+    return { kind: 'ended', label: '게임 종료' };
+  }
+  if (phase === 'pendingGoStop') {
+    if (isPendingGoStopDecisionForHuman) {
+      return { kind: 'humanGoStop', label: '고/스톱 선택 중' };
+    }
+    return { kind: 'aiGoStop', label: 'AI 고/스톱 선택 중' };
+  }
+  if (isHumanTurn) {
+    return { kind: 'humanTurn', label: '▶ 내 차례' };
+  }
+  return { kind: 'aiTurn', label: '⌛ AI 차례' };
 }
