@@ -1,6 +1,7 @@
 import type { CardId } from './card.js';
 import type { PlayerId } from './player.js';
 import type { PlayerScoreState } from './score.js';
+import type { FinalResult } from './result.js';
 
 /**
  * Discriminated union of all events the engine can emit after processing
@@ -83,14 +84,17 @@ export interface GoStopDecisionRequiredEvent {
   readonly playerId: PlayerId;
 }
 
-/** Emitted when the current player declares Go. */
+/** Emitted when the current player declares Go. Game continues; goCount is the new running total. */
 export interface GoDeclaredEvent {
   readonly type: 'GO_DECLARED';
+  readonly playerId: PlayerId;
+  readonly goCount: number;
 }
 
 /** Emitted when the current player declares Stop. Game ends after this. */
 export interface StopDeclaredEvent {
   readonly type: 'STOP_DECLARED';
+  readonly playerId: PlayerId;
 }
 
 /** Emitted when the turn passes to the opponent. */
@@ -100,9 +104,10 @@ export interface TurnChangedEvent {
   readonly toPlayerId: PlayerId;
 }
 
-/** Emitted when the game reaches a terminal state. */
+/** Emitted when the game reaches a terminal state. Carries the final result. */
 export interface GameEndedEvent {
   readonly type: 'GAME_ENDED';
+  readonly result: FinalResult;
 }
 
 /**
