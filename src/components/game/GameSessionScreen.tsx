@@ -3,7 +3,6 @@ import {
   gameSessionReducer,
   createIdleSession,
   HUMAN_PLAYER_ID,
-  AI_PLAYER_ID,
 } from '../../application/gameSession/index.js';
 import { MathRandomProvider } from '../../application/mathRandomProvider.js';
 import type { LegalPlayAction } from '../../application/gameSession/index.js';
@@ -221,8 +220,8 @@ export function GameSessionScreen() {
           winner={vm.finalResult.winner}
           reason={vm.finalResult.reason}
           humanPlayerId={HUMAN_PLAYER_ID}
-          humanScore={vm.finalResult.scores[HUMAN_PLAYER_ID]?.total ?? 0}
-          aiScore={vm.finalResult.scores[AI_PLAYER_ID]?.total ?? 0}
+          humanScoreBreakdown={vm.humanScoreBreakdown}
+          aiScoreBreakdown={vm.aiScoreBreakdown}
           onRestart={handleStartGame}
         />
       )}

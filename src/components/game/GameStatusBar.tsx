@@ -1,4 +1,5 @@
 import type { GameStatusDisplay, GameStatusKind, PlayerScoreBreakdown } from '../../application/gameSession/index.js';
+import { ScoreBreakdown } from './ScoreBreakdown.js';
 
 const STATUS_COLOR: Record<GameStatusKind, string> = {
   humanTurn:   '#2a7',
@@ -7,15 +8,6 @@ const STATUS_COLOR: Record<GameStatusKind, string> = {
   aiGoStop:    '#888',
   ended:       '#555',
 };
-
-function formatBreakdown(b: PlayerScoreBreakdown): string {
-  const parts: string[] = [];
-  if (b.gwang > 0) parts.push(`광${b.gwang}`);
-  if (b.yeol > 0) parts.push(`열${b.yeol}`);
-  if (b.tti > 0) parts.push(`띠${b.tti}`);
-  if (b.pi > 0) parts.push(`피${b.pi}`);
-  return parts.join(' ');
-}
 
 interface GameStatusBarProps {
   humanScore: number;
@@ -36,9 +28,7 @@ export function GameStatusBar({
   humanScoreBreakdown,
   aiScoreBreakdown,
 }: GameStatusBarProps) {
-  const humanDetail = formatBreakdown(humanScoreBreakdown);
-  const aiDetail = formatBreakdown(aiScoreBreakdown);
-  const showBreakdown = humanDetail.length > 0 || aiDetail.length > 0;
+  const showBreakdown = humanScoreBreakdown.total > 0 || aiScoreBreakdown.total > 0;
 
   return (
     <div style={{
@@ -64,15 +54,9 @@ export function GameStatusBar({
 
       {/* Secondary row: category breakdown — only shown when either player has scored */}
       {showBreakdown && (
-        <div style={{
-          marginTop: 3,
-          fontSize: 11,
-          color: '#777',
-          display: 'flex',
-          gap: 16,
-        }}>
-          {humanDetail.length > 0 && <span>나: {humanDetail}</span>}
-          {aiDetail.length > 0 && <span>AI: {aiDetail}</span>}
+        <div style={{ marginTop: 3, display: 'flex', gap: 16 }}>
+          <ScoreBreakdown label="나" score={humanScoreBreakdown} compact />
+          <ScoreBreakdown label="AI" score={aiScoreBreakdown} compact />
         </div>
       )}
     </div>
