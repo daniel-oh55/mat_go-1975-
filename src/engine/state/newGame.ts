@@ -65,9 +65,9 @@ export function newGame(config: NewGameConfig): GameState {
     [player2.id]: [],
   };
 
-  const scoreState: Record<string, { readonly total: number }> = {
-    [player1.id]: { total: 0 },
-    [player2.id]: { total: 0 },
+  const scoreState: Record<string, { readonly total: number; readonly gwang: number; readonly yeol: number; readonly tti: number; readonly pi: number }> = {
+    [player1.id]: { total: 0, gwang: 0, yeol: 0, tti: 0, pi: 0 },
+    [player2.id]: { total: 0, gwang: 0, yeol: 0, tti: 0, pi: 0 },
   };
 
   const goStopState: Record<string, { readonly goCount: number }> = {

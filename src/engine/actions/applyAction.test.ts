@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { applyAction } from './applyAction.js';
+import { calculateScore } from '../scoring/scoring.js';
 import { createDefaultDeck } from '../cards/deck.js';
 import { defaultRuleset } from '../types/ruleset.js';
 import type { Card } from '../types/card.js';
@@ -65,10 +66,54 @@ function buildState(opts: {
     fieldCards,
     playerHands: { [HUMAN.id]: p1Hand, [AI.id]: p2Hand },
     capturedCards: { [HUMAN.id]: [], [AI.id]: [] },
-    scoreState: { [HUMAN.id]: { total: 0 }, [AI.id]: { total: 0 } },
+    scoreState: {
+      [HUMAN.id]: { total: 0, gwang: 0, yeol: 0, tti: 0, pi: 0 },
+      [AI.id]: { total: 0, gwang: 0, yeol: 0, tti: 0, pi: 0 },
+    },
     goStopState: { [HUMAN.id]: { goCount: 0 }, [AI.id]: { goCount: 0 } },
     pendingDecision: null,
     turnCount,
+    ruleset: defaultRuleset,
+  };
+}
+
+/**
+ * Builds a test GameState with pre-populated capturedCards.
+ * Computes initial scoreState from calculateScore so the state is consistent.
+ */
+function buildScoringState(opts: {
+  p1Hand: Card[];
+  p2Hand: Card[];
+  fieldCards: Card[];
+  p1Captured?: Card[];
+  p2Captured?: Card[];
+  currentTurn?: string;
+}): GameState {
+  const {
+    p1Hand, p2Hand, fieldCards,
+    p1Captured = [], p2Captured = [],
+    currentTurn = HUMAN.id,
+  } = opts;
+  const usedIds = new Set(
+    [...p1Hand, ...p2Hand, ...fieldCards, ...p1Captured, ...p2Captured].map((c) => c.id),
+  );
+  const drawPile = deck.filter((c) => !usedIds.has(c.id));
+
+  return {
+    players: [HUMAN, AI],
+    currentTurn,
+    phase: 'playing',
+    drawPile,
+    fieldCards,
+    playerHands: { [HUMAN.id]: p1Hand, [AI.id]: p2Hand },
+    capturedCards: { [HUMAN.id]: p1Captured, [AI.id]: p2Captured },
+    scoreState: {
+      [HUMAN.id]: calculateScore(p1Captured),
+      [AI.id]: calculateScore(p2Captured),
+    },
+    goStopState: { [HUMAN.id]: { goCount: 0 }, [AI.id]: { goCount: 0 } },
+    pendingDecision: null,
+    turnCount: 0,
     ruleset: defaultRuleset,
   };
 }
@@ -159,7 +204,7 @@ describe('applyAction — PLAY_CARD, 1 field match (capture)', () => {
     expect(result.state.fieldCards.some((c) => c.id === m1b.id)).toBe(false);
   });
 
-  it('scoreState is unchanged (scoring deferred to M2-PR6)', () => {
+  it('scoreState.total is 0 (captured 1 gwang + 1 tti — not enough to score)', () => {
     const result = applyAction(state, { type: 'PLAY_CARD', cardId: m1a.id });
     if (!result.success) throw new Error('Expected success');
     expect(result.state.scoreState[HUMAN.id]?.total).toBe(0);
@@ -356,5 +401,166 @@ describe('applyAction — invalid action handling', () => {
   it('returns failure for START_GAME', () => {
     const result = applyAction(state, { type: 'START_GAME' });
     expect(result.success).toBe(false);
+  });
+});
+
+// ─── Scoring: SCORE_CHANGED not emitted when score stays 0 ───────────────────
+
+describe('applyAction — scoring: no SCORE_CHANGED when score stays 0', () => {
+  // Play m1a (gwang, month1) with no field match → goes to field.
+  // Draw card (month2[2] pi) captures m2b (month2 tti) — 1 pi + 1 tti, score stays 0.
+  const state = buildState({
+    p1Hand: [m1a, m2a, m3a, m4a, m5a, m6a, m7a, m8a, m9a, m10a],
+    p2Hand: [m11a, m12a, month1[1]!, month1[2]!, month1[3]!, month4[1]!, month5[1]!, month6[1]!, month7[1]!, month8[1]!],
+    fieldCards: [m2b, m3b, month4[2]!, month5[2]!, month6[2]!, month7[2]!, month8[2]!, month9[2]!],
+  });
+
+  it('SCORE_CHANGED is NOT emitted when captured cards do not change score', () => {
+    const result = applyAction(state, { type: 'PLAY_CARD', cardId: m1a.id });
+    if (!result.success) throw new Error('Expected success');
+    expect(result.events.some((e) => e.type === 'SCORE_CHANGED')).toBe(false);
+  });
+
+  it('scoreState.total stays 0', () => {
+    const result = applyAction(state, { type: 'PLAY_CARD', cardId: m1a.id });
+    if (!result.success) throw new Error('Expected success');
+    expect(result.state.scoreState[HUMAN.id]?.total).toBe(0);
+  });
+
+  it('scoreState has all category scores at 0', () => {
+    const result = applyAction(state, { type: 'PLAY_CARD', cardId: m1a.id });
+    if (!result.success) throw new Error('Expected success');
+    const s = result.state.scoreState[HUMAN.id]!;
+    expect(s.gwang).toBe(0);
+    expect(s.yeol).toBe(0);
+    expect(s.tti).toBe(0);
+    expect(s.pi).toBe(0);
+  });
+});
+
+// ─── Scoring: 3 gwang → 3 pts ──────────────────────────────────────────────
+
+describe('applyAction — scoring: 3 gwang → 3 pts', () => {
+  // Pre-captured: m1a(gwang,month1) + m3a(gwang,month3) = 2 gwang = 0 pts.
+  // Play m8a(gwang,month8) → month8[1](yeol,month8) on field (1 match) → capture.
+  // Draw card also captures, but gwang score = 3 pts total.
+  const state3Gwang = buildScoringState({
+    p1Captured: [m1a, m3a],
+    p1Hand: [m8a, m2a, m4a, m5a, m6a, m7a, m9a, m10a, month3[1]!, month3[2]!],
+    p2Hand: [m11a, m12a, month1[1]!, month1[2]!, month1[3]!, month2[2]!, month2[3]!, month3[3]!, month4[1]!, month4[3]!],
+    fieldCards: [month8[1]!, m2b, month4[2]!, month5[2]!, month6[2]!, month7[2]!, month9[2]!, month10[2]!],
+  });
+
+  it('scoreState.gwang === 3 after capturing 3rd gwang', () => {
+    const result = applyAction(state3Gwang, { type: 'PLAY_CARD', cardId: m8a.id });
+    if (!result.success) throw new Error('Expected success');
+    expect(result.state.scoreState[HUMAN.id]?.gwang).toBe(3);
+  });
+
+  it('scoreState.total === 3 (gwang only contributes)', () => {
+    const result = applyAction(state3Gwang, { type: 'PLAY_CARD', cardId: m8a.id });
+    if (!result.success) throw new Error('Expected success');
+    expect(result.state.scoreState[HUMAN.id]?.total).toBe(3);
+  });
+
+  it('SCORE_CHANGED event is emitted', () => {
+    const result = applyAction(state3Gwang, { type: 'PLAY_CARD', cardId: m8a.id });
+    if (!result.success) throw new Error('Expected success');
+    expect(result.events.some((e) => e.type === 'SCORE_CHANGED')).toBe(true);
+  });
+
+  it('SCORE_CHANGED event carries correct playerId and score', () => {
+    const result = applyAction(state3Gwang, { type: 'PLAY_CARD', cardId: m8a.id });
+    if (!result.success) throw new Error('Expected success');
+    const evt = result.events.find((e) => e.type === 'SCORE_CHANGED');
+    if (!evt || evt.type !== 'SCORE_CHANGED') throw new Error('Expected SCORE_CHANGED event');
+    expect(evt.playerId).toBe(HUMAN.id);
+    expect(evt.score.gwang).toBe(3);
+    expect(evt.score.total).toBe(3);
+  });
+
+  it('phase stays playing (score 3 < threshold 7)', () => {
+    const result = applyAction(state3Gwang, { type: 'PLAY_CARD', cardId: m8a.id });
+    if (!result.success) throw new Error('Expected success');
+    expect(result.state.phase).toBe('playing');
+  });
+
+  it('turn advances to opponent (no Go/Stop triggered)', () => {
+    const result = applyAction(state3Gwang, { type: 'PLAY_CARD', cardId: m8a.id });
+    if (!result.success) throw new Error('Expected success');
+    expect(result.state.currentTurn).toBe(AI.id);
+    expect(result.events.some((e) => e.type === 'TURN_CHANGED')).toBe(true);
+  });
+});
+
+// ─── Go/Stop trigger ────────────────────────────────────────────────────────
+
+describe('applyAction — Go/Stop trigger (score reaches threshold)', () => {
+  // Pre-captured: 4 gwang (months 1,3,8,11) + 6 yeol (months 2,4,5,6,7,9) = 6 pts.
+  // Play m10a(yeol,month10) → month10[3](pi,month10) on field (1 match) → capture.
+  // Draw card also captures a month8 card, final: 4gwang + 7+yeol → score ≥ 7 → trigger.
+  const goStopTestState = buildScoringState({
+    p1Captured: [m1a, m3a, m8a, m11a, m2a, m4a, m5a, m6a, m7a, m9a],
+    p1Hand: [m10a, month1[1]!, month1[2]!, month2[1]!, month2[2]!, month3[1]!, month3[2]!, month4[1]!, month4[2]!, month5[1]!],
+    p2Hand: [m12a, month1[3]!, month2[3]!, month3[3]!, month4[3]!, month5[3]!, month6[1]!, month6[3]!, month7[1]!, month7[3]!],
+    fieldCards: [month10[3]!, month5[2]!, month6[2]!, month7[2]!, month8[1]!, month9[1]!, month11[1]!, month11[2]!],
+  });
+
+  it('returns success', () => {
+    const result = applyAction(goStopTestState, { type: 'PLAY_CARD', cardId: m10a.id });
+    expect(result.success).toBe(true);
+  });
+
+  it('phase becomes pendingGoStop', () => {
+    const result = applyAction(goStopTestState, { type: 'PLAY_CARD', cardId: m10a.id });
+    if (!result.success) throw new Error('Expected success');
+    expect(result.state.phase).toBe('pendingGoStop');
+  });
+
+  it('pendingDecision is set to goStop for current player', () => {
+    const result = applyAction(goStopTestState, { type: 'PLAY_CARD', cardId: m10a.id });
+    if (!result.success) throw new Error('Expected success');
+    expect(result.state.pendingDecision).not.toBeNull();
+    expect(result.state.pendingDecision?.type).toBe('goStop');
+    expect(result.state.pendingDecision?.playerId).toBe(HUMAN.id);
+  });
+
+  it('GO_STOP_DECISION_REQUIRED event is emitted', () => {
+    const result = applyAction(goStopTestState, { type: 'PLAY_CARD', cardId: m10a.id });
+    if (!result.success) throw new Error('Expected success');
+    expect(result.events.some((e) => e.type === 'GO_STOP_DECISION_REQUIRED')).toBe(true);
+  });
+
+  it('TURN_CHANGED event is NOT emitted when Go/Stop is triggered', () => {
+    const result = applyAction(goStopTestState, { type: 'PLAY_CARD', cardId: m10a.id });
+    if (!result.success) throw new Error('Expected success');
+    expect(result.events.some((e) => e.type === 'TURN_CHANGED')).toBe(false);
+  });
+
+  it('currentTurn stays with current player (turn does not advance)', () => {
+    const result = applyAction(goStopTestState, { type: 'PLAY_CARD', cardId: m10a.id });
+    if (!result.success) throw new Error('Expected success');
+    expect(result.state.currentTurn).toBe(HUMAN.id);
+  });
+
+  it('scoreState.total reaches threshold or above', () => {
+    const result = applyAction(goStopTestState, { type: 'PLAY_CARD', cardId: m10a.id });
+    if (!result.success) throw new Error('Expected success');
+    expect(result.state.scoreState[HUMAN.id]!.total).toBeGreaterThanOrEqual(7);
+  });
+
+  it('SCORE_CHANGED emitted before GO_STOP_DECISION_REQUIRED', () => {
+    const result = applyAction(goStopTestState, { type: 'PLAY_CARD', cardId: m10a.id });
+    if (!result.success) throw new Error('Expected success');
+    const scoreIdx = result.events.findIndex((e) => e.type === 'SCORE_CHANGED');
+    const goStopIdx = result.events.findIndex((e) => e.type === 'GO_STOP_DECISION_REQUIRED');
+    expect(scoreIdx).toBeGreaterThanOrEqual(0);
+    expect(goStopIdx).toBeGreaterThan(scoreIdx);
+  });
+
+  it('total card count remains 48', () => {
+    const result = applyAction(goStopTestState, { type: 'PLAY_CARD', cardId: m10a.id });
+    if (!result.success) throw new Error('Expected success');
+    expect(new Set(allCardIds(result.state)).size).toBe(48);
   });
 });

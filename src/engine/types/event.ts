@@ -1,5 +1,6 @@
 import type { CardId } from './card.js';
 import type { PlayerId } from './player.js';
+import type { PlayerScoreState } from './score.js';
 
 /**
  * Discriminated union of all events the engine can emit after processing
@@ -69,6 +70,8 @@ export interface CardCapturedEvent {
 /** Emitted when a player's score changes as a result of a capture. */
 export interface ScoreChangedEvent {
   readonly type: 'SCORE_CHANGED';
+  readonly playerId: PlayerId;
+  readonly score: PlayerScoreState;
 }
 
 /**
@@ -77,6 +80,7 @@ export interface ScoreChangedEvent {
  */
 export interface GoStopDecisionRequiredEvent {
   readonly type: 'GO_STOP_DECISION_REQUIRED';
+  readonly playerId: PlayerId;
 }
 
 /** Emitted when the current player declares Go. */

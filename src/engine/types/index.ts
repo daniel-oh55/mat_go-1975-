@@ -14,6 +14,8 @@ export type { CardZone, CardLocation } from './zone.js';
 export type { MultipleMatchMode, Ruleset } from './ruleset.js';
 export { defaultRuleset } from './ruleset.js';
 
+export type { PlayerScoreState } from './score.js';
+
 export type {
   GameAction,
   GameActionType,
