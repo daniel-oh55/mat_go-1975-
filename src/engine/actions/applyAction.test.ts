@@ -564,3 +564,288 @@ describe('applyAction — Go/Stop trigger (score reaches threshold)', () => {
     expect(new Set(allCardIds(result.state)).size).toBe(48);
   });
 });
+
+// ─── CHOOSE_GO and CHOOSE_STOP ───────────────────────────────────────────────
+//
+// Base card layout for all Go/Stop decision tests.
+//
+// p1Captured (11 cards — score = 7 pts):
+//   3 gwang (m1a,m3a,m8a) + 8 yeol (m2a,m4a,m5a,m6a,m7a,m9a,m10a,month8[1]) = 3+4 = 7
+//
+// p1Hand (10 cards): month1[1/2], m2b, month3[1/2/3], month4[1/2/3], m12a
+// p2Hand (10 cards): m11a, month11[1/2/3], month12[1/2/3], month7[1/2/3]
+// fieldCards (8 cards): month1[3], month2[2/3], month6[1/2/3], month9[1/2]
+// drawPile (9 cards): month5[1/2/3], month8[2/3], month9[3], month10[1/2/3]
+//   drawPile[0] = month5[1] (m05-tti, month5) — no month5 on field → goes to field if drawn
+//
+// This layout gives 11+10+10+8 = 39 placed cards; drawPile = 9 cards.
+// Total = 48 ✓
+
+function buildGoStopBaseState(): GameState {
+  return buildScoringState({
+    p1Captured: [m1a, m3a, m8a, m2a, m4a, m5a, m6a, m7a, m9a, m10a, month8[1]!],
+    p1Hand: [
+      month1[1]!, month1[2]!, m2b, month3[1]!, month3[2]!, month3[3]!,
+      month4[1]!, month4[2]!, month4[3]!, m12a,
+    ],
+    p2Hand: [
+      m11a, month11[1]!, month11[2]!, month11[3]!,
+      month12[1]!, month12[2]!, month12[3]!,
+      month7[1]!, month7[2]!, month7[3]!,
+    ],
+    fieldCards: [
+      month1[3]!, month2[2]!, month2[3]!,
+      month6[1]!, month6[2]!, month6[3]!,
+      month9[1]!, month9[2]!,
+    ],
+  });
+}
+
+// pendingGoStop state: HUMAN reached 7 pts, awaiting Go/Stop decision.
+function buildPendingGoStopState(goCount = 0): GameState {
+  const base = buildGoStopBaseState();
+  return {
+    ...base,
+    phase: 'pendingGoStop',
+    pendingDecision: { type: 'goStop', playerId: HUMAN.id },
+    goStopState: {
+      [HUMAN.id]: { goCount },
+      [AI.id]: { goCount: 0 },
+    },
+  };
+}
+
+// ─── CHOOSE_GO ────────────────────────────────────────────────────────────────
+
+describe('applyAction — CHOOSE_GO in pendingGoStop state', () => {
+  const pending = buildPendingGoStopState(0);
+
+  it('returns success', () => {
+    expect(applyAction(pending, { type: 'CHOOSE_GO' }).success).toBe(true);
+  });
+
+  it('phase transitions to playing', () => {
+    const result = applyAction(pending, { type: 'CHOOSE_GO' });
+    if (!result.success) throw new Error('Expected success');
+    expect(result.state.phase).toBe('playing');
+  });
+
+  it('pendingDecision becomes null', () => {
+    const result = applyAction(pending, { type: 'CHOOSE_GO' });
+    if (!result.success) throw new Error('Expected success');
+    expect(result.state.pendingDecision).toBeNull();
+  });
+
+  it('currentTurn advances to opponent (AI)', () => {
+    const result = applyAction(pending, { type: 'CHOOSE_GO' });
+    if (!result.success) throw new Error('Expected success');
+    expect(result.state.currentTurn).toBe(AI.id);
+  });
+
+  it('goCount increments from 0 to 1', () => {
+    const result = applyAction(pending, { type: 'CHOOSE_GO' });
+    if (!result.success) throw new Error('Expected success');
+    expect(result.state.goStopState[HUMAN.id]?.goCount).toBe(1);
+  });
+
+  it('GO_DECLARED event emitted with correct playerId and goCount', () => {
+    const result = applyAction(pending, { type: 'CHOOSE_GO' });
+    if (!result.success) throw new Error('Expected success');
+    const evt = result.events.find((e) => e.type === 'GO_DECLARED');
+    if (!evt || evt.type !== 'GO_DECLARED') throw new Error('Expected GO_DECLARED');
+    expect(evt.playerId).toBe(HUMAN.id);
+    expect(evt.goCount).toBe(1);
+  });
+
+  it('TURN_CHANGED event emitted', () => {
+    const result = applyAction(pending, { type: 'CHOOSE_GO' });
+    if (!result.success) throw new Error('Expected success');
+    const evt = result.events.find((e) => e.type === 'TURN_CHANGED');
+    expect(evt).toBeDefined();
+  });
+
+  it('total card count remains 48', () => {
+    const result = applyAction(pending, { type: 'CHOOSE_GO' });
+    if (!result.success) throw new Error('Expected success');
+    expect(new Set(allCardIds(result.state)).size).toBe(48);
+  });
+
+  it('CHOOSE_GO fails in playing phase (not a pending state)', () => {
+    const base = buildGoStopBaseState();
+    const result = applyAction(base, { type: 'CHOOSE_GO' });
+    expect(result.success).toBe(false);
+  });
+
+  it('goCount increments correctly from an existing non-zero count', () => {
+    const pending2 = buildPendingGoStopState(2);
+    const result = applyAction(pending2, { type: 'CHOOSE_GO' });
+    if (!result.success) throw new Error('Expected success');
+    expect(result.state.goStopState[HUMAN.id]?.goCount).toBe(3);
+  });
+});
+
+// ─── CHOOSE_STOP ─────────────────────────────────────────────────────────────
+
+describe('applyAction — CHOOSE_STOP in pendingGoStop state', () => {
+  const pending = buildPendingGoStopState(0);
+
+  it('returns success', () => {
+    expect(applyAction(pending, { type: 'CHOOSE_STOP' }).success).toBe(true);
+  });
+
+  it('phase transitions to ended', () => {
+    const result = applyAction(pending, { type: 'CHOOSE_STOP' });
+    if (!result.success) throw new Error('Expected success');
+    expect(result.state.phase).toBe('ended');
+  });
+
+  it('pendingDecision becomes null', () => {
+    const result = applyAction(pending, { type: 'CHOOSE_STOP' });
+    if (!result.success) throw new Error('Expected success');
+    expect(result.state.pendingDecision).toBeNull();
+  });
+
+  it('STOP_DECLARED event emitted with correct playerId', () => {
+    const result = applyAction(pending, { type: 'CHOOSE_STOP' });
+    if (!result.success) throw new Error('Expected success');
+    const evt = result.events.find((e) => e.type === 'STOP_DECLARED');
+    if (!evt || evt.type !== 'STOP_DECLARED') throw new Error('Expected STOP_DECLARED');
+    expect(evt.playerId).toBe(HUMAN.id);
+  });
+
+  it('GAME_ENDED event emitted', () => {
+    const result = applyAction(pending, { type: 'CHOOSE_STOP' });
+    if (!result.success) throw new Error('Expected success');
+    expect(result.events.some((e) => e.type === 'GAME_ENDED')).toBe(true);
+  });
+
+  it('GAME_ENDED result.winner is HUMAN (7 pts vs 0 pts)', () => {
+    const result = applyAction(pending, { type: 'CHOOSE_STOP' });
+    if (!result.success) throw new Error('Expected success');
+    const evt = result.events.find((e) => e.type === 'GAME_ENDED');
+    if (!evt || evt.type !== 'GAME_ENDED') throw new Error('Expected GAME_ENDED');
+    expect(evt.result.winner).toBe(HUMAN.id);
+  });
+
+  it('GAME_ENDED result.reason is "stop"', () => {
+    const result = applyAction(pending, { type: 'CHOOSE_STOP' });
+    if (!result.success) throw new Error('Expected success');
+    const evt = result.events.find((e) => e.type === 'GAME_ENDED');
+    if (!evt || evt.type !== 'GAME_ENDED') throw new Error('Expected GAME_ENDED');
+    expect(evt.result.reason).toBe('stop');
+  });
+
+  it('GAME_ENDED result.scores carries both player scores', () => {
+    const result = applyAction(pending, { type: 'CHOOSE_STOP' });
+    if (!result.success) throw new Error('Expected success');
+    const evt = result.events.find((e) => e.type === 'GAME_ENDED');
+    if (!evt || evt.type !== 'GAME_ENDED') throw new Error('Expected GAME_ENDED');
+    expect(evt.result.scores[HUMAN.id]?.total).toBe(7);
+    expect(evt.result.scores[AI.id]?.total).toBe(0);
+  });
+
+  it('STOP_DECLARED is emitted before GAME_ENDED', () => {
+    const result = applyAction(pending, { type: 'CHOOSE_STOP' });
+    if (!result.success) throw new Error('Expected success');
+    const stopIdx = result.events.findIndex((e) => e.type === 'STOP_DECLARED');
+    const endIdx = result.events.findIndex((e) => e.type === 'GAME_ENDED');
+    expect(stopIdx).toBeGreaterThanOrEqual(0);
+    expect(endIdx).toBeGreaterThan(stopIdx);
+  });
+
+  it('further PLAY_CARD action fails after game ended', () => {
+    const result = applyAction(pending, { type: 'CHOOSE_STOP' });
+    if (!result.success) throw new Error('Expected success');
+    const endedState = result.state;
+    const cardId = endedState.playerHands[HUMAN.id]![0]!.id;
+    const further = applyAction(endedState, { type: 'PLAY_CARD', cardId });
+    expect(further.success).toBe(false);
+  });
+
+  it('CHOOSE_STOP fails in playing phase', () => {
+    const base = buildGoStopBaseState();
+    const result = applyAction(base, { type: 'CHOOSE_STOP' });
+    expect(result.success).toBe(false);
+  });
+
+  it('winner is null when both players have equal scores (draw)', () => {
+    const drawState: GameState = {
+      ...buildPendingGoStopState(0),
+      // Override scoreState to force equal scores; captured cards are unchanged (stateValidation
+      // does not verify scoreState consistency with capturedCards).
+      scoreState: {
+        [HUMAN.id]: { total: 7, gwang: 3, yeol: 4, tti: 0, pi: 0 },
+        [AI.id]:   { total: 7, gwang: 3, yeol: 4, tti: 0, pi: 0 },
+      },
+    };
+    const result = applyAction(drawState, { type: 'CHOOSE_STOP' });
+    if (!result.success) throw new Error('Expected success');
+    const evt = result.events.find((e) => e.type === 'GAME_ENDED');
+    if (!evt || evt.type !== 'GAME_ENDED') throw new Error('Expected GAME_ENDED');
+    expect(evt.result.winner).toBeNull();
+  });
+});
+
+// ─── Trigger fix: no re-trigger when score unchanged ─────────────────────────
+//
+// After CHOOSE_GO, a player's score is already >= threshold. If their next
+// turn produces no new captures (or only captures that don't change the total),
+// GO_STOP_DECISION_REQUIRED must NOT fire again.
+//
+// This test builds a 'playing' state with score=7 and goCount=1 (simulating the
+// state after the player has declared Go once). Playing m12a yields no capture
+// (no month12 on field; drawPile[0] = month5[1] also has no field match after
+// m12a lands). Score stays 7 → `7 >= 7 && 7 > 7` = false → no retrigger.
+
+describe('applyAction — trigger fix: no GO_STOP retrigger when score unchanged', () => {
+  const noReTriggerState: GameState = {
+    ...buildGoStopBaseState(),
+    // Simulate state after Go was declared (goCount=1, score still at threshold)
+    goStopState: {
+      [HUMAN.id]: { goCount: 1 },
+      [AI.id]: { goCount: 0 },
+    },
+  };
+
+  it('returns success', () => {
+    const result = applyAction(noReTriggerState, { type: 'PLAY_CARD', cardId: m12a.id });
+    expect(result.success).toBe(true);
+  });
+
+  it('GO_STOP_DECISION_REQUIRED is NOT emitted when score stays flat', () => {
+    const result = applyAction(noReTriggerState, { type: 'PLAY_CARD', cardId: m12a.id });
+    if (!result.success) throw new Error('Expected success');
+    expect(result.events.some((e) => e.type === 'GO_STOP_DECISION_REQUIRED')).toBe(false);
+  });
+
+  it('SCORE_CHANGED is NOT emitted when score stays flat', () => {
+    const result = applyAction(noReTriggerState, { type: 'PLAY_CARD', cardId: m12a.id });
+    if (!result.success) throw new Error('Expected success');
+    expect(result.events.some((e) => e.type === 'SCORE_CHANGED')).toBe(false);
+  });
+
+  it('phase stays playing', () => {
+    const result = applyAction(noReTriggerState, { type: 'PLAY_CARD', cardId: m12a.id });
+    if (!result.success) throw new Error('Expected success');
+    expect(result.state.phase).toBe('playing');
+  });
+
+  it('turn advances to opponent', () => {
+    const result = applyAction(noReTriggerState, { type: 'PLAY_CARD', cardId: m12a.id });
+    if (!result.success) throw new Error('Expected success');
+    expect(result.state.currentTurn).toBe(AI.id);
+    expect(result.events.some((e) => e.type === 'TURN_CHANGED')).toBe(true);
+  });
+
+  it('scoreState.total remains 7', () => {
+    const result = applyAction(noReTriggerState, { type: 'PLAY_CARD', cardId: m12a.id });
+    if (!result.success) throw new Error('Expected success');
+    expect(result.state.scoreState[HUMAN.id]?.total).toBe(7);
+  });
+
+  it('total card count remains 48', () => {
+    const result = applyAction(noReTriggerState, { type: 'PLAY_CARD', cardId: m12a.id });
+    if (!result.success) throw new Error('Expected success');
+    expect(new Set(allCardIds(result.state)).size).toBe(48);
+  });
+});

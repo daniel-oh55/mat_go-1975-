@@ -16,6 +16,8 @@ export { defaultRuleset } from './ruleset.js';
 
 export type { PlayerScoreState } from './score.js';
 
+export type { FinalResult, GameEndReason } from './result.js';
+
 export type {
   GameAction,
   GameActionType,
