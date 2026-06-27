@@ -338,22 +338,23 @@ describe('gameSessionReducer — ADVANCE_AI phase guards', () => {
     };
   }
 
-  it('returns error when advancing AI on human turn (playing phase)', () => {
-    // Game starts with human first — ADVANCE_AI must be rejected
+  it('is a no-op when advancing AI on human turn (playing phase)', () => {
+    // Game starts with human first — ADVANCE_AI must silently do nothing
     const session = startedSession(0);
     const next = gameSessionReducer(session, {
       type: 'ADVANCE_AI',
       randomProvider: new SeededRandomProvider(0),
     });
-    expect(next.error).toBe('Cannot advance AI on human turn');
+    expect(next).toBe(session);
   });
 
-  it('returns error when advancing AI during human pendingGoStop decision', () => {
-    const next = gameSessionReducer(humanPendingSession(), {
+  it('is a no-op when advancing AI during human pendingGoStop decision', () => {
+    const session = humanPendingSession();
+    const next = gameSessionReducer(session, {
       type: 'ADVANCE_AI',
       randomProvider: new SeededRandomProvider(0),
     });
-    expect(next.error).toBe('Cannot advance AI during human pendingGoStop decision');
+    expect(next).toBe(session);
   });
 
   it('does not error when advancing AI during AI pendingGoStop decision', () => {
