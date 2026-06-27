@@ -1,5 +1,5 @@
 export type { SessionPhase, GameSessionState } from './gameSessionTypes.js';
-export type { GameViewModel, LegalPlayAction, GameStatusKind, GameStatusDisplay } from './gameViewModel.js';
+export type { GameViewModel, LegalPlayAction, GameStatusKind, GameStatusDisplay, PlayerScoreBreakdown } from './gameViewModel.js';
 export { buildGameViewModel } from './gameViewModel.js';
 export {
   HUMAN_PLAYER_ID,

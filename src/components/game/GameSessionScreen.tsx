@@ -131,6 +131,8 @@ export function GameSessionScreen() {
         drawPileCount={vm.drawPileCount}
         aiHandCount={vm.aiHandCount}
         statusDisplay={vm.statusDisplay}
+        humanScoreBreakdown={vm.humanScoreBreakdown}
+        aiScoreBreakdown={vm.aiScoreBreakdown}
       />
 
       {/* ── 2. AI Area ────────────────────────────────────────────────── */}

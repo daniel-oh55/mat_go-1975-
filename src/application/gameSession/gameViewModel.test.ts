@@ -344,3 +344,67 @@ describe('buildGameViewModel — statusDisplay', () => {
     }
   });
 });
+
+// ─── scoreBreakdown ───────────────────────────────────────────────────────────
+
+describe('buildGameViewModel — scoreBreakdown', () => {
+  it('humanScoreBreakdown.total matches humanScore at game start', () => {
+    const vm = buildGameViewModel(freshState(), HUMAN_ID, AI_ID);
+    expect(vm.humanScoreBreakdown.total).toBe(vm.humanScore);
+  });
+
+  it('aiScoreBreakdown.total matches aiScore at game start', () => {
+    const vm = buildGameViewModel(freshState(), HUMAN_ID, AI_ID);
+    expect(vm.aiScoreBreakdown.total).toBe(vm.aiScore);
+  });
+
+  it('all breakdown fields are zero at game start', () => {
+    const vm = buildGameViewModel(freshState(), HUMAN_ID, AI_ID);
+    expect(vm.humanScoreBreakdown).toEqual({ total: 0, gwang: 0, yeol: 0, tti: 0, pi: 0 });
+    expect(vm.aiScoreBreakdown).toEqual({ total: 0, gwang: 0, yeol: 0, tti: 0, pi: 0 });
+  });
+
+  it('breakdown invariant: total === gwang + yeol + tti + pi (human)', () => {
+    const score = { total: 5, gwang: 2, yeol: 1, tti: 1, pi: 1 };
+    const state = {
+      ...freshState(),
+      scoreState: {
+        [HUMAN_ID]: score,
+        [AI_ID]: { total: 0, gwang: 0, yeol: 0, tti: 0, pi: 0 },
+      },
+    };
+    const vm = buildGameViewModel(state, HUMAN_ID, AI_ID);
+    const b = vm.humanScoreBreakdown;
+    expect(b.gwang + b.yeol + b.tti + b.pi).toBe(b.total);
+  });
+
+  it('breakdown invariant: total === gwang + yeol + tti + pi (AI)', () => {
+    const score = { total: 3, gwang: 0, yeol: 0, tti: 1, pi: 2 };
+    const state = {
+      ...freshState(),
+      scoreState: {
+        [HUMAN_ID]: { total: 0, gwang: 0, yeol: 0, tti: 0, pi: 0 },
+        [AI_ID]: score,
+      },
+    };
+    const vm = buildGameViewModel(state, HUMAN_ID, AI_ID);
+    const b = vm.aiScoreBreakdown;
+    expect(b.gwang + b.yeol + b.tti + b.pi).toBe(b.total);
+  });
+
+  it('humanScoreBreakdown reflects injected score state', () => {
+    const score = { total: 7, gwang: 3, yeol: 2, tti: 1, pi: 1 };
+    const state = {
+      ...freshState(),
+      scoreState: {
+        [HUMAN_ID]: score,
+        [AI_ID]: { total: 0, gwang: 0, yeol: 0, tti: 0, pi: 0 },
+      },
+    };
+    const vm = buildGameViewModel(state, HUMAN_ID, AI_ID);
+    expect(vm.humanScoreBreakdown.gwang).toBe(3);
+    expect(vm.humanScoreBreakdown.yeol).toBe(2);
+    expect(vm.humanScoreBreakdown.tti).toBe(1);
+    expect(vm.humanScoreBreakdown.pi).toBe(1);
+  });
+});

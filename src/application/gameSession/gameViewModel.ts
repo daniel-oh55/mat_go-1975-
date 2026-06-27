@@ -28,6 +28,23 @@ export interface GameStatusDisplay {
 }
 
 /**
+ * Score contribution breakdown for one player, expressed in Application Layer terms.
+ *
+ * Each numeric field is the score points contributed by that category — not a card count.
+ * Invariant: total === gwang + yeol + tti + pi.
+ *
+ * Defined here (not re-exported from the engine) so UI components import only from the
+ * Application Layer boundary.
+ */
+export interface PlayerScoreBreakdown {
+  readonly total: number;
+  readonly gwang: number;
+  readonly yeol: number;
+  readonly tti: number;
+  readonly pi: number;
+}
+
+/**
  * A legal PLAY_CARD action the human can submit.
  * Includes the target field card ID when the played card has two or more
  * same-month field cards to choose from (OD-2).
@@ -57,6 +74,10 @@ export interface GameViewModel {
   readonly humanScore: number;
   /** AI player's current total score. */
   readonly aiScore: number;
+  /** Human player's score broken down by category (광/열/띠/피). */
+  readonly humanScoreBreakdown: PlayerScoreBreakdown;
+  /** AI player's score broken down by category. */
+  readonly aiScoreBreakdown: PlayerScoreBreakdown;
   /** Cards the human player has captured. */
   readonly humanCaptured: ReadonlyArray<Card>;
   /** Cards the AI has captured. */
@@ -113,10 +134,13 @@ export function buildGameViewModel(
 ): GameViewModel {
   const humanHand = state.playerHands[humanPlayerId] ?? [];
   const aiHandCount = (state.playerHands[aiPlayerId] ?? []).length;
-  const humanScore = state.scoreState[humanPlayerId]?.total ?? 0;
-  const aiScore = state.scoreState[aiPlayerId]?.total ?? 0;
   const humanCaptured = state.capturedCards[humanPlayerId] ?? [];
   const aiCaptured = state.capturedCards[aiPlayerId] ?? [];
+
+  const humanScoreBreakdown: PlayerScoreBreakdown = toBreakdown(state.scoreState[humanPlayerId]);
+  const aiScoreBreakdown: PlayerScoreBreakdown = toBreakdown(state.scoreState[aiPlayerId]);
+  const humanScore = humanScoreBreakdown.total;
+  const aiScore = aiScoreBreakdown.total;
 
   const isHumanTurn = state.currentTurn === humanPlayerId;
 
@@ -169,6 +193,8 @@ export function buildGameViewModel(
     drawPileCount: state.drawPile.length,
     humanScore,
     aiScore,
+    humanScoreBreakdown,
+    aiScoreBreakdown,
     humanCaptured,
     aiCaptured,
     currentTurn: isHumanTurn ? 'human' : 'ai',
@@ -182,6 +208,13 @@ export function buildGameViewModel(
     phase,
     statusDisplay,
   };
+}
+
+const ZERO_BREAKDOWN: PlayerScoreBreakdown = { total: 0, gwang: 0, yeol: 0, tti: 0, pi: 0 };
+
+function toBreakdown(s: { total: number; gwang: number; yeol: number; tti: number; pi: number } | undefined): PlayerScoreBreakdown {
+  if (s === undefined) return ZERO_BREAKDOWN;
+  return { total: s.total, gwang: s.gwang, yeol: s.yeol, tti: s.tti, pi: s.pi };
 }
 
 function buildStatusDisplay(
