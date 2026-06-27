@@ -130,7 +130,7 @@ describe('formatGameEvents — GAME_ENDED', () => {
         type: 'GAME_ENDED',
         result: {
           winner: HUMAN,
-          reason: 'stop',
+          reason: 'stop' as const,
           scores: {
             [HUMAN]: { total: 10, gwang: 0, yeol: 0, tti: 5, pi: 5 },
             [AI]: { total: 4, gwang: 0, yeol: 0, tti: 2, pi: 2 },
