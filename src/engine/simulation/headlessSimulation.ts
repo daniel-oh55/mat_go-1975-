@@ -9,13 +9,23 @@ import { selectBasicAiAction } from '../ai/basicAi.js';
 
 const DEFAULT_MAX_ACTIONS = 500;
 
+/**
+ * Default player setup used when `players` is omitted from HeadlessSimulationConfig.
+ * Mirrors the MVP player configuration: one human player and one AI player.
+ */
+const DEFAULT_SIMULATION_PLAYERS: ReadonlyArray<EnginePlayer> = [
+  { id: 'human', kind: 'human' },
+  { id: 'ai', kind: 'ai' },
+];
+
 export interface HeadlessSimulationConfig {
   /**
    * Players for the game. Supports both human and AI player kinds.
    * Human turns use a uniform-random PLAY_CARD selection strategy
    * so the simulation can run without any UI.
+   * Defaults to [{ id: 'human', kind: 'human' }, { id: 'ai', kind: 'ai' }] when omitted.
    */
-  readonly players: ReadonlyArray<EnginePlayer>;
+  readonly players?: ReadonlyArray<EnginePlayer>;
   readonly randomProvider: RandomProvider;
   /**
    * Hard upper bound on the number of actions applied before aborting.
@@ -99,9 +109,10 @@ export function runHeadlessSimulation(
   config: HeadlessSimulationConfig,
 ): HeadlessSimulationResult {
   const maxActions = config.maxActions ?? DEFAULT_MAX_ACTIONS;
+  const players = config.players ?? DEFAULT_SIMULATION_PLAYERS;
 
   let state: GameState = newGame({
-    players: config.players,
+    players,
     randomProvider: config.randomProvider,
   });
 
@@ -129,7 +140,18 @@ export function runHeadlessSimulation(
       };
     }
 
-    const applied = applyAction(state, selection.action);
+    let applied: ReturnType<typeof applyAction>;
+    try {
+      applied = applyAction(state, selection.action);
+    } catch (err) {
+      return {
+        status: 'invalidState',
+        finalState: state,
+        turnCount: state.turnCount,
+        actionCount,
+        errors: [err instanceof Error ? err.message : String(err)],
+      };
+    }
     if (!applied.success) {
       return {
         status: 'actionApplicationFailed',

@@ -118,6 +118,42 @@ export function validateGameState(state: GameState): GameStateValidationResult {
     errors.push(`phase is "${state.phase}" but finalResult is not null`);
   }
 
+  // finalResult scores and winner consistency (when phase === 'ended')
+  if (state.phase === 'ended' && state.finalResult !== null) {
+    for (const player of state.players) {
+      const finalScore = state.finalResult.scores[player.id];
+      const currentScore = state.scoreState[player.id];
+
+      if (finalScore === undefined) {
+        errors.push(
+          `finalResult.scores missing entry for player "${player.id}"`,
+        );
+      } else if (
+        currentScore !== undefined &&
+        finalScore.total !== currentScore.total
+      ) {
+        errors.push(
+          `finalResult.scores.total for player "${player.id}" is ${finalScore.total} but scoreState.total is ${currentScore.total}`,
+        );
+      }
+    }
+
+    const { winner } = state.finalResult;
+    if (winner !== null) {
+      const winnerScore = state.finalResult.scores[winner]?.total ?? 0;
+      for (const player of state.players) {
+        if (player.id !== winner) {
+          const otherScore = state.finalResult.scores[player.id]?.total ?? 0;
+          if (winnerScore <= otherScore) {
+            errors.push(
+              `finalResult.winner "${winner}" has score ${winnerScore} which is not strictly greater than player "${player.id}" score ${otherScore}`,
+            );
+          }
+        }
+      }
+    }
+  }
+
   return { valid: errors.length === 0, errors };
 }
 

@@ -291,6 +291,39 @@ describe('runHeadlessSimulation — maxActions guard', () => {
   });
 });
 
+// ─── default players (players omitted from config) ───────────────────────────
+//
+// Verifies that omitting `players` from HeadlessSimulationConfig uses the
+// default MVP setup: { id: 'human', kind: 'human' } and { id: 'ai', kind: 'ai' }.
+
+describe('runHeadlessSimulation — default players (players omitted)', () => {
+  const result = runHeadlessSimulation({
+    randomProvider: new SeededRandomProvider(42),
+  });
+
+  it('status is "completed" without explicit players', () => {
+    expect(result.status).toBe('completed');
+  });
+
+  it('final state phase is "ended"', () => {
+    expect(result.finalState.phase).toBe('ended');
+  });
+
+  it('default player ids are "human" and "ai"', () => {
+    const ids = result.finalState.players.map((p) => p.id);
+    expect(ids).toContain('human');
+    expect(ids).toContain('ai');
+  });
+
+  it('final state passes validateGameState', () => {
+    expect(validateGameState(result.finalState).valid).toBe(true);
+  });
+
+  it('total card count is 48 in final state', () => {
+    expect(totalCardCount(result.finalState)).toBe(48);
+  });
+});
+
 // ─── game end reasons across seeds ───────────────────────────────────────────
 
 describe('runHeadlessSimulation — game end reasons', () => {
