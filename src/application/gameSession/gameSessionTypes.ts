@@ -27,6 +27,8 @@ export interface GameSessionState {
   readonly lastEvents: ReadonlyArray<GameEvent>;
   /** All events accumulated since game start. */
   readonly allEvents: ReadonlyArray<GameEvent>;
+  /** Korean UI messages derived from lastEvents. Ready for display. */
+  readonly lastEventMessages: ReadonlyArray<string>;
   /** Application-layer phase derived from gameState.phase. */
   readonly phase: SessionPhase;
   /** Pre-computed UI view model. Null when phase is 'idle'. */
