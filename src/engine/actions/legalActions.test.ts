@@ -178,6 +178,7 @@ function buildMultiMatchState(
     },
     goStopState: { [HUMAN.id]: { goCount: 0 }, [AI.id]: { goCount: 0 } },
     pendingDecision: null,
+    finalResult: null,
     turnCount: 0,
     ruleset: defaultRuleset,
   };

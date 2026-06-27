@@ -86,6 +86,7 @@ export function newGame(config: NewGameConfig): GameState {
     scoreState,
     goStopState,
     pendingDecision: null,
+    finalResult: null,
     turnCount: 0,
     ruleset,
   };

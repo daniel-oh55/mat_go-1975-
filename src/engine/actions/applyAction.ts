@@ -86,6 +86,7 @@ export function applyAction(
       currentTurn: opponentPlayer.id,
       phase: 'playing',
       pendingDecision: null,
+      finalResult: null,
       goStopState: {
         ...state.goStopState,
         [declaringPlayerId]: { goCount: newGoCount },
@@ -142,6 +143,7 @@ export function applyAction(
       ...state,
       phase: 'ended',
       pendingDecision: null,
+      finalResult: finalResult,
     };
 
     assertValidGameState(stopNextState);
@@ -317,6 +319,7 @@ export function applyAction(
     pendingDecision: goStopTriggered
       ? { type: 'goStop', playerId: currentPlayer.id }
       : null,
+    finalResult: null,
   };
 
   // ── Assert invariants ─────────────────────────────────────────────────────

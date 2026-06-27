@@ -2,6 +2,9 @@ import type { Card } from '../types/card.js';
 import type { PlayerId, PlayerKind } from '../types/player.js';
 import type { Ruleset } from '../types/ruleset.js';
 import type { PlayerScoreState } from '../types/score.js';
+import type { FinalResult } from '../types/result.js';
+
+export type { FinalResult };
 
 // Re-exported so state/index.ts can continue to forward it from this module.
 export type { PlayerScoreState };
@@ -53,6 +56,8 @@ export interface GameState {
   readonly scoreState: Readonly<Record<PlayerId, PlayerScoreState>>;
   readonly goStopState: Readonly<Record<PlayerId, PlayerGoStopState>>;
   readonly pendingDecision: PendingDecision | null;
+  /** Populated when phase === 'ended'; null at all other phases. */
+  readonly finalResult: FinalResult | null;
   readonly turnCount: number;
   readonly ruleset: Ruleset;
 }
