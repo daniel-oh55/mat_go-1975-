@@ -2,6 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { validateAction } from './actionValidation.js';
 import { newGame } from '../state/newGame.js';
 import { SeededRandomProvider } from '../rng/seededRandomProvider.js';
+import { createDefaultDeck } from '../cards/deck.js';
+import { defaultRuleset } from '../types/ruleset.js';
 import type { EnginePlayer, GameState } from '../state/gameState.js';
 import type { PendingGoStopDecision } from '../state/gameState.js';
 
@@ -14,10 +16,14 @@ function freshState(seed = 42) {
 
 describe('validateAction', () => {
   describe('playing phase — human turn', () => {
-    it('returns valid for a card in current player hand', () => {
+    it('returns valid for a hand card with 0/1 field matches (no target needed)', () => {
       const state = freshState();
-      const cardId = state.playerHands['h1']![0]!.id;
-      const result = validateAction(state, { type: 'PLAY_CARD', cardId });
+      const hand = state.playerHands['h1']!;
+      // Find a card with at most 1 same-group field card so no targetFieldCardId needed
+      const simpleCard = hand.find(
+        (c) => state.fieldCards.filter((f) => f.matchingGroup === c.matchingGroup).length < 2,
+      )!;
+      const result = validateAction(state, { type: 'PLAY_CARD', cardId: simpleCard.id });
       expect(result.valid).toBe(true);
     });
 
@@ -132,5 +138,98 @@ describe('validateAction', () => {
       const result = validateAction(state, { type: 'CHOOSE_GO' });
       expect(result.reason).toContain('ended');
     });
+  });
+});
+
+// ─── targetFieldCardId comparison tests ────────────────────────────────────────
+
+const deckForTarget = createDefaultDeck();
+const HUMAN2: EnginePlayer = { id: 'h2', kind: 'human' };
+const AI2: EnginePlayer = { id: 'ai2', kind: 'ai' };
+
+const m1t = deckForTarget.filter((c) => c.month === 1);
+const m2t = deckForTarget.filter((c) => c.month === 2);
+const [t_m1a, t_m1b, t_m1c] = [m1t[0]!, m1t[1]!, m1t[2]!];
+const [t_m2a] = [m2t[0]!];
+
+function buildTargetState(p1Hand: typeof m1t, fieldCards: typeof m1t): GameState {
+  const usedIds = new Set([...p1Hand, ...fieldCards].map((c) => c.id));
+  const remaining = deckForTarget.filter((c) => !usedIds.has(c.id));
+  const ai2Hand = remaining.slice(0, 10);
+  const drawPile = remaining.slice(10);
+  return {
+    players: [HUMAN2, AI2],
+    currentTurn: HUMAN2.id,
+    phase: 'playing',
+    drawPile,
+    fieldCards,
+    playerHands: { [HUMAN2.id]: p1Hand, [AI2.id]: ai2Hand },
+    capturedCards: { [HUMAN2.id]: [], [AI2.id]: [] },
+    scoreState: { [HUMAN2.id]: { total: 0 }, [AI2.id]: { total: 0 } },
+    goStopState: { [HUMAN2.id]: { goCount: 0 }, [AI2.id]: { goCount: 0 } },
+    pendingDecision: null,
+    turnCount: 0,
+    ruleset: defaultRuleset,
+  };
+}
+
+describe('validateAction — targetFieldCardId comparison', () => {
+  it('valid when card has 0/1 field match and no targetFieldCardId', () => {
+    // t_m1a in hand, no month-1 on field
+    const state = buildTargetState(
+      [t_m1a, ...deckForTarget.filter(c => c.month >= 4).slice(0, 9)],
+      [t_m2a, ...deckForTarget.filter(c => c.month >= 5).slice(0, 7)],
+    );
+    const result = validateAction(state, { type: 'PLAY_CARD', cardId: t_m1a.id });
+    expect(result.valid).toBe(true);
+  });
+
+  it('invalid when card has 2 field matches but targetFieldCardId is missing', () => {
+    const state = buildTargetState(
+      [t_m1a, ...deckForTarget.filter(c => c.month >= 4).slice(0, 9)],
+      [t_m1b, t_m1c, ...deckForTarget.filter(c => c.month >= 5).slice(0, 6)],
+    );
+    const result = validateAction(state, { type: 'PLAY_CARD', cardId: t_m1a.id });
+    expect(result.valid).toBe(false);
+  });
+
+  it('invalid when targetFieldCardId is an invalid field card', () => {
+    const state = buildTargetState(
+      [t_m1a, ...deckForTarget.filter(c => c.month >= 4).slice(0, 9)],
+      [t_m1b, t_m1c, ...deckForTarget.filter(c => c.month >= 5).slice(0, 6)],
+    );
+    const result = validateAction(state, {
+      type: 'PLAY_CARD',
+      cardId: t_m1a.id,
+      targetFieldCardId: t_m2a.id,
+    });
+    expect(result.valid).toBe(false);
+  });
+
+  it('valid when targetFieldCardId matches one of the legal targets', () => {
+    const state = buildTargetState(
+      [t_m1a, ...deckForTarget.filter(c => c.month >= 4).slice(0, 9)],
+      [t_m1b, t_m1c, ...deckForTarget.filter(c => c.month >= 5).slice(0, 6)],
+    );
+    const result = validateAction(state, {
+      type: 'PLAY_CARD',
+      cardId: t_m1a.id,
+      targetFieldCardId: t_m1b.id,
+    });
+    expect(result.valid).toBe(true);
+  });
+
+  it('invalid when targetFieldCardId is provided for a 0-match card (unnecessary)', () => {
+    const state = buildTargetState(
+      [t_m1a, ...deckForTarget.filter(c => c.month >= 4).slice(0, 9)],
+      [t_m2a, ...deckForTarget.filter(c => c.month >= 5).slice(0, 7)],
+    );
+    // Legal action has no targetFieldCardId, but we submit one
+    const result = validateAction(state, {
+      type: 'PLAY_CARD',
+      cardId: t_m1a.id,
+      targetFieldCardId: t_m2a.id,
+    });
+    expect(result.valid).toBe(false);
   });
 });

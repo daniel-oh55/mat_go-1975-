@@ -1,3 +1,6 @@
+import type { CardId } from './card.js';
+import type { PlayerId } from './player.js';
+
 /**
  * Discriminated union of all events the engine can emit after processing
  * a GameAction.
@@ -41,6 +44,8 @@ export interface GameStartedEvent {
 /** Emitted when the current player plays a card from their hand. */
 export interface CardPlayedEvent {
   readonly type: 'CARD_PLAYED';
+  readonly playerId: PlayerId;
+  readonly cardId: CardId;
 }
 
 /** Emitted when a played or revealed card matches one or more field cards. */
@@ -51,11 +56,14 @@ export interface CardMatchedEvent {
 /** Emitted when the top card of the draw pile is revealed during a turn. */
 export interface DeckCardRevealedEvent {
   readonly type: 'DECK_CARD_REVEALED';
+  readonly cardId: CardId;
 }
 
 /** Emitted when one or more cards move to a player's captured area. */
 export interface CardCapturedEvent {
   readonly type: 'CARD_CAPTURED';
+  readonly playerId: PlayerId;
+  readonly cardIds: ReadonlyArray<CardId>;
 }
 
 /** Emitted when a player's score changes as a result of a capture. */
@@ -84,6 +92,8 @@ export interface StopDeclaredEvent {
 /** Emitted when the turn passes to the opponent. */
 export interface TurnChangedEvent {
   readonly type: 'TURN_CHANGED';
+  readonly fromPlayerId: PlayerId;
+  readonly toPlayerId: PlayerId;
 }
 
 /** Emitted when the game reaches a terminal state. */

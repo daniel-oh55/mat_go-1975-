@@ -1,4 +1,5 @@
 export { getLegalActions } from './legalActions.js';
+export { applyAction } from './applyAction.js';
 export type { ActionValidationResult } from './actionValidation.js';
 export { validateAction } from './actionValidation.js';
 export type {
