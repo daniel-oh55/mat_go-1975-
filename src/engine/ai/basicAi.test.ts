@@ -123,6 +123,32 @@ describe('selectBasicAiAction — pendingGoStop phase', () => {
     if (!applied.success) throw new Error('Expected applyAction success');
     expect(applied.state.phase).toBe('ended');
   });
+
+  it('returns failure when pendingDecision.playerId is a human player', () => {
+    // Build a pendingGoStop state where HUMAN is the deciding player
+    const base = freshHumanTurnState(); // currentTurn = HUMAN
+    const decision: PendingGoStopDecision = { type: 'goStop', playerId: HUMAN.id };
+    const humanDeciding: GameState = {
+      ...base,
+      phase: 'pendingGoStop',
+      pendingDecision: decision,
+    };
+    const result = selectBasicAiAction(humanDeciding, new SeededRandomProvider(1));
+    expect(result.success).toBe(false);
+  });
+
+  it('failure reason is "Current player is not AI" when deciding player is human', () => {
+    const base = freshHumanTurnState();
+    const decision: PendingGoStopDecision = { type: 'goStop', playerId: HUMAN.id };
+    const humanDeciding: GameState = {
+      ...base,
+      phase: 'pendingGoStop',
+      pendingDecision: decision,
+    };
+    const result = selectBasicAiAction(humanDeciding, new SeededRandomProvider(1));
+    if (result.success) throw new Error('Expected failure');
+    expect(result.reason).toBe('Current player is not AI');
+  });
 });
 
 // ─── ended phase ──────────────────────────────────────────────────────────────
