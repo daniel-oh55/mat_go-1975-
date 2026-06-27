@@ -171,6 +171,7 @@ function buildTargetState(p1Hand: typeof m1t, fieldCards: typeof m1t): GameState
     },
     goStopState: { [HUMAN2.id]: { goCount: 0 }, [AI2.id]: { goCount: 0 } },
     pendingDecision: null,
+    finalResult: null,
     turnCount: 0,
     ruleset: defaultRuleset,
   };

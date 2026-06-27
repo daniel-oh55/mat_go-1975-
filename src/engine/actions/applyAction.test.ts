@@ -72,6 +72,7 @@ function buildState(opts: {
     },
     goStopState: { [HUMAN.id]: { goCount: 0 }, [AI.id]: { goCount: 0 } },
     pendingDecision: null,
+    finalResult: null,
     turnCount,
     ruleset: defaultRuleset,
   };
@@ -113,6 +114,7 @@ function buildScoringState(opts: {
     },
     goStopState: { [HUMAN.id]: { goCount: 0 }, [AI.id]: { goCount: 0 } },
     pendingDecision: null,
+    finalResult: null,
     turnCount: 0,
     ruleset: defaultRuleset,
   };
@@ -751,6 +753,15 @@ describe('applyAction — CHOOSE_STOP in pendingGoStop state', () => {
     const endIdx = result.events.findIndex((e) => e.type === 'GAME_ENDED');
     expect(stopIdx).toBeGreaterThanOrEqual(0);
     expect(endIdx).toBeGreaterThan(stopIdx);
+  });
+
+  it('state.finalResult is set and matches the event result', () => {
+    const result = applyAction(pending, { type: 'CHOOSE_STOP' });
+    if (!result.success) throw new Error('Expected success');
+    const evt = result.events.find((e) => e.type === 'GAME_ENDED');
+    if (!evt || evt.type !== 'GAME_ENDED') throw new Error('Expected GAME_ENDED');
+    expect(result.state.finalResult).not.toBeNull();
+    expect(result.state.finalResult).toEqual(evt.result);
   });
 
   it('further PLAY_CARD action fails after game ended', () => {

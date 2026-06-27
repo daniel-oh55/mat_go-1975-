@@ -92,6 +92,10 @@ describe('newGame', () => {
       expect(state.goStopState['p2']?.goCount).toBe(0);
     });
 
+    it('finalResult is null', () => {
+      expect(makeState().finalResult).toBeNull();
+    });
+
     it('players array matches config', () => {
       const state = makeState();
       expect(state.players).toHaveLength(2);

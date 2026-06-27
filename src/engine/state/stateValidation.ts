@@ -14,11 +14,14 @@ const TOTAL_CARD_COUNT = 48;
  * Checks:
  * - Exactly 48 cards across all zones combined
  * - No card appears in more than one zone (no duplicate CardId)
- * - No duplicate player IDs
+ * - Exactly 2 players; no duplicate player IDs
  * - playerHands and capturedCards have an entry for each player
  * - scoreState and goStopState have an entry for each player
+ * - goStopState[player].goCount >= 0 for each player
  * - currentTurn references a known player
+ * - turnCount >= 0
  * - phase/pendingDecision consistency
+ * - phase/finalResult consistency
  */
 export function validateGameState(state: GameState): GameStateValidationResult {
   const errors: string[] = [];
@@ -48,8 +51,11 @@ export function validateGameState(state: GameState): GameStateValidationResult {
       errors.push(`scoreState missing entry for player "${player.id}"`);
     }
 
-    if (state.goStopState[player.id] === undefined) {
+    const goStop = state.goStopState[player.id];
+    if (goStop === undefined) {
       errors.push(`goStopState missing entry for player "${player.id}"`);
+    } else if (goStop.goCount < 0) {
+      errors.push(`goStopState goCount for player "${player.id}" is negative (${goStop.goCount})`);
     }
   }
 
@@ -88,6 +94,11 @@ export function validateGameState(state: GameState): GameStateValidationResult {
     errors.push('Duplicate player IDs detected');
   }
 
+  // turnCount must be non-negative
+  if (state.turnCount < 0) {
+    errors.push(`turnCount is negative (${state.turnCount})`);
+  }
+
   // phase / pendingDecision consistency
   if (state.phase === 'pendingGoStop' && state.pendingDecision === null) {
     errors.push('phase is "pendingGoStop" but pendingDecision is null');
@@ -97,6 +108,14 @@ export function validateGameState(state: GameState): GameStateValidationResult {
   }
   if (state.phase === 'ended' && state.pendingDecision !== null) {
     errors.push('phase is "ended" but pendingDecision is not null');
+  }
+
+  // phase / finalResult consistency
+  if (state.phase === 'ended' && state.finalResult === null) {
+    errors.push('phase is "ended" but finalResult is null');
+  }
+  if (state.phase !== 'ended' && state.finalResult !== null) {
+    errors.push(`phase is "${state.phase}" but finalResult is not null`);
   }
 
   return { valid: errors.length === 0, errors };
