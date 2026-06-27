@@ -188,13 +188,13 @@ describe('validateGameState — finalResult/phase consistency', () => {
     expect(result.errors.some((e) => e.includes('finalResult'))).toBe(true);
   });
 
-  it('accepts ended phase with a valid FinalResult', () => {
+  it('accepts ended phase with a valid FinalResult (draw)', () => {
     const state = freshState();
     const ended: GameState = {
       ...state,
       phase: 'ended',
       pendingDecision: null,
-      finalResult: { winner: 'p1', scores: state.scoreState, reason: 'stop' },
+      finalResult: { winner: null, scores: state.scoreState, reason: 'stop' },
     };
     const result = validateGameState(ended);
     expect(result.valid).toBe(true);
@@ -229,6 +229,81 @@ describe('validateGameState — turnCount and goCount invariants', () => {
   it('accepts goCount of 0', () => {
     const state = freshState();
     expect(validateGameState(state).valid).toBe(true);
+  });
+});
+
+describe('validateGameState — finalResult scores and winner consistency', () => {
+  const ZERO_SCORE = { total: 0, gwang: 0, yeol: 0, tti: 0, pi: 0 };
+  const HIGH_SCORE = { total: 5, gwang: 3, yeol: 2, tti: 0, pi: 0 };
+
+  function endedState(overrides: Partial<GameState>): GameState {
+    const base = freshState();
+    return {
+      ...base,
+      phase: 'ended',
+      pendingDecision: null,
+      ...overrides,
+    };
+  }
+
+  it('accepts ended state with winner null when scores are equal', () => {
+    const state = endedState({
+      finalResult: { winner: null, scores: { p1: ZERO_SCORE, p2: ZERO_SCORE }, reason: 'stop' },
+      scoreState: { p1: ZERO_SCORE, p2: ZERO_SCORE },
+    });
+    expect(validateGameState(state).valid).toBe(true);
+  });
+
+  it('accepts ended state with winner whose score is strictly higher', () => {
+    const state = endedState({
+      scoreState: { p1: HIGH_SCORE, p2: ZERO_SCORE },
+      finalResult: { winner: 'p1', scores: { p1: HIGH_SCORE, p2: ZERO_SCORE }, reason: 'stop' },
+    });
+    expect(validateGameState(state).valid).toBe(true);
+  });
+
+  it('detects finalResult.scores.total mismatch with scoreState.total', () => {
+    const state = endedState({
+      scoreState: { p1: ZERO_SCORE, p2: ZERO_SCORE },
+      finalResult: { winner: null, scores: { p1: HIGH_SCORE, p2: ZERO_SCORE }, reason: 'stop' },
+    });
+    const result = validateGameState(state);
+    expect(result.valid).toBe(false);
+    expect(result.errors.some((e) => e.includes('finalResult.scores.total'))).toBe(true);
+  });
+
+  it('detects finalResult.winner with equal scores (tie should be null)', () => {
+    const state = endedState({
+      scoreState: { p1: ZERO_SCORE, p2: ZERO_SCORE },
+      finalResult: { winner: 'p1', scores: { p1: ZERO_SCORE, p2: ZERO_SCORE }, reason: 'stop' },
+    });
+    const result = validateGameState(state);
+    expect(result.valid).toBe(false);
+    expect(result.errors.some((e) => e.includes('finalResult.winner'))).toBe(true);
+  });
+
+  it('detects finalResult.winner with lower score than opponent', () => {
+    const state = endedState({
+      scoreState: { p1: ZERO_SCORE, p2: HIGH_SCORE },
+      finalResult: { winner: 'p1', scores: { p1: ZERO_SCORE, p2: HIGH_SCORE }, reason: 'stop' },
+    });
+    const result = validateGameState(state);
+    expect(result.valid).toBe(false);
+    expect(result.errors.some((e) => e.includes('finalResult.winner'))).toBe(true);
+  });
+
+  it('detects finalResult.scores missing an entry', () => {
+    const state = endedState({
+      scoreState: { p1: ZERO_SCORE, p2: ZERO_SCORE },
+      finalResult: {
+        winner: null,
+        scores: { p1: ZERO_SCORE } as Readonly<Record<string, typeof ZERO_SCORE>>,
+        reason: 'stop',
+      },
+    });
+    const result = validateGameState(state);
+    expect(result.valid).toBe(false);
+    expect(result.errors.some((e) => e.includes('finalResult.scores missing'))).toBe(true);
   });
 });
 

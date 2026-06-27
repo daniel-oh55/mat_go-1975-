@@ -7,7 +7,8 @@ import type { GameState } from '../state/gameState.js';
  * 'maxTurnsReached'        — Simulation hit maxActions without the game ending.
  * 'actionSelectionFailed'  — AI selector returned failure for the current state.
  * 'actionApplicationFailed'— applyAction rejected an AI-selected action.
- * 'invalidState'           — (reserved) state invariant violation detected outside applyAction.
+ * 'invalidState'           — applyAction threw an unexpected exception (engine bug: state
+ *                            invariant violated inside applyAction).
  */
 export type SimulationStatus =
   | 'completed'
