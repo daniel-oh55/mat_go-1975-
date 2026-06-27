@@ -5,6 +5,7 @@ import type { RandomProvider } from '../../engine/rng/randomProvider.js';
 import { applyAction } from '../../engine/actions/applyAction.js';
 import { selectBasicAiAction } from '../../engine/ai/basicAi.js';
 import { buildGameViewModel } from './gameViewModel.js';
+import { formatGameEvents } from './gameEventMessages.js';
 import { createGameSession, HUMAN_PLAYER_ID, AI_PLAYER_ID } from './createGameSession.js';
 import type { GamePhase } from '../../engine/state/gameState.js';
 
@@ -106,6 +107,7 @@ export function gameSessionReducer(
         gameState: nextState,
         lastEvents: result.events,
         allEvents: [...state.allEvents, ...result.events],
+        lastEventMessages: formatGameEvents(result.events),
         phase: toSessionPhase(nextState.phase),
         viewModel: buildGameViewModel(nextState, HUMAN_PLAYER_ID, AI_PLAYER_ID),
         error: null,
@@ -153,6 +155,7 @@ export function gameSessionReducer(
         gameState: nextState,
         lastEvents: result.events,
         allEvents: [...state.allEvents, ...result.events],
+        lastEventMessages: formatGameEvents(result.events),
         phase: toSessionPhase(nextState.phase),
         viewModel: buildGameViewModel(nextState, HUMAN_PLAYER_ID, AI_PLAYER_ID),
         error: null,

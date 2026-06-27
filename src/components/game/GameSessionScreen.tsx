@@ -6,8 +6,7 @@ import {
   AI_PLAYER_ID,
 } from '../../application/gameSession/index.js';
 import { MathRandomProvider } from '../../application/mathRandomProvider.js';
-import type { LegalPlayAction } from '../../application/gameSession/index.js';
-import type { Card } from '../../engine/types/card.js';
+import type { LegalPlayAction, Card } from '../../application/gameSession/index.js';
 
 // ─── Card label helpers ───────────────────────────────────────────────────────
 
@@ -190,6 +189,15 @@ export function GameSessionScreen() {
         </span>
       </div>
 
+      {/* Recent event messages */}
+      {session.lastEventMessages.length > 0 && (
+        <div style={styles.eventLog}>
+          {session.lastEventMessages.map((msg, i) => (
+            <span key={i} style={i > 0 ? { marginLeft: 8 } : undefined}>{msg}</span>
+          ))}
+        </div>
+      )}
+
       {/* Target selection prompt */}
       {pendingCardId !== null && (
         <div style={styles.targetPrompt}>
@@ -334,6 +342,15 @@ const styles = {
   cardRow: {
     display: 'flex',
     flexWrap: 'wrap' as const,
+  } as React.CSSProperties,
+  eventLog: {
+    padding: '5px 10px',
+    marginBottom: 8,
+    background: '#f0f4ff',
+    borderRadius: 4,
+    fontSize: 12,
+    color: '#445',
+    lineHeight: '1.5',
   } as React.CSSProperties,
   targetPrompt: {
     display: 'flex',
