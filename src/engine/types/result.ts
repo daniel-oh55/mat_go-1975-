@@ -2,7 +2,7 @@ import type { PlayerId } from './player.js';
 import type { PlayerScoreState } from './score.js';
 
 /** The reason a game ended. */
-export type GameEndReason = 'stop';
+export type GameEndReason = 'stop' | 'exhausted';
 
 /**
  * The final outcome of a Matgo game session.

@@ -14,3 +14,4 @@ export * from './actions/index.js';
 export * from './rules/index.js';
 export * from './scoring/index.js';
 export * from './ai/index.js';
+export * from './simulation/index.js';
