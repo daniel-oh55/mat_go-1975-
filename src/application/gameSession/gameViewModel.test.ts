@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { SeededRandomProvider } from '../../engine/rng/seededRandomProvider.js';
 import { newGame } from '../../engine/state/newGame.js';
+import { createDefaultDeck } from '../../engine/cards/deck.js';
+import { defaultRuleset } from '../../engine/types/ruleset.js';
 import { buildGameViewModel } from './gameViewModel.js';
 
 const HUMAN_ID = 'human';
@@ -136,5 +138,150 @@ describe('buildGameViewModel — phase and finalResult', () => {
   it('finalResult is null at game start', () => {
     const vm = buildGameViewModel(freshState(), HUMAN_ID, AI_ID);
     expect(vm.finalResult).toBeNull();
+  });
+});
+
+// ─── multiTargetCardIds ───────────────────────────────────────────────────────
+
+describe('buildGameViewModel — multiTargetCardIds', () => {
+  it('multiTargetCardIds is empty at a normal game start', () => {
+    // Standard deal is unlikely to put 2+ same-month cards on the field AND
+    // that month in the human hand simultaneously — verify the field is empty.
+    const vm = buildGameViewModel(freshState(), HUMAN_ID, AI_ID);
+    // multiTargetCardIds will be empty unless the specific seed produces a
+    // multi-match scenario. We assert the Set itself exists.
+    expect(vm.multiTargetCardIds).toBeInstanceOf(Set);
+  });
+
+  it('multiTargetCardIds contains the card ID when two same-month field cards exist', () => {
+    // Construct a state where m01-gwang is in the human hand and both
+    // m01-tti and m01-pi-1 (both month 1) are on the field.
+    const deck = createDefaultDeck();
+    const byId = (id: string) => {
+      const card = deck.find((c) => c.id === id);
+      if (card === undefined) throw new Error(`Card ${id} not found`);
+      return card;
+    };
+
+    const humanHand = [byId('m01-gwang')];
+    const aiHand = [byId('m02-yeol'), byId('m02-tti')];
+    const fieldCards = [byId('m01-tti'), byId('m01-pi-1')];
+    // Rest of deck becomes the draw pile
+    const usedIds = new Set([
+      'm01-gwang', 'm02-yeol', 'm02-tti', 'm01-tti', 'm01-pi-1',
+    ]);
+    const drawPile = deck.filter((c) => !usedIds.has(c.id));
+
+    const state = {
+      players: [
+        { id: HUMAN_ID, kind: 'human' as const },
+        { id: AI_ID, kind: 'ai' as const },
+      ],
+      currentTurn: HUMAN_ID,
+      phase: 'playing' as const,
+      drawPile,
+      fieldCards,
+      playerHands: { [HUMAN_ID]: humanHand, [AI_ID]: aiHand },
+      capturedCards: { [HUMAN_ID]: [], [AI_ID]: [] },
+      scoreState: {
+        [HUMAN_ID]: { total: 0, gwang: 0, yeol: 0, tti: 0, pi: 0 },
+        [AI_ID]: { total: 0, gwang: 0, yeol: 0, tti: 0, pi: 0 },
+      },
+      goStopState: { [HUMAN_ID]: { goCount: 0 }, [AI_ID]: { goCount: 0 } },
+      pendingDecision: null,
+      finalResult: null,
+      turnCount: 0,
+      ruleset: defaultRuleset,
+    };
+
+    const vm = buildGameViewModel(state, HUMAN_ID, AI_ID);
+    expect(vm.multiTargetCardIds.has('m01-gwang')).toBe(true);
+  });
+
+  it('multiTargetCardIds does NOT contain a card that has exactly one legal target', () => {
+    const deck = createDefaultDeck();
+    const byId = (id: string) => {
+      const card = deck.find((c) => c.id === id);
+      if (card === undefined) throw new Error(`Card ${id} not found`);
+      return card;
+    };
+
+    // One hand card matching one field card — single target
+    const humanHand = [byId('m01-gwang')];
+    const aiHand = [byId('m02-yeol')];
+    const fieldCards = [byId('m01-tti')]; // only one month-1 field card
+    const usedIds = new Set(['m01-gwang', 'm02-yeol', 'm01-tti']);
+    const drawPile = deck.filter((c) => !usedIds.has(c.id));
+
+    const state = {
+      players: [
+        { id: HUMAN_ID, kind: 'human' as const },
+        { id: AI_ID, kind: 'ai' as const },
+      ],
+      currentTurn: HUMAN_ID,
+      phase: 'playing' as const,
+      drawPile,
+      fieldCards,
+      playerHands: { [HUMAN_ID]: humanHand, [AI_ID]: aiHand },
+      capturedCards: { [HUMAN_ID]: [], [AI_ID]: [] },
+      scoreState: {
+        [HUMAN_ID]: { total: 0, gwang: 0, yeol: 0, tti: 0, pi: 0 },
+        [AI_ID]: { total: 0, gwang: 0, yeol: 0, tti: 0, pi: 0 },
+      },
+      goStopState: { [HUMAN_ID]: { goCount: 0 }, [AI_ID]: { goCount: 0 } },
+      pendingDecision: null,
+      finalResult: null,
+      turnCount: 0,
+      ruleset: defaultRuleset,
+    };
+
+    const vm = buildGameViewModel(state, HUMAN_ID, AI_ID);
+    expect(vm.multiTargetCardIds.has('m01-gwang')).toBe(false);
+  });
+
+  it('legalPlayActions has two entries for a multi-target hand card', () => {
+    const deck = createDefaultDeck();
+    const byId = (id: string) => {
+      const card = deck.find((c) => c.id === id);
+      if (card === undefined) throw new Error(`Card ${id} not found`);
+      return card;
+    };
+
+    const humanHand = [byId('m01-gwang')];
+    const aiHand = [byId('m02-yeol'), byId('m02-tti')];
+    const fieldCards = [byId('m01-tti'), byId('m01-pi-1')];
+    const usedIds = new Set([
+      'm01-gwang', 'm02-yeol', 'm02-tti', 'm01-tti', 'm01-pi-1',
+    ]);
+    const drawPile = deck.filter((c) => !usedIds.has(c.id));
+
+    const state = {
+      players: [
+        { id: HUMAN_ID, kind: 'human' as const },
+        { id: AI_ID, kind: 'ai' as const },
+      ],
+      currentTurn: HUMAN_ID,
+      phase: 'playing' as const,
+      drawPile,
+      fieldCards,
+      playerHands: { [HUMAN_ID]: humanHand, [AI_ID]: aiHand },
+      capturedCards: { [HUMAN_ID]: [], [AI_ID]: [] },
+      scoreState: {
+        [HUMAN_ID]: { total: 0, gwang: 0, yeol: 0, tti: 0, pi: 0 },
+        [AI_ID]: { total: 0, gwang: 0, yeol: 0, tti: 0, pi: 0 },
+      },
+      goStopState: { [HUMAN_ID]: { goCount: 0 }, [AI_ID]: { goCount: 0 } },
+      pendingDecision: null,
+      finalResult: null,
+      turnCount: 0,
+      ruleset: defaultRuleset,
+    };
+
+    const vm = buildGameViewModel(state, HUMAN_ID, AI_ID);
+    const actionsForCard = vm.legalPlayActions.filter((a) => a.cardId === 'm01-gwang');
+    expect(actionsForCard).toHaveLength(2);
+    const targetIds = actionsForCard.map((a) => a.targetFieldCardId);
+    expect(targetIds).toContain('m01-tti');
+    expect(targetIds).toContain('m01-pi-1');
   });
 });

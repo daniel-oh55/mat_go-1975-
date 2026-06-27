@@ -53,6 +53,12 @@ export interface GameViewModel {
    */
   readonly legalPlayActions: ReadonlyArray<LegalPlayAction>;
   /**
+   * Hand card IDs that have two or more legal field targets (OD-2).
+   * When the human selects one of these cards the UI must enter
+   * target-selection mode instead of submitting immediately.
+   */
+  readonly multiTargetCardIds: ReadonlySet<CardId>;
+  /**
    * True when the game is in pendingGoStop phase and the human is the
    * deciding player. The UI should display Go/Stop choice buttons.
    */
@@ -100,6 +106,17 @@ export function buildGameViewModel(
 
   const legalCardIds = new Set<CardId>(legalPlayActions.map((a) => a.cardId));
 
+  // Cards with ≥2 legal actions (same cardId, different targetFieldCardId) need target selection.
+  const actionCountByCard = new Map<CardId, number>();
+  for (const action of legalPlayActions) {
+    actionCountByCard.set(action.cardId, (actionCountByCard.get(action.cardId) ?? 0) + 1);
+  }
+  const multiTargetCardIds = new Set<CardId>(
+    [...actionCountByCard.entries()]
+      .filter(([, count]) => count >= 2)
+      .map(([cardId]) => cardId),
+  );
+
   const isPendingGoStopDecisionForHuman =
     state.phase === 'pendingGoStop' &&
     state.pendingDecision !== null &&
@@ -126,6 +143,7 @@ export function buildGameViewModel(
     isHumanTurn,
     legalCardIds,
     legalPlayActions,
+    multiTargetCardIds,
     isPendingGoStopDecisionForHuman,
     pendingDecision: state.pendingDecision,
     finalResult: state.finalResult,
