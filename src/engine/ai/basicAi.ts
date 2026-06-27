@@ -29,8 +29,28 @@ export function selectBasicAiAction(
   state: GameState,
   randomProvider: RandomProvider,
 ): AiActionSelectionResult {
-  // Go/Stop phase: always Stop in MVP (conservative default)
+  // Go/Stop phase: guard that the deciding player is the AI, then always Stop
   if (state.phase === 'pendingGoStop') {
+    const decision = state.pendingDecision;
+    if (decision === null) {
+      return {
+        success: false,
+        reason: 'pendingGoStop phase but pendingDecision is null',
+      };
+    }
+    const decidingPlayer = state.players.find((p) => p.id === decision.playerId);
+    if (decidingPlayer === undefined) {
+      return {
+        success: false,
+        reason: `No player found for pendingDecision.playerId "${decision.playerId}"`,
+      };
+    }
+    if (decidingPlayer.kind !== 'ai') {
+      return {
+        success: false,
+        reason: 'Current player is not AI',
+      };
+    }
     return { success: true, action: { type: 'CHOOSE_STOP' } };
   }
 
