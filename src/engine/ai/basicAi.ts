@@ -10,13 +10,20 @@ import { getLegalActions } from '../actions/legalActions.js';
  *   pendingGoStop phase: always CHOOSE_STOP (conservative MVP default).
  *     Go strategy is deferred — the goal is game completion, not score
  *     maximisation.
- *   playing phase: select uniformly at random from the legal action set.
+ *   playing phase: verified AI turn only; uniform random selection from
+ *     the AI_PLAY_CARD legal action set.
+ *   ended / ready: failure — no legal actions.
+ *
+ * Safety:
+ *   In playing phase the function checks that state.currentTurn belongs to
+ *   a player with kind === 'ai'. Calling it on a human turn returns failure
+ *   rather than selecting a PLAY_CARD action on the human's behalf.
  *
  * Constraints:
  *   - Never accesses hidden information (opponent hand, draw pile order).
  *   - Never mutates GameState.
  *   - Never calls the engine directly — caller submits the returned action.
- *   - Never adjusts behaviour based on player kind, difficulty, or monetisation.
+ *   - Never adjusts behaviour based on difficulty or monetisation.
  */
 export function selectBasicAiAction(
   state: GameState,
@@ -27,17 +34,42 @@ export function selectBasicAiAction(
     return { success: true, action: { type: 'CHOOSE_STOP' } };
   }
 
-  const legalActions = getLegalActions(state);
-
-  if (legalActions.length === 0) {
+  // Only the playing phase has AI_PLAY_CARD actions
+  if (state.phase !== 'playing') {
     return {
       success: false,
       reason: `No legal actions available in phase "${state.phase}"`,
     };
   }
 
+  // Guard: verify the current turn belongs to an AI player
+  const currentPlayer = state.players.find((p) => p.id === state.currentTurn);
+  if (currentPlayer === undefined) {
+    return {
+      success: false,
+      reason: `No player found for currentTurn "${state.currentTurn}"`,
+    };
+  }
+  if (currentPlayer.kind !== 'ai') {
+    return {
+      success: false,
+      reason: 'Current player is not AI',
+    };
+  }
+
+  // Collect AI_PLAY_CARD candidates (getLegalActions returns these when kind==='ai')
+  const legalActions = getLegalActions(state);
+  const aiActions = legalActions.filter((a) => a.type === 'AI_PLAY_CARD');
+
+  if (aiActions.length === 0) {
+    return {
+      success: false,
+      reason: 'No AI_PLAY_CARD actions available',
+    };
+  }
+
   // Uniform random selection
-  const index = Math.floor(randomProvider.next() * legalActions.length);
-  const action = legalActions[index]!;
+  const index = Math.floor(randomProvider.next() * aiActions.length);
+  const action = aiActions[index]!;
   return { success: true, action };
 }
