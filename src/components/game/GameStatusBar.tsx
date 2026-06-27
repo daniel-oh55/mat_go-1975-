@@ -1,9 +1,19 @@
+import type { GameStatusDisplay, GameStatusKind } from '../../application/gameSession/index.js';
+
+const STATUS_COLOR: Record<GameStatusKind, string> = {
+  humanTurn:   '#2a7',
+  aiTurn:      '#a72',
+  humanGoStop: '#c8860a',
+  aiGoStop:    '#888',
+  ended:       '#555',
+};
+
 interface GameStatusBarProps {
   humanScore: number;
   aiScore: number;
   drawPileCount: number;
   aiHandCount: number;
-  isHumanTurn: boolean;
+  statusDisplay: GameStatusDisplay;
 }
 
 export function GameStatusBar({
@@ -11,7 +21,7 @@ export function GameStatusBar({
   aiScore,
   drawPileCount,
   aiHandCount,
-  isHumanTurn,
+  statusDisplay,
 }: GameStatusBarProps) {
   return (
     <div style={{
@@ -31,9 +41,9 @@ export function GameStatusBar({
       <span style={{
         marginLeft: 'auto',
         fontWeight: 'bold',
-        color: isHumanTurn ? '#2a7' : '#a72',
+        color: STATUS_COLOR[statusDisplay.kind],
       }}>
-        {isHumanTurn ? '▶ 내 차례' : '⌛ AI 차례'}
+        {statusDisplay.label}
       </span>
     </div>
   );

@@ -285,3 +285,62 @@ describe('buildGameViewModel — multiTargetCardIds', () => {
     expect(targetIds).toContain('m01-pi-1');
   });
 });
+
+// ─── statusDisplay ────────────────────────────────────────────────────────────
+
+describe('buildGameViewModel — statusDisplay', () => {
+  it('kind is "humanTurn" at game start (human goes first)', () => {
+    const vm = buildGameViewModel(freshState(), HUMAN_ID, AI_ID);
+    expect(vm.statusDisplay.kind).toBe('humanTurn');
+  });
+
+  it('label is non-empty for humanTurn', () => {
+    const vm = buildGameViewModel(freshState(), HUMAN_ID, AI_ID);
+    expect(vm.statusDisplay.label.length).toBeGreaterThan(0);
+  });
+
+  it('kind is "aiTurn" when it is the AI\'s turn', () => {
+    const state = { ...freshState(), currentTurn: AI_ID };
+    const vm = buildGameViewModel(state, HUMAN_ID, AI_ID);
+    expect(vm.statusDisplay.kind).toBe('aiTurn');
+  });
+
+  it('kind is "humanGoStop" when human has a pendingGoStop decision', () => {
+    const state = {
+      ...freshState(),
+      phase: 'pendingGoStop' as const,
+      pendingDecision: { type: 'goStop' as const, playerId: HUMAN_ID },
+    };
+    const vm = buildGameViewModel(state, HUMAN_ID, AI_ID);
+    expect(vm.statusDisplay.kind).toBe('humanGoStop');
+  });
+
+  it('kind is "aiGoStop" when AI has a pendingGoStop decision', () => {
+    const state = {
+      ...freshState(),
+      phase: 'pendingGoStop' as const,
+      pendingDecision: { type: 'goStop' as const, playerId: AI_ID },
+    };
+    const vm = buildGameViewModel(state, HUMAN_ID, AI_ID);
+    expect(vm.statusDisplay.kind).toBe('aiGoStop');
+  });
+
+  it('kind is "ended" when the game phase is ended', () => {
+    const state = { ...freshState(), phase: 'ended' as const };
+    const vm = buildGameViewModel(state, HUMAN_ID, AI_ID);
+    expect(vm.statusDisplay.kind).toBe('ended');
+  });
+
+  it('all five kinds produce a non-empty label', () => {
+    const kinds = [
+      buildGameViewModel(freshState(), HUMAN_ID, AI_ID).statusDisplay,
+      buildGameViewModel({ ...freshState(), currentTurn: AI_ID }, HUMAN_ID, AI_ID).statusDisplay,
+      buildGameViewModel({ ...freshState(), phase: 'pendingGoStop' as const, pendingDecision: { type: 'goStop' as const, playerId: HUMAN_ID } }, HUMAN_ID, AI_ID).statusDisplay,
+      buildGameViewModel({ ...freshState(), phase: 'pendingGoStop' as const, pendingDecision: { type: 'goStop' as const, playerId: AI_ID } }, HUMAN_ID, AI_ID).statusDisplay,
+      buildGameViewModel({ ...freshState(), phase: 'ended' as const }, HUMAN_ID, AI_ID).statusDisplay,
+    ];
+    for (const d of kinds) {
+      expect(d.label.length).toBeGreaterThan(0);
+    }
+  });
+});
