@@ -66,6 +66,36 @@ export function gameSessionReducer(
         return { ...state, lastEvents: [], error: 'Game is already over' };
       }
 
+      const enginePhase = state.gameState.phase;
+
+      if (enginePhase === 'playing') {
+        if (state.gameState.currentTurn !== HUMAN_PLAYER_ID) {
+          return { ...state, lastEvents: [], error: 'Not human turn' };
+        }
+        if (action.action.type !== 'PLAY_CARD') {
+          return {
+            ...state,
+            lastEvents: [],
+            error: 'Human can only submit PLAY_CARD during playing phase',
+          };
+        }
+      } else if (enginePhase === 'pendingGoStop') {
+        if (state.gameState.pendingDecision?.playerId !== HUMAN_PLAYER_ID) {
+          return {
+            ...state,
+            lastEvents: [],
+            error: 'Not human pendingGoStop decision',
+          };
+        }
+        if (action.action.type !== 'CHOOSE_GO' && action.action.type !== 'CHOOSE_STOP') {
+          return {
+            ...state,
+            lastEvents: [],
+            error: 'Human can only submit CHOOSE_GO or CHOOSE_STOP during pendingGoStop phase',
+          };
+        }
+      }
+
       const result = applyAction(state.gameState, action.action);
       if (!result.success) {
         return { ...state, lastEvents: [], error: result.error.message };
@@ -88,6 +118,22 @@ export function gameSessionReducer(
       }
       if (state.phase === 'ended') {
         return state;
+      }
+
+      const aiEnginePhase = state.gameState.phase;
+
+      if (aiEnginePhase === 'playing') {
+        if (state.gameState.currentTurn === HUMAN_PLAYER_ID) {
+          return { ...state, lastEvents: [], error: 'Cannot advance AI on human turn' };
+        }
+      } else if (aiEnginePhase === 'pendingGoStop') {
+        if (state.gameState.pendingDecision?.playerId === HUMAN_PLAYER_ID) {
+          return {
+            ...state,
+            lastEvents: [],
+            error: 'Cannot advance AI during human pendingGoStop decision',
+          };
+        }
       }
 
       const selection = selectBasicAiAction(state.gameState, action.randomProvider);
