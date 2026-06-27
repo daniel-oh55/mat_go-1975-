@@ -13,3 +13,4 @@ export * from './state/index.js';
 export * from './actions/index.js';
 export * from './rules/index.js';
 export * from './scoring/index.js';
+export * from './ai/index.js';
