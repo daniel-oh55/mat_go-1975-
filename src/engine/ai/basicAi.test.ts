@@ -195,18 +195,32 @@ describe('selectBasicAiAction — determinism', () => {
   });
 });
 
-// ─── human-turn state — AI does not generate PLAY_CARD actions ────────────────
+// ─── human-turn guard ────────────────────────────────────────────────────────
 //
-// The AI selector is a pure function and does not check player kind itself.
-// When called on a human-turn state, getLegalActions returns PLAY_CARD actions.
-// This verifies the selector faithfully returns legal actions even in that case —
-// enforcing that it's the caller's responsibility to only invoke AI on AI turns.
+// After the PR8A fix, the selector returns failure when called on a human turn
+// in playing phase. This prevents the AI from accidentally submitting a
+// PLAY_CARD action on the human player's behalf.
 
-describe('selectBasicAiAction — called on human-turn state (caller responsibility)', () => {
-  it('returns a PLAY_CARD action (since those are the legal ones on human turn)', () => {
+describe('selectBasicAiAction — human-turn guard (playing phase)', () => {
+  it('returns failure when currentTurn belongs to a human player', () => {
     const state = freshHumanTurnState();
     const result = selectBasicAiAction(state, new SeededRandomProvider(1));
-    if (!result.success) throw new Error('Expected success');
-    expect(result.action.type).toBe('PLAY_CARD');
+    expect(result.success).toBe(false);
+  });
+
+  it('failure reason states that current player is not AI', () => {
+    const state = freshHumanTurnState();
+    const result = selectBasicAiAction(state, new SeededRandomProvider(1));
+    if (result.success) throw new Error('Expected failure');
+    expect(result.reason).toBe('Current player is not AI');
+  });
+
+  it('does NOT return a PLAY_CARD action on human turn', () => {
+    const state = freshHumanTurnState();
+    const result = selectBasicAiAction(state, new SeededRandomProvider(1));
+    if (result.success) {
+      expect(result.action.type).not.toBe('PLAY_CARD');
+    }
+    // If failure (expected), the test also passes — no PLAY_CARD was returned
   });
 });
