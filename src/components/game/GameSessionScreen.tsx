@@ -1,4 +1,4 @@
-import { useReducer, useEffect, useRef } from 'react';
+import { useReducer, useEffect, useRef, useState } from 'react';
 import {
   gameSessionReducer,
   createIdleSession,
@@ -24,27 +24,34 @@ function cardLabel(card: Card): string {
 
 // ─── Card button ──────────────────────────────────────────────────────────────
 
+type CardHighlight = 'none' | 'legal' | 'selected' | 'target';
+
 interface CardButtonProps {
   card: Card;
-  isLegal?: boolean;
+  highlight?: CardHighlight;
   onClick?: () => void;
 }
 
-function CardButton({ card, isLegal, onClick }: CardButtonProps) {
+const HIGHLIGHT_STYLES: Record<CardHighlight, React.CSSProperties> = {
+  none:     { border: '1px solid #bbb',   background: '#f5f5f5', color: '#888', cursor: 'default' },
+  legal:    { border: '2px solid #e8a000', background: '#fff8e0', color: '#333', cursor: 'pointer' },
+  selected: { border: '2px solid #2255aa', background: '#dceeff', color: '#111', cursor: 'pointer' },
+  target:   { border: '2px solid #c00',   background: '#ffe8e8', color: '#333', cursor: 'pointer' },
+};
+
+function CardButton({ card, highlight = 'none', onClick }: CardButtonProps) {
+  const hl = HIGHLIGHT_STYLES[highlight];
   return (
     <button
       onClick={onClick}
-      disabled={!isLegal}
+      disabled={highlight === 'none'}
       style={{
         padding: '4px 8px',
         margin: '3px',
         borderRadius: '4px',
-        border: isLegal ? '2px solid #e8a000' : '1px solid #bbb',
-        background: isLegal ? '#fff8e0' : '#f5f5f5',
-        color: isLegal ? '#333' : '#888',
-        cursor: isLegal ? 'pointer' : 'default',
         fontSize: '13px',
         whiteSpace: 'nowrap',
+        ...hl,
       }}
     >
       {cardLabel(card)}
@@ -68,6 +75,13 @@ function CardButton({ card, isLegal, onClick }: CardButtonProps) {
 export function GameSessionScreen() {
   const randomProvider = useRef(new MathRandomProvider()).current;
   const [session, dispatch] = useReducer(gameSessionReducer, undefined, createIdleSession);
+  // Tracks which hand card is awaiting field-target selection (OD-2 multi-match flow)
+  const [pendingCardId, setPendingCardId] = useState<string | null>(null);
+
+  // Clear target selection whenever the session changes (after any dispatch)
+  useEffect(() => {
+    setPendingCardId(null);
+  }, [session]);
 
   // Auto-advance AI turns (and AI pendingGoStop decisions)
   useEffect(() => {
@@ -89,6 +103,7 @@ export function GameSessionScreen() {
   // ── Handlers ────────────────────────────────────────────────────────────────
 
   function handleStartGame() {
+    setPendingCardId(null);
     dispatch({ type: 'START_GAME', randomProvider });
   }
 
@@ -98,6 +113,29 @@ export function GameSessionScreen() {
         ? { type: 'PLAY_CARD' as const, cardId: legalAction.cardId, targetFieldCardId: legalAction.targetFieldCardId }
         : { type: 'PLAY_CARD' as const, cardId: legalAction.cardId };
     dispatch({ type: 'SUBMIT_HUMAN_ACTION', action });
+  }
+
+  // Handles a hand-card click: submit immediately for single-target cards,
+  // or enter target-selection mode for multi-target cards (OD-2).
+  function handleHandCardClick(cardId: string, vm: { legalCardIds: ReadonlySet<string>; multiTargetCardIds: ReadonlySet<string>; legalPlayActions: ReadonlyArray<LegalPlayAction> }) {
+    if (!vm.legalCardIds.has(cardId)) return;
+
+    if (vm.multiTargetCardIds.has(cardId)) {
+      // Toggle: clicking the already-selected card cancels selection
+      setPendingCardId((prev) => (prev === cardId ? null : cardId));
+    } else {
+      const action = vm.legalPlayActions.find((a) => a.cardId === cardId);
+      if (action !== undefined) handlePlayCard(action);
+    }
+  }
+
+  // Handles a field-card click during target selection mode.
+  function handleFieldTargetClick(fieldCardId: string, vm: { legalPlayActions: ReadonlyArray<LegalPlayAction> }) {
+    if (pendingCardId === null) return;
+    const action = vm.legalPlayActions.find(
+      (a) => a.cardId === pendingCardId && a.targetFieldCardId === fieldCardId,
+    );
+    if (action !== undefined) handlePlayCard(action);
   }
 
   function handleChooseGo() {
@@ -127,6 +165,16 @@ export function GameSessionScreen() {
 
   // ── Active game screen ───────────────────────────────────────────────────────
 
+  // Field card IDs that are valid targets for the currently pending hand card
+  const targetFieldCardIds: ReadonlySet<string> =
+    pendingCardId !== null
+      ? new Set(
+          vm.legalPlayActions
+            .filter((a) => a.cardId === pendingCardId && a.targetFieldCardId !== undefined)
+            .map((a) => a.targetFieldCardId as string),
+        )
+      : new Set<string>();
+
   return (
     <div style={styles.container}>
       <h1 style={styles.title}>맞고</h1>
@@ -142,13 +190,33 @@ export function GameSessionScreen() {
         </span>
       </div>
 
+      {/* Target selection prompt */}
+      {pendingCardId !== null && (
+        <div style={styles.targetPrompt}>
+          <span>바닥패를 선택하세요</span>
+          <button onClick={() => setPendingCardId(null)} style={styles.cancelButton}>
+            취소
+          </button>
+        </div>
+      )}
+
       {/* Field */}
       <section style={styles.section}>
         <div style={styles.sectionLabel}>바닥 ({vm.fieldCards.length}장)</div>
         <div style={styles.cardRow}>
-          {vm.fieldCards.map((card) => (
-            <CardButton key={card.id} card={card} />
-          ))}
+          {vm.fieldCards.map((card) => {
+            if (targetFieldCardIds.has(card.id)) {
+              return (
+                <CardButton
+                  key={card.id}
+                  card={card}
+                  highlight="target"
+                  onClick={() => handleFieldTargetClick(card.id, vm)}
+                />
+              );
+            }
+            return <CardButton key={card.id} card={card} />;
+          })}
         </div>
       </section>
 
@@ -168,20 +236,17 @@ export function GameSessionScreen() {
         <div style={styles.sectionLabel}>내 패 ({vm.humanHand.length}장)</div>
         <div style={styles.cardRow}>
           {vm.humanHand.map((card) => {
-            const legalAction = vm.legalPlayActions.find((a) => a.cardId === card.id);
             const isLegal = vm.isHumanTurn && vm.legalCardIds.has(card.id);
-            // exactOptionalPropertyTypes: don't pass onClick={undefined}; omit the prop instead
-            if (isLegal && legalAction !== undefined) {
-              return (
-                <CardButton
-                  key={card.id}
-                  card={card}
-                  isLegal={true}
-                  onClick={() => handlePlayCard(legalAction)}
-                />
-              );
-            }
-            return <CardButton key={card.id} card={card} />;
+            const isSelected = card.id === pendingCardId;
+            if (!isLegal) return <CardButton key={card.id} card={card} />;
+            return (
+              <CardButton
+                key={card.id}
+                card={card}
+                highlight={isSelected ? 'selected' : 'legal'}
+                onClick={() => handleHandCardClick(card.id, vm)}
+              />
+            );
           })}
         </div>
       </section>
@@ -269,6 +334,28 @@ const styles = {
   cardRow: {
     display: 'flex',
     flexWrap: 'wrap' as const,
+  } as React.CSSProperties,
+  targetPrompt: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 12,
+    padding: '8px 12px',
+    marginBottom: 8,
+    background: '#fff0f0',
+    border: '2px solid #c00',
+    borderRadius: 6,
+    fontSize: 14,
+    color: '#c00',
+    fontWeight: 'bold',
+  } as React.CSSProperties,
+  cancelButton: {
+    padding: '4px 14px',
+    background: '#fff',
+    color: '#c00',
+    border: '1px solid #c00',
+    borderRadius: 4,
+    cursor: 'pointer',
+    fontSize: 13,
   } as React.CSSProperties,
   goStopPanel: {
     padding: 12,
