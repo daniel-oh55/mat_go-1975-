@@ -4,6 +4,7 @@ import type { GameEvent } from '../types/event.js';
 import type { GameState } from '../state/gameState.js';
 import { assertValidGameState } from '../state/stateValidation.js';
 import { resolveCardAgainstField } from '../rules/captureResolution.js';
+import { calculateScore } from '../scoring/scoring.js';
 import { validateAction } from './actionValidation.js';
 import type { EngineActionResult } from './actionResult.js';
 import { ENGINE_ERROR_CODES } from './actionResult.js';
@@ -24,8 +25,13 @@ import { ENGINE_ERROR_CODES } from './actionResult.js';
  * Only PLAY_CARD and AI_PLAY_CARD are handled. Any other action returns
  * success: false immediately.
  *
- * scoreState and goStopState are NOT modified (deferred to M2-PR6/7).
- * phase remains 'playing' (Go/Stop trigger deferred to M2-PR6).
+ * After all captures, score is recalculated via calculateScore. SCORE_CHANGED
+ * is emitted if the score increased. If the new score >= goStopThreshold,
+ * GO_STOP_DECISION_REQUIRED is emitted and the phase becomes 'pendingGoStop';
+ * the turn does NOT advance. Otherwise TURN_CHANGED is emitted and the turn
+ * passes to the opponent.
+ *
+ * goStopState is NOT modified here (goCount tracking deferred to M2-PR7).
  */
 export function applyAction(
   state: GameState,
@@ -143,6 +149,8 @@ export function applyAction(
 
   // ── Step 4: Move captured cards to current player's captured pile ──────────
   const existingCaptured = state.capturedCards[currentPlayer.id] ?? [];
+  const newCaptured: ReadonlyArray<Card> = [...existingCaptured, ...allCaptured];
+
   if (allCaptured.length > 0) {
     events.push({
       type: 'CARD_CAPTURED',
@@ -151,13 +159,27 @@ export function applyAction(
     });
   }
 
-  events.push({
-    type: 'TURN_CHANGED',
-    fromPlayerId: currentPlayer.id,
-    toPlayerId: opponentPlayer.id,
-  });
+  // ── Step 5: Calculate score and check Go/Stop threshold ───────────────────
+  const oldScore = state.scoreState[currentPlayer.id] ?? { total: 0, gwang: 0, yeol: 0, tti: 0, pi: 0 };
+  const newScore = calculateScore(newCaptured);
 
-  // ── Step 5: Build next state (immutable) ───────────────────────────────────
+  if (newScore.total > oldScore.total) {
+    events.push({ type: 'SCORE_CHANGED', playerId: currentPlayer.id, score: newScore });
+  }
+
+  const goStopTriggered = newScore.total >= state.ruleset.goStopThreshold;
+
+  if (goStopTriggered) {
+    events.push({ type: 'GO_STOP_DECISION_REQUIRED', playerId: currentPlayer.id });
+  } else {
+    events.push({
+      type: 'TURN_CHANGED',
+      fromPlayerId: currentPlayer.id,
+      toPlayerId: opponentPlayer.id,
+    });
+  }
+
+  // ── Step 6: Build next state (immutable) ───────────────────────────────────
   const nextState: GameState = {
     ...state,
     playerHands: {
@@ -166,14 +188,20 @@ export function applyAction(
     },
     capturedCards: {
       ...state.capturedCards,
-      [currentPlayer.id]: [...existingCaptured, ...allCaptured],
+      [currentPlayer.id]: newCaptured,
+    },
+    scoreState: {
+      ...state.scoreState,
+      [currentPlayer.id]: newScore,
     },
     fieldCards: currentField,
     drawPile: newDrawPile,
-    currentTurn: opponentPlayer.id,
+    currentTurn: goStopTriggered ? state.currentTurn : opponentPlayer.id,
     turnCount: state.turnCount + 1,
-    phase: 'playing',
-    pendingDecision: null,
+    phase: goStopTriggered ? 'pendingGoStop' : 'playing',
+    pendingDecision: goStopTriggered
+      ? { type: 'goStop', playerId: currentPlayer.id }
+      : null,
   };
 
   // ── Step 6: Assert invariants ──────────────────────────────────────────────

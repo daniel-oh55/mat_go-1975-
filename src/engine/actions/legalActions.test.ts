@@ -172,7 +172,10 @@ function buildMultiMatchState(
     fieldCards,
     playerHands: { [HUMAN.id]: p1Hand, [AI.id]: remaining },
     capturedCards: { [HUMAN.id]: [], [AI.id]: [] },
-    scoreState: { [HUMAN.id]: { total: 0 }, [AI.id]: { total: 0 } },
+    scoreState: {
+      [HUMAN.id]: { total: 0, gwang: 0, yeol: 0, tti: 0, pi: 0 },
+      [AI.id]: { total: 0, gwang: 0, yeol: 0, tti: 0, pi: 0 },
+    },
     goStopState: { [HUMAN.id]: { goCount: 0 }, [AI.id]: { goCount: 0 } },
     pendingDecision: null,
     turnCount: 0,

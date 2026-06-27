@@ -1,6 +1,10 @@
 import type { Card } from '../types/card.js';
 import type { PlayerId, PlayerKind } from '../types/player.js';
 import type { Ruleset } from '../types/ruleset.js';
+import type { PlayerScoreState } from '../types/score.js';
+
+// Re-exported so state/index.ts can continue to forward it from this module.
+export type { PlayerScoreState };
 
 /**
  * Phases of a game session.
@@ -16,10 +20,6 @@ export type GamePhase = 'ready' | 'playing' | 'pendingGoStop' | 'ended';
 export interface EnginePlayer {
   readonly id: PlayerId;
   readonly kind: PlayerKind;
-}
-
-export interface PlayerScoreState {
-  readonly total: number;
 }
 
 export interface PlayerGoStopState {

@@ -165,7 +165,10 @@ function buildTargetState(p1Hand: typeof m1t, fieldCards: typeof m1t): GameState
     fieldCards,
     playerHands: { [HUMAN2.id]: p1Hand, [AI2.id]: ai2Hand },
     capturedCards: { [HUMAN2.id]: [], [AI2.id]: [] },
-    scoreState: { [HUMAN2.id]: { total: 0 }, [AI2.id]: { total: 0 } },
+    scoreState: {
+      [HUMAN2.id]: { total: 0, gwang: 0, yeol: 0, tti: 0, pi: 0 },
+      [AI2.id]: { total: 0, gwang: 0, yeol: 0, tti: 0, pi: 0 },
+    },
     goStopState: { [HUMAN2.id]: { goCount: 0 }, [AI2.id]: { goCount: 0 } },
     pendingDecision: null,
     turnCount: 0,
