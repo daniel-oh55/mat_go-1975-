@@ -149,6 +149,58 @@ describe('validateGameState — phase/pendingDecision consistency', () => {
   });
 });
 
+describe('validateGameState — finalResult/phase consistency', () => {
+  it('detects ended phase with null finalResult', () => {
+    const state = freshState();
+    const broken: GameState = {
+      ...state,
+      phase: 'ended',
+      pendingDecision: null,
+      finalResult: null, // invalid: ended requires finalResult
+    };
+    const result = validateGameState(broken);
+    expect(result.valid).toBe(false);
+    expect(result.errors.some((e) => e.includes('finalResult'))).toBe(true);
+  });
+
+  it('detects playing phase with non-null finalResult', () => {
+    const state = freshState();
+    const broken: GameState = {
+      ...state,
+      phase: 'playing',
+      finalResult: { winner: 'p1', scores: state.scoreState, reason: 'stop' },
+    };
+    const result = validateGameState(broken);
+    expect(result.valid).toBe(false);
+    expect(result.errors.some((e) => e.includes('finalResult'))).toBe(true);
+  });
+
+  it('detects pendingGoStop phase with non-null finalResult', () => {
+    const state = freshState();
+    const broken: GameState = {
+      ...state,
+      phase: 'pendingGoStop',
+      pendingDecision: { type: 'goStop', playerId: 'p1' },
+      finalResult: { winner: 'p1', scores: state.scoreState, reason: 'stop' },
+    };
+    const result = validateGameState(broken);
+    expect(result.valid).toBe(false);
+    expect(result.errors.some((e) => e.includes('finalResult'))).toBe(true);
+  });
+
+  it('accepts ended phase with a valid FinalResult', () => {
+    const state = freshState();
+    const ended: GameState = {
+      ...state,
+      phase: 'ended',
+      pendingDecision: null,
+      finalResult: { winner: 'p1', scores: state.scoreState, reason: 'stop' },
+    };
+    const result = validateGameState(ended);
+    expect(result.valid).toBe(true);
+  });
+});
+
 describe('assertValidGameState', () => {
   it('does not throw for a valid state', () => {
     expect(() => assertValidGameState(freshState())).not.toThrow();

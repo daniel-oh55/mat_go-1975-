@@ -99,6 +99,14 @@ export function validateGameState(state: GameState): GameStateValidationResult {
     errors.push('phase is "ended" but pendingDecision is not null');
   }
 
+  // phase / finalResult consistency
+  if (state.phase === 'ended' && state.finalResult === null) {
+    errors.push('phase is "ended" but finalResult is null');
+  }
+  if (state.phase !== 'ended' && state.finalResult !== null) {
+    errors.push(`phase is "${state.phase}" but finalResult is not null`);
+  }
+
   return { valid: errors.length === 0, errors };
 }
 
