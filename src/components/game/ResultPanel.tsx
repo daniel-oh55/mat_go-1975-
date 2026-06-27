@@ -1,9 +1,12 @@
+import type { PlayerScoreBreakdown } from '../../application/gameSession/index.js';
+import { ScoreBreakdown } from './ScoreBreakdown.js';
+
 interface ResultPanelProps {
   winner: string | null;
   reason: 'stop' | 'exhausted';
   humanPlayerId: string;
-  humanScore: number;
-  aiScore: number;
+  humanScoreBreakdown: PlayerScoreBreakdown;
+  aiScoreBreakdown: PlayerScoreBreakdown;
   onRestart: () => void;
 }
 
@@ -11,8 +14,8 @@ export function ResultPanel({
   winner,
   reason,
   humanPlayerId,
-  humanScore,
-  aiScore,
+  humanScoreBreakdown,
+  aiScoreBreakdown,
   onRestart,
 }: ResultPanelProps) {
   const outcomeText =
@@ -31,12 +34,11 @@ export function ResultPanel({
       borderRadius: 8,
     }}>
       <h2 style={{ margin: '0 0 8px', fontSize: 18 }}>게임 종료 — {outcomeText}</h2>
-      <p style={{ margin: '4px 0', fontSize: 13 }}>
+      <p style={{ margin: '0 0 8px', fontSize: 13 }}>
         종료 사유: {reason === 'stop' ? '스톱' : '덱 소진'}
       </p>
-      <p style={{ margin: '4px 0', fontSize: 13 }}>
-        내 점수 <strong>{humanScore}</strong>점 · AI 점수 <strong>{aiScore}</strong>점
-      </p>
+      <ScoreBreakdown label="내 점수" score={humanScoreBreakdown} />
+      <ScoreBreakdown label="AI 점수" score={aiScoreBreakdown} />
       <button
         onClick={onRestart}
         style={{
