@@ -122,17 +122,15 @@ export function gameSessionReducer(
 
       const aiEnginePhase = state.gameState.phase;
 
+      // No-op when it is not the AI's turn — the UI useEffect guards already
+      // prevent this in normal flow; the no-op here is a safe fallback.
       if (aiEnginePhase === 'playing') {
         if (state.gameState.currentTurn === HUMAN_PLAYER_ID) {
-          return { ...state, lastEvents: [], error: 'Cannot advance AI on human turn' };
+          return state;
         }
       } else if (aiEnginePhase === 'pendingGoStop') {
         if (state.gameState.pendingDecision?.playerId === HUMAN_PLAYER_ID) {
-          return {
-            ...state,
-            lastEvents: [],
-            error: 'Cannot advance AI during human pendingGoStop decision',
-          };
+          return state;
         }
       }
 
