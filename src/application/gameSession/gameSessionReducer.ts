@@ -61,22 +61,23 @@ export function gameSessionReducer(
 
     case 'SUBMIT_HUMAN_ACTION': {
       if (state.gameState === null) {
-        return { ...state, lastEvents: [], error: 'No active game session' };
+        return { ...state, lastEvents: [], lastEventMessages: [], error: 'No active game session' };
       }
       if (state.phase === 'ended') {
-        return { ...state, lastEvents: [], error: 'Game is already over' };
+        return { ...state, lastEvents: [], lastEventMessages: [], error: 'Game is already over' };
       }
 
       const enginePhase = state.gameState.phase;
 
       if (enginePhase === 'playing') {
         if (state.gameState.currentTurn !== HUMAN_PLAYER_ID) {
-          return { ...state, lastEvents: [], error: 'Not human turn' };
+          return { ...state, lastEvents: [], lastEventMessages: [], error: 'Not human turn' };
         }
         if (action.action.type !== 'PLAY_CARD') {
           return {
             ...state,
             lastEvents: [],
+            lastEventMessages: [],
             error: 'Human can only submit PLAY_CARD during playing phase',
           };
         }
@@ -85,6 +86,7 @@ export function gameSessionReducer(
           return {
             ...state,
             lastEvents: [],
+            lastEventMessages: [],
             error: 'Not human pendingGoStop decision',
           };
         }
@@ -92,6 +94,7 @@ export function gameSessionReducer(
           return {
             ...state,
             lastEvents: [],
+            lastEventMessages: [],
             error: 'Human can only submit CHOOSE_GO or CHOOSE_STOP during pendingGoStop phase',
           };
         }
@@ -99,7 +102,7 @@ export function gameSessionReducer(
 
       const result = applyAction(state.gameState, action.action);
       if (!result.success) {
-        return { ...state, lastEvents: [], error: result.error.message };
+        return { ...state, lastEvents: [], lastEventMessages: [], error: result.error.message };
       }
 
       const nextState = result.state;
@@ -116,7 +119,7 @@ export function gameSessionReducer(
 
     case 'ADVANCE_AI': {
       if (state.gameState === null) {
-        return { ...state, lastEvents: [], error: 'No active game session' };
+        return { ...state, lastEvents: [], lastEventMessages: [], error: 'No active game session' };
       }
       if (state.phase === 'ended') {
         return state;
@@ -138,7 +141,7 @@ export function gameSessionReducer(
 
       const selection = selectBasicAiAction(state.gameState, action.randomProvider);
       if (!selection.success) {
-        return { ...state, lastEvents: [], error: `AI selection failed: ${selection.reason}` };
+        return { ...state, lastEvents: [], lastEventMessages: [], error: `AI selection failed: ${selection.reason}` };
       }
 
       const result = applyAction(state.gameState, selection.action);
@@ -146,6 +149,7 @@ export function gameSessionReducer(
         return {
           ...state,
           lastEvents: [],
+          lastEventMessages: [],
           error: `AI action failed: ${result.error.message}`,
         };
       }
