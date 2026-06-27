@@ -797,6 +797,98 @@ describe('applyAction — CHOOSE_STOP in pendingGoStop state', () => {
   });
 });
 
+// ─── Draw pile exhaustion (OD-6) ──────────────────────────────────────────────
+//
+// State: HUMAN has 1 card (m2a, month 2), field has matching m2b (month 2),
+// AI hand is empty, draw pile is empty (all remaining 46 cards are pre-placed
+// in AI's captured zone). When HUMAN plays m2a:
+//   - m2a + m2b captured (0 pts — below threshold → no Go/Stop)
+//   - Draw pile remains empty; opponent (AI) has no hand cards
+//   → exhaustion condition fires → phase = 'ended', reason = 'exhausted'
+
+describe('applyAction — draw pile exhaustion (OD-6)', () => {
+  const aiCapturedAll = deck.filter((c) => c.id !== m2a.id && c.id !== m2b.id);
+  const exhaustionState = buildScoringState({
+    p1Hand: [m2a],
+    p2Hand: [],
+    fieldCards: [m2b],
+    p1Captured: [],
+    p2Captured: aiCapturedAll, // all 46 remaining → drawPile = []
+  });
+
+  it('returns success', () => {
+    const result = applyAction(exhaustionState, { type: 'PLAY_CARD', cardId: m2a.id });
+    expect(result.success).toBe(true);
+  });
+
+  it('phase transitions to ended', () => {
+    const result = applyAction(exhaustionState, { type: 'PLAY_CARD', cardId: m2a.id });
+    if (!result.success) throw new Error('Expected success');
+    expect(result.state.phase).toBe('ended');
+  });
+
+  it('finalResult is not null', () => {
+    const result = applyAction(exhaustionState, { type: 'PLAY_CARD', cardId: m2a.id });
+    if (!result.success) throw new Error('Expected success');
+    expect(result.state.finalResult).not.toBeNull();
+  });
+
+  it('finalResult.reason is "exhausted"', () => {
+    const result = applyAction(exhaustionState, { type: 'PLAY_CARD', cardId: m2a.id });
+    if (!result.success) throw new Error('Expected success');
+    expect(result.state.finalResult?.reason).toBe('exhausted');
+  });
+
+  it('GAME_ENDED event is emitted', () => {
+    const result = applyAction(exhaustionState, { type: 'PLAY_CARD', cardId: m2a.id });
+    if (!result.success) throw new Error('Expected success');
+    expect(result.events.some((e) => e.type === 'GAME_ENDED')).toBe(true);
+  });
+
+  it('GAME_ENDED event carries reason "exhausted"', () => {
+    const result = applyAction(exhaustionState, { type: 'PLAY_CARD', cardId: m2a.id });
+    if (!result.success) throw new Error('Expected success');
+    const evt = result.events.find((e) => e.type === 'GAME_ENDED');
+    if (!evt || evt.type !== 'GAME_ENDED') throw new Error('Expected GAME_ENDED event');
+    expect(evt.result.reason).toBe('exhausted');
+  });
+
+  it('TURN_CHANGED is NOT emitted when game ends by exhaustion', () => {
+    const result = applyAction(exhaustionState, { type: 'PLAY_CARD', cardId: m2a.id });
+    if (!result.success) throw new Error('Expected success');
+    expect(result.events.some((e) => e.type === 'TURN_CHANGED')).toBe(false);
+  });
+
+  it('winner is AI (AI has high score from captured cards; HUMAN has 0)', () => {
+    const result = applyAction(exhaustionState, { type: 'PLAY_CARD', cardId: m2a.id });
+    if (!result.success) throw new Error('Expected success');
+    expect(result.state.finalResult?.winner).toBe(AI.id);
+  });
+
+  it('total card count is 48 after exhaustion', () => {
+    const result = applyAction(exhaustionState, { type: 'PLAY_CARD', cardId: m2a.id });
+    if (!result.success) throw new Error('Expected success');
+    expect(new Set(allCardIds(result.state)).size).toBe(48);
+  });
+
+  it('winner is null (draw) when both scores are equal at exhaustion', () => {
+    // Override scoreState so both players have score 0 when exhaustion fires.
+    // HUMAN plays m2a: newScore = calculateScore([m2a, m2b]) — will be 0 if both
+    // are below any threshold. AI's score is also set to 0 → draw.
+    const drawState: GameState = {
+      ...exhaustionState,
+      scoreState: {
+        [HUMAN.id]: { total: 0, gwang: 0, yeol: 0, tti: 0, pi: 0 },
+        [AI.id]:   { total: 0, gwang: 0, yeol: 0, tti: 0, pi: 0 },
+      },
+    };
+    const result = applyAction(drawState, { type: 'PLAY_CARD', cardId: m2a.id });
+    if (!result.success) throw new Error('Expected success');
+    expect(result.state.finalResult?.reason).toBe('exhausted');
+    expect(result.state.finalResult?.winner).toBeNull();
+  });
+});
+
 // ─── Trigger fix: no re-trigger when score unchanged ─────────────────────────
 //
 // After CHOOSE_GO, a player's score is already >= threshold. If their next

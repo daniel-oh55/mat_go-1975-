@@ -286,6 +286,54 @@ export function applyAction(
   const goStopTriggered =
     newScore.total >= state.ruleset.goStopThreshold && newScore.total > oldScore.total;
 
+  // ── Step 6: Check draw pile exhaustion (OD-6) ─────────────────────────────
+  // Exhaustion: the opponent's next turn cannot begin when their hand is empty
+  // and the draw pile is also empty. Game ends; higher score wins; tie = draw.
+  const opponentHand = state.playerHands[opponentPlayer.id] ?? [];
+  const isExhausted = !goStopTriggered && newDrawPile.length === 0 && opponentHand.length === 0;
+
+  if (isExhausted) {
+    const currentScoreTotal = newScore.total;
+    const opponentScoreTotal = state.scoreState[opponentPlayer.id]?.total ?? 0;
+
+    let exhaustionWinner: PlayerId | null;
+    if (currentScoreTotal > opponentScoreTotal) {
+      exhaustionWinner = currentPlayer.id;
+    } else if (opponentScoreTotal > currentScoreTotal) {
+      exhaustionWinner = opponentPlayer.id;
+    } else {
+      exhaustionWinner = null;
+    }
+
+    const exhaustedResult: FinalResult = {
+      winner: exhaustionWinner,
+      scores: {
+        ...state.scoreState,
+        [currentPlayer.id]: newScore,
+      } as Readonly<Record<PlayerId, PlayerScoreState>>,
+      reason: 'exhausted',
+    };
+
+    events.push({ type: 'GAME_ENDED', result: exhaustedResult });
+
+    const exhaustedState: GameState = {
+      ...state,
+      playerHands: { ...state.playerHands, [currentPlayer.id]: newHand },
+      capturedCards: { ...state.capturedCards, [currentPlayer.id]: newCaptured },
+      scoreState: { ...state.scoreState, [currentPlayer.id]: newScore },
+      fieldCards: currentField,
+      drawPile: newDrawPile,
+      turnCount: state.turnCount + 1,
+      phase: 'ended',
+      pendingDecision: null,
+      finalResult: exhaustedResult,
+    };
+
+    assertValidGameState(exhaustedState);
+    return { success: true, state: exhaustedState, events };
+  }
+
+  // ── Normal path: advance turn or enter pendingGoStop ──────────────────────
   if (goStopTriggered) {
     events.push({ type: 'GO_STOP_DECISION_REQUIRED', playerId: currentPlayer.id });
   } else {
