@@ -189,7 +189,78 @@ These must hold at all times. A PR that violates any of these must be rejected.
 
 ---
 
-## 10. Relationship to Other Documents
+## 10. Hidden Information
+
+Matgo has asymmetric information. The human player can see only what is legally visible. `GameViewModel` enforces this boundary — the AI's hand and the draw pile top card are never exposed to the UI.
+
+### What the human player can see
+
+| Data | `GameViewModel` field | Notes |
+|---|---|---|
+| Own hand | `humanHand: ReadonlyArray<Card>` | Full card objects |
+| Field cards | `fieldCards: ReadonlyArray<Card>` | All cards on the field |
+| Both captured piles | `humanCaptured`, `aiCaptured` | Full card objects |
+| Own score (total + breakdown) | `humanScore`, `humanScoreBreakdown` | Derived from `scoreState` |
+| AI score (total + breakdown) | `aiScore`, `aiScoreBreakdown` | AI score is public in Matgo |
+| Number of AI hand cards | `aiHandCount: number` | Count only — not the cards |
+| Number of draw pile cards | `drawPileCount: number` | Count only — not the cards |
+| Legal actions for own turn | `legalCardIds`, `legalPlayActions` | Computed by engine; empty when not human's turn |
+| Game status and phase | `statusDisplay`, `phase` | Pre-computed in Application Layer |
+
+### What the human player cannot see
+
+| Hidden Data | How it is hidden |
+|---|---|
+| AI hand cards | `GameViewModel` exposes `aiHandCount: number` only — never `aiHand: Card[]` |
+| Draw pile top card | `drawPileCount: number` only — the actual cards are not in `GameViewModel` |
+| AI decision logic | AI runs inside `ADVANCE_AI` in the reducer — result is observed, not the process |
+| Future draw pile cards | Not in `GameViewModel` at any point |
+
+> This boundary is structural, not just a display choice. `buildGameViewModel` receives the full `GameState` (which includes the AI hand and draw pile) but deliberately maps these to counts. The UI never has access to the underlying arrays.
+
+---
+
+## 11. Application Layer Boundary
+
+The Application Layer (`src/application/`) is the only permitted import source for UI components. UI components in `src/components/` must never import directly from `src/engine/`.
+
+### Import rules
+
+| Allowed in UI (`src/components/`) | Source |
+|---|---|
+| `Card` (type) | Re-exported from `src/application/gameSession/index.ts` |
+| `PlayerScoreBreakdown` | Defined in Application Layer (`gameViewModel.ts`) — not a re-export from engine |
+| `GameViewModel`, `LegalPlayAction` | Defined in Application Layer |
+| `GameStatusKind`, `GameStatusDisplay` | Defined in Application Layer |
+| `GameSessionState`, `SessionPhase` | Defined in Application Layer |
+| `GameSessionReducerAction` | Defined in Application Layer |
+| `gameSessionReducer`, `createIdleSession`, `buildGameViewModel` | Exported from Application Layer |
+| `HUMAN_PLAYER_ID`, `AI_PLAYER_ID` | Exported from Application Layer |
+| `formatGameEvents` | Defined in Application Layer |
+
+| Prohibited in UI | Why |
+|---|---|
+| `import ... from '../../engine/...'` | Bypasses Application Layer contract; breaks boundary |
+| Calling engine functions directly | Engine calls must go through `gameSessionReducer` only |
+| Interpreting `GameEvent` types in components | Events are converted to Korean strings by `formatGameEvents` before reaching UI |
+
+### How the boundary is enforced
+
+- **Convention**: all UI imports from `'../../application/gameSession/index.js'` only.
+- **PR review**: any `import ... from '../../engine/...'` in `src/components/` must be rejected.
+- **Re-export gate**: the Application Layer `index.ts` explicitly controls which engine types are surfaced to the UI. Adding a new engine type to the UI requires a deliberate change to `index.ts`.
+
+### Types defined in the Application Layer (not re-exported from engine)
+
+`PlayerScoreBreakdown`, `GameStatusKind`, `GameStatusDisplay`, `LegalPlayAction` mirror engine shapes but are defined independently in `gameViewModel.ts`. This means:
+
+- A change to the engine's internal type shape does not automatically surface to the UI.
+- The Application Layer decides what the UI sees.
+- Future engine types can be introduced without any UI impact until explicitly mapped.
+
+---
+
+## 12. Relationship to Other Documents
 
 | Document | Contents |
 |---|---|
