@@ -31,11 +31,39 @@ The following are out of scope for the Save/Progress system and must not be adde
 
 ---
 
-## 3. Save Data Categories
+## 3. M5 MVP Implementation Scope
+
+**Milestone 5 implements Category A only.** Category B and Category C are architecture-complete but not implemented in M5.
+
+| Category | M5 status | Description |
+|---|---|---|
+| A: Active Game | **Implemented in M5** | Player can resume the current game after closing the app |
+| B: Player Statistics | Deferred (post-M5) | Win/loss record, best score — requires Stats screen UI |
+| C: App Settings | Deferred (post-M5) | No settings fields defined yet |
+
+**Rationale for scope:** The highest-value save feature for a single-session mobile game is "not losing your game progress when the app closes." Player statistics are meaningful only once the core play loop is stable and the player has played multiple games. Implementing stats in M5 would require a Stats screen UI that is not yet designed.
+
+**What M5 delivers:**
+- `StorageService` interface + `InMemoryStorageService` (testable without Capacitor)
+- Application Layer save/load module for Category A (serialize, validate, migrate)
+- Save triggers wired into `GameSessionScreen` (after each turn, on game end)
+- Resume UX — "게임 이어하기" prompt when an active game is detected on startup
+- `CapacitorStorageService` (Platform Layer implementation for production)
+
+**What M5 does not deliver:**
+- Category B (Player Statistics) — no stats tracking, no stats screen
+- Category C (App Settings) — no settings persistence
+- Cloud save, account, entitlements
+
+All three categories remain documented in §4 below so the architecture is established before implementation begins.
+
+---
+
+## 4. Save Data Categories
 
 There are three independent categories of persistent data. Each has a different save trigger, retention lifetime, and consumer.
 
-### Category A: Active Game
+### Category A: Active Game — **M5 scope**
 
 A snapshot of the in-progress game so the player can resume after closing the app.
 
@@ -57,7 +85,9 @@ A snapshot of the in-progress game so the player can resume after closing the ap
 
 ---
 
-### Category B: Player Statistics
+### Category B: Player Statistics — **Deferred (post-M5)**
+
+> **Not implemented in M5.** Category B is documented here so the storage key and schema are established before implementation begins.
 
 Cumulative lifetime statistics for the player. Updated when a game ends.
 
@@ -82,7 +112,9 @@ Cumulative lifetime statistics for the player. Updated when a game ends.
 
 ---
 
-### Category C: App Settings
+### Category C: App Settings — **Deferred (post-M5)**
+
+> **Not implemented in M5.** Category C is documented here so the storage key and schema format are established before the Settings UI is built.
 
 Player preferences that persist between sessions.
 
@@ -132,7 +164,9 @@ Each category maps to a stable storage key. Keys are namespaced to avoid collisi
 
 > **Save on every turn:** Saving after every turn means at most one turn of progress is lost if the app crashes or is force-killed. This is acceptable for a single-device local game.
 
-### Player Statistics save triggers
+### Player Statistics save triggers — Deferred (post-M5)
+
+> Not implemented in M5. The trigger is documented for future reference.
 
 | Trigger | Condition | Action |
 |---|---|---|
@@ -140,11 +174,13 @@ Each category maps to a stable storage key. Keys are namespaced to avoid collisi
 
 Stats are updated once per game, not once per turn.
 
-### App Settings save triggers
+### App Settings save triggers — Deferred (post-M5)
+
+> Not implemented in M5. No settings fields are defined yet.
 
 | Trigger | Condition | Action |
 |---|---|---|
-| User changes a setting | (deferred — no settings in MVP) | Update Category C |
+| User changes a setting | (no settings defined yet) | Update Category C |
 
 ---
 
@@ -165,7 +201,9 @@ All saved documents are JSON objects. No binary format. The Application Layer se
 
 `gameState` contains the complete `GameState` object as returned by the engine. Because the engine's `GameState` boundary requires all fields to be plain serializable data (no class instances, no functions, no Symbols), no custom serializer is needed — `JSON.stringify` and `JSON.parse` are sufficient.
 
-### Category B — Player Statistics
+### Category B — Player Statistics (Deferred, post-M5)
+
+> Schema is documented for future implementation. Not written in M5.
 
 ```
 {
@@ -180,7 +218,9 @@ All saved documents are JSON objects. No binary format. The Application Layer se
 }
 ```
 
-### Category C — App Settings
+### Category C — App Settings (Deferred, post-M5)
+
+> Schema is documented for future implementation. Not written in M5.
 
 ```
 {
@@ -230,7 +270,7 @@ Every saved document contains a `saveVersion: number` field. The version is an i
 - **Deserializes** a loaded document back into a `GameState` and session metadata.
 - **Validates** a loaded `GameState` before passing it to the engine (rejects corrupted or mismatched documents).
 - **Runs migration** if `saveVersion` is below the current version.
-- **Computes stats delta** after a game ends and writes Category B.
+- **Computes stats delta** after a game ends and writes Category B. _(Deferred — not in M5)_
 - **Requests reads and writes** from the Platform Layer via an interface (not directly from a storage implementation).
 
 **Must not:**
@@ -297,23 +337,21 @@ When a save trigger fires:
    (Save failure is non-fatal.)
 ```
 
-When the game ends:
+When the game ends (M5 scope):
 
 ```
 1. Application Layer calls StorageService.delete('matgo.v1.activeGame').
+```
 
+> **Stats update (Category B) is deferred to post-M5.** Steps 2–6 below are documented for future implementation but are not executed in M5.
+
+```
+// Deferred — not in M5:
 2. Application Layer computes the stats delta (wins/losses/draws/totalGoCount/bestScore).
-
 3. Application Layer calls StorageService.read('matgo.v1.playerStats').
-
 4. If read returns null: start from zero (first game).
-
 5. Application Layer deserializes existing stats, applies delta, re-serializes.
-
-6. Application Layer calls StorageService.write(
-     'matgo.v1.playerStats',
-     updatedStats
-   ).
+6. Application Layer calls StorageService.write('matgo.v1.playerStats', updatedStats).
 ```
 
 ---
