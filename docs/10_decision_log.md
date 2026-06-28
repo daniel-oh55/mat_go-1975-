@@ -6,6 +6,69 @@ Entries are listed in reverse chronological order (newest first).
 
 ---
 
+## 2026-06-28 - M5: Save System Uses Three Independent Data Categories
+
+**Decision**  
+Persistent data is split into three independent categories: Active Game (in-progress game state), Player Statistics (lifetime stats), and App Settings (player preferences). Each category has its own storage key, its own save trigger, and its own retention lifetime. They are never combined into a single save document.
+
+**Reason**  
+A single monolithic save document creates tight coupling between concerns with different lifetimes. The Active Game document is deleted when a game ends; Player Statistics must never be deleted when a game ends. Separating them ensures stats cannot be accidentally lost when the active game is cleared.
+
+**Impact**  
+- Storage keys: `matgo.v1.activeGame`, `matgo.v1.playerStats`, `matgo.v1.settings`.
+- Deleting the active game on game end does not affect stats or settings.
+- New data categories in future milestones get their own key — they do not extend an existing document.
+
+---
+
+## 2026-06-28 - M5: Application Layer Owns Save/Load Logic; Platform Layer Owns Storage
+
+**Decision**  
+The Application Layer decides when to save, serializes/deserializes save documents, validates loaded state, and runs schema migrations. The Platform Layer implements the storage API (`read`, `write`, `delete`) and has no knowledge of what is stored. The two responsibilities must not cross layers.
+
+**Reason**  
+If the Platform Layer validates or interprets save data, it becomes coupled to the Application Layer's schema. If the Application Layer calls storage APIs directly, it becomes coupled to a platform (Capacitor, browser, etc.). The interface boundary (`StorageService`) allows the Application Layer to be tested with an in-memory mock without Capacitor.
+
+**Impact**  
+- `StorageService` interface is defined in the Application Layer (dependency inversion).
+- `CapacitorStorageService` and `InMemoryStorageService` implement the interface in the Platform Layer.
+- The Application Layer never imports a concrete storage implementation.
+- The Platform Layer never imports save schema types.
+
+---
+
+## 2026-06-28 - M5: Save Failure Is Non-Fatal; Load Corruption Falls Back to Fresh Start
+
+**Decision**  
+If a save write fails, the error is logged and the game continues. There is no save-error UI. If a loaded active game document fails validation or is from a newer schema version, the document is deleted and the player starts fresh from the title screen.
+
+**Reason**  
+A failed save during a turn is rarely catastrophic for a local game — at most one turn of progress is lost. Showing a blocking save-error dialog interrupts gameplay for a non-critical failure. Conversely, passing a corrupted or incompatible `GameState` to the engine could cause unpredictable behavior; discarding and starting fresh is safer than attempting partial recovery.
+
+**Impact**  
+- Application Layer save calls use fire-and-forget error handling (log, continue).
+- Application Layer load calls validate all required fields before passing state to the engine.
+- If any validation check fails, the entire active game document is discarded — there is no partial recovery.
+- The player is never blocked from starting a new game due to a corrupted save.
+
+---
+
+## 2026-06-28 - M5: `saveVersion` Field in Every Document; Breaking Changes Increment Key Generation
+
+**Decision**  
+Every saved JSON document contains a `saveVersion: number` integer field starting at 1. Additive changes (new optional fields with safe defaults) do not increment `saveVersion`. Breaking changes (removed/renamed fields, changed semantics) increment `saveVersion` and require a migration function in the Application Layer. A schema generation change that requires full data discard uses a new storage key (`matgo.v2.*` instead of `matgo.v1.*`).
+
+**Reason**  
+Schema versioning without a migration path leads to silent corruption when app versions change. Using the key itself as the generation marker (`v1`, `v2`) allows old and new documents to coexist in storage during a rolling update — the new app reads from `v2` and discards the `v1` document rather than trying to migrate a document it may not be able to read.
+
+**Impact**  
+- `saveVersion` must be present and checked on every load.
+- Documents with `saveVersion > CURRENT_VERSION` (from a newer app) are treated as unreadable and discarded.
+- Migration functions are pure: old document in, new document out — no side effects.
+- This PR establishes version 1 as the baseline. No migration functions exist yet.
+
+---
+
 ## 2026-06-28 - State Transition Diagrams Must Be Verified Against Engine Source (M3-H1B, M3-H1C)
 
 **Decision**  
