@@ -106,14 +106,14 @@ The UI state is the product of two independent signals:
 
 ### `CardHighlight` visual specification (M4-PR1)
 
-| `CardHighlight` | Border | Background | Text color | `aria-label` suffix | Clickable |
-|---|---|---|---|---|---|
-| `none` | `2px solid #ddd` | `#f5f5f5` | `#bbb` | _(none)_ | No (`disabled`) |
-| `legal` | `2px solid #e8a000` | `#fff8e0` | `#333` | ` (선택 가능)` | Yes |
-| `selected` | `2px solid #2255aa` | `#dceeff` | `#111` | ` (선택됨)` | Yes |
-| `target` | `2px solid #c00` | `#ffe8e8` | `#333` | ` (대상 선택)` | Yes |
+| `CardHighlight` | Border | Background | Text color | Badge (second line) | `aria-label` suffix | Clickable |
+|---|---|---|---|---|---|---|
+| `none` | `2px solid #ddd` | `#f5f5f5` | `#bbb` | _(none)_ | _(none)_ | No (`disabled`) |
+| `legal` | `2px solid #e8a000` | `#fff8e0` | `#333` | `낼 수 있음` | ` (선택 가능)` | Yes |
+| `selected` | `2px solid #2255aa` | `#dceeff` | `#111` | `선택됨` | ` (선택됨)` | Yes |
+| `target` | `2px solid #c00` | `#ffe8e8` | `#333` | `대상` | ` (대상 선택)` | Yes |
 
-All states use a 2px border — card size never shifts when highlight changes. `none` uses `opacity: 1` explicitly to override the browser's default disabled-button dimming. Minimum touch target: `minHeight: 44px`, `minWidth: 52px`.
+All states use a 2px border — card size never shifts when highlight changes. `none` uses `opacity: 1` explicitly to override the browser's default disabled-button dimming. Minimum touch target: `minHeight: 44px`, `minWidth: 52px`. Interactive states show a small badge text (10px, 0.75 opacity) below the card name.
 
 ### Human hand cards
 
