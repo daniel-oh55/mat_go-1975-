@@ -6,6 +6,22 @@ Entries are listed in reverse chronological order (newest first).
 
 ---
 
+## 2026-06-28 - M5: Browser localStorage Adapter Is Implemented First; Capacitor Is M5-PR6
+
+**Decision**  
+`BrowserLocalStorageStorageService` (wrapping `window.localStorage`) is the primary Platform Layer implementation for M5, implemented in M5-PR2. `CapacitorStorageService` is deferred to M5-PR6, after the Application Layer save/load logic is validated in the browser environment.
+
+**Reason**  
+The game runs on Vite/React in a browser during development. Validating save/load against `window.localStorage` requires no device, no emulator, and no Capacitor SDK installation. Attempting to build `CapacitorStorageService` first would block test and development feedback on any machine without Capacitor configured. The `StorageService` interface ensures the Application Layer cannot tell the difference — swapping implementations is a single dependency injection change.
+
+**Impact**  
+- M5-PR2 delivers: `StorageService` interface + `BrowserLocalStorageStorageService` + `InMemoryStorageService`.
+- M5-PR3 through M5-PR5 use `BrowserLocalStorageStorageService` in manual browser testing and `InMemoryStorageService` in automated tests.
+- M5-PR6 adds `CapacitorStorageService` for production mobile; the Application Layer code does not change.
+- The `BrowserLocalStorageStorageService` key format matches the Capacitor key format exactly — no data migration is needed when switching from browser to Capacitor in a production build.
+
+---
+
 ## 2026-06-28 - M5: MVP Save Scope Is "Active Game Resume Only"
 
 **Decision**  
