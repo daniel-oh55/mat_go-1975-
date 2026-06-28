@@ -104,16 +104,18 @@ The UI state is the product of two independent signals:
 
 ## 5. Card Interactivity Matrix
 
-### `CardHighlight` visual specification (M4-PR1)
+### `CardHighlight` visual specification (M4-PR1, M4-PR1A, M4-PR1B)
 
-| `CardHighlight` | Border | Background | Text color | Badge (second line) | `aria-label` suffix | Clickable |
-|---|---|---|---|---|---|---|
-| `none` | `2px solid #ddd` | `#f5f5f5` | `#bbb` | _(none)_ | _(none)_ | No (`disabled`) |
-| `legal` | `2px solid #e8a000` | `#fff8e0` | `#333` | `낼 수 있음` | ` (선택 가능)` | Yes |
-| `selected` | `2px solid #2255aa` | `#dceeff` | `#111` | `선택됨` | ` (선택됨)` | Yes |
-| `target` | `2px solid #c00` | `#ffe8e8` | `#333` | `대상` | ` (대상 선택)` | Yes |
+Badge text and `aria-label` suffix are both derived from `cardInteractionLabel(highlight)` (M4-PR1B).
 
-All states use a 2px border — card size never shifts when highlight changes. `none` uses `opacity: 1` explicitly to override the browser's default disabled-button dimming. Minimum touch target: `minHeight: 44px`, `minWidth: 52px`. Interactive states show a small badge text (10px, 0.75 opacity) below the card name.
+| `CardHighlight` | Border | Background | Text color | Badge (second line) | `aria-label` | `aria-disabled` | `aria-pressed` | Clickable |
+|---|---|---|---|---|---|---|---|---|
+| `none` | `2px solid #ddd` | `#f5f5f5` | `#bbb` | _(none)_ | `카드명 (선택 불가)` | `true` | — | No (`disabled`) |
+| `legal` | `2px solid #e8a000` | `#fff8e0` | `#333` | `낼 수 있음` | `카드명 (낼 수 있음)` | `false` | — | Yes |
+| `selected` | `2px solid #2255aa` | `#dceeff` | `#111` | `선택됨` | `카드명 (선택됨)` | `false` | `true` | Yes |
+| `target` | `2px solid #c00` | `#ffe8e8` | `#333` | `대상 선택` | `카드명 (대상 선택)` | `false` | — | Yes |
+
+All states use a 2px border — card size never shifts when highlight changes. `none` uses `opacity: 1` explicitly to override the browser's default disabled-button dimming. Minimum touch target: `minHeight: 44px`, `minWidth: 52px`. Interactive states show a small badge text (10px, 0.75 opacity) below the card name. `aria-pressed` is set only on `selected` (a toggle state); other states omit it.
 
 ### Human hand cards
 
