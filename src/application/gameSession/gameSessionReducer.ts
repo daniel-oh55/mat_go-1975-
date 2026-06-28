@@ -19,11 +19,15 @@ import type { GamePhase } from '../../engine/state/gameState.js';
  * 'ADVANCE_AI'          — Trigger the AI to take one action. The React layer
  *                         dispatches this in a useEffect loop until the turn
  *                         returns to the human (or the game ends).
+ * 'RESTORE_SESSION'     — Replace the entire session state with a previously
+ *                         saved and validated GameSessionState (from loadActiveGame).
+ *                         The session must already have a fresh GameViewModel.
  */
 export type GameSessionReducerAction =
   | { readonly type: 'START_GAME'; readonly randomProvider: RandomProvider }
   | { readonly type: 'SUBMIT_HUMAN_ACTION'; readonly action: GameAction }
-  | { readonly type: 'ADVANCE_AI'; readonly randomProvider: RandomProvider };
+  | { readonly type: 'ADVANCE_AI'; readonly randomProvider: RandomProvider }
+  | { readonly type: 'RESTORE_SESSION'; readonly session: GameSessionState };
 
 function toSessionPhase(enginePhase: GamePhase): SessionPhase {
   if (enginePhase === 'ended') return 'ended';
@@ -164,6 +168,12 @@ export function gameSessionReducer(
         viewModel: buildGameViewModel(nextState, HUMAN_PLAYER_ID, AI_PLAYER_ID),
         error: null,
       };
+    }
+
+    case 'RESTORE_SESSION': {
+      // Session was validated and a fresh GameViewModel was derived by loadActiveGame.
+      // Return it directly — no engine calls needed.
+      return action.session;
     }
   }
 }
