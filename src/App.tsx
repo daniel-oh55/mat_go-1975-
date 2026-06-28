@@ -1,5 +1,10 @@
+import type { StorageService } from './application/storage/StorageService.js';
 import { GameSessionScreen } from './components/game/index.js';
 
-export function App() {
-  return <GameSessionScreen />;
+interface AppProps {
+  storageService: StorageService;
+}
+
+export function App({ storageService }: AppProps) {
+  return <GameSessionScreen storageService={storageService} />;
 }

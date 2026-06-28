@@ -3,7 +3,10 @@ import {
   gameSessionReducer,
   createIdleSession,
   HUMAN_PLAYER_ID,
+  saveActiveGame,
+  deleteActiveGame,
 } from '../../application/gameSession/index.js';
+import type { StorageService } from '../../application/storage/StorageService.js';
 import { MathRandomProvider } from '../../application/mathRandomProvider.js';
 import type { LegalPlayAction } from '../../application/gameSession/index.js';
 import { CardButton } from './CardButton.js';
@@ -17,6 +20,10 @@ import { ResultPanel } from './ResultPanel.js';
 
 // ─── GameSessionScreen ────────────────────────────────────────────────────────
 
+interface GameSessionScreenProps {
+  storageService: StorageService;
+}
+
 /**
  * Root game screen. Owns session state and all dispatch logic.
  * Delegates all rendering to presentational sub-components.
@@ -25,9 +32,10 @@ import { ResultPanel } from './ResultPanel.js';
  * - Manages session state via gameSessionReducer.
  * - Dispatches human actions through the Application Layer.
  * - Auto-advances AI turns via useEffect.
+ * - Persists active game state via saveActiveGame / deleteActiveGame after each session change.
  * - Passes derived view data down to child components.
  */
-export function GameSessionScreen() {
+export function GameSessionScreen({ storageService }: GameSessionScreenProps) {
   const randomProvider = useRef(new MathRandomProvider()).current;
   const [session, dispatch] = useReducer(gameSessionReducer, undefined, createIdleSession);
   // Tracks which hand card is awaiting field-target selection (OD-2 multi-match flow)
@@ -37,6 +45,17 @@ export function GameSessionScreen() {
   useEffect(() => {
     setPendingCardId(null);
   }, [session]);
+
+  // Save trigger: fires after every session state change.
+  // playing/pendingGoStop → save; ended → delete; idle → no-op.
+  // saveActiveGame and deleteActiveGame are fire-and-forget (never throw).
+  useEffect(() => {
+    if (session.phase === 'playing' || session.phase === 'pendingGoStop') {
+      void saveActiveGame(storageService, session);
+    } else if (session.phase === 'ended') {
+      void deleteActiveGame(storageService);
+    }
+  }, [session, storageService]);
 
   // Auto-advance AI turns (and AI pendingGoStop decisions)
   useEffect(() => {
