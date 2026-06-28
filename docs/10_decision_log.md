@@ -275,6 +275,83 @@ The engine is the foundation. Building content before the engine is stable and v
 
 ---
 
+## 2026-06-26 - M4: `cardInteractionLabel()` as Single Source of Truth
+
+**Decision**  
+All text that identifies a `CardButton`'s interaction state — both the visible badge line and the `aria-label` suffix — is produced by a single helper, `cardInteractionLabel(highlight: CardHighlight): string`.
+
+**Reason**  
+Without a shared function, badge text and aria-label text can drift. A card labelled "선택됨" visually but announced as "selected" by screen readers is a bug. One function eliminates the class.
+
+**Impact**  
+- `CardButton.tsx` imports only `cardInteractionLabel()` for both badge and aria-label.
+- Tests cover `cardInteractionLabel()` exhaustively (all four `CardHighlight` values).
+- Any future change to interaction state copy must touch exactly one location.
+
+---
+
+## 2026-06-26 - M4: `DisplayCard` (`<span>`) vs `CardButton` (`<button>`) for Display-Only Contexts
+
+**Decision**  
+Captured card piles render via `DisplayCard`, a `<span>`-based chip component. `CardButton`, a `<button>`, is reserved for interactive card slots only.
+
+**Reason**  
+Rendering a `<button disabled>` for display-only cards misleads assistive technology: a button implies that interaction is possible in principle, even when disabled. A `<span>` conveys no affordance.
+
+**Impact**  
+- `DisplayCard` receives `aria-label` = `카드명, 획득 카드` and `title` = `카드명 획득 카드`.
+- `cardLabel()` is imported from `CardButton.tsx` — no duplication.
+- Any new display-only card context (preview, history, reference) should use `DisplayCard`, not `CardButton`.
+
+---
+
+## 2026-06-26 - M4: `ActionHint` Uses `role="status"` + `aria-live="polite"`
+
+**Decision**  
+`ActionHint` is rendered as `<div role="status" aria-live="polite">`. It returns `null` for the `ended` state.
+
+**Reason**  
+`role="status"` announces hint changes to screen readers without interrupting the user. `aria-live="polite"` means announcements wait for idle time — not intrusive. The `ended` state needs no hint; returning null avoids an empty live region.
+
+**Impact**  
+- `isTargetSelectionPending` takes priority over `statusKind`: "바닥패를 선택하세요" appears whenever target selection is pending, regardless of the underlying status.
+- Any new game state that requires a hint must add a `HINT_TEXT` entry.
+- The `ended` entry explicitly maps to `null` to document the intentional omission.
+
+---
+
+## 2026-06-26 - M4: "스톱" Ends the Game; Winner Is Determined by Score Comparison
+
+**Decision**  
+The Stop button copy reads "게임 종료" (game end). It does not say "승리 선언" (victory declaration).
+
+**Reason**  
+Pressing Stop ends the game, but the winner is determined by comparing scores — the player who pressed Stop could lose if the AI's score is higher. Calling it a "victory declaration" is factually wrong.
+
+**Impact**  
+- `GoStopPanel` button sub-label: "게임 종료".
+- `aria-label`: "스톱 — 게임 종료".
+- Guidance text: "지금 점수로 게임을 종료합니다."
+- `ResultPanel` remains the authoritative outcome display.
+
+---
+
+## 2026-06-26 - M4: `ResultPanel` Uses Outcome-Aware Styling
+
+**Decision**  
+`ResultPanel` drives `background`, `border`, and `color` from an `OUTCOME_STYLE` map keyed on `'win' | 'lose' | 'draw'`. Prior to M4 the panel was always styled as green (win) regardless of outcome.
+
+**Reason**  
+A red result panel for a loss is a primary UI affordance — the player should not need to read the text to know they lost.
+
+**Impact**  
+- win: `#e8f5e9` / `#4caf50` / `#2a7`
+- lose: `#fdecea` / `#e57373` / `#c33`
+- draw: `#f5f5f5` / `#bbb` / `#555`
+- `<section aria-label="게임 결과">` wraps the panel; `<h2>게임 종료</h2>` is always neutral — only the outcome line carries color.
+
+---
+
 ## 2026-06-26 - Working Title Is Provisional
 
 **Decision**  
