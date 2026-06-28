@@ -13,29 +13,22 @@ export function cardLabel(card: Card): string {
   return `${card.month}월 ${CATEGORY_KO[card.category] ?? card.category}`;
 }
 
+export function cardInteractionLabel(highlight: CardHighlight): string {
+  switch (highlight) {
+    case 'none':     return '선택 불가';
+    case 'legal':    return '낼 수 있음';
+    case 'selected': return '선택됨';
+    case 'target':   return '대상 선택';
+  }
+}
+
 // All states use 2px border so card size never shifts when highlight changes.
 // none uses opacity:1 to override the browser's default disabled-button dimming.
 const HIGHLIGHT_STYLES: Record<CardHighlight, React.CSSProperties> = {
-  none:     { border: '2px solid #ddd',   background: '#f5f5f5', color: '#bbb', cursor: 'default',  opacity: 1 },
+  none:     { border: '2px solid #ddd',    background: '#f5f5f5', color: '#bbb', cursor: 'default',  opacity: 1 },
   legal:    { border: '2px solid #e8a000', background: '#fff8e0', color: '#333', cursor: 'pointer' },
   selected: { border: '2px solid #2255aa', background: '#dceeff', color: '#111', cursor: 'pointer' },
-  target:   { border: '2px solid #c00',   background: '#ffe8e8', color: '#333', cursor: 'pointer' },
-};
-
-const ARIA_SUFFIX: Record<CardHighlight, string> = {
-  none:     '',
-  legal:    ' (선택 가능)',
-  selected: ' (선택됨)',
-  target:   ' (대상 선택)',
-};
-
-// Short label shown below the card name.
-// null means no badge (none state — button is disabled and visually inactive).
-const STATE_BADGE: Record<CardHighlight, string | null> = {
-  none:     null,
-  legal:    '낼 수 있음',
-  selected: '선택됨',
-  target:   '대상',
+  target:   { border: '2px solid #c00',    background: '#ffe8e8', color: '#333', cursor: 'pointer' },
 };
 
 interface CardButtonProps {
@@ -47,12 +40,15 @@ interface CardButtonProps {
 export function CardButton({ card, highlight = 'none', onClick }: CardButtonProps) {
   const hl = HIGHLIGHT_STYLES[highlight];
   const isInteractive = highlight !== 'none';
-  const badge = STATE_BADGE[highlight];
+  const interactionLabel = cardInteractionLabel(highlight);
+  const badge = isInteractive ? interactionLabel : null;
   return (
     <button
       onClick={isInteractive ? onClick : undefined}
       disabled={!isInteractive}
-      aria-label={`${cardLabel(card)}${ARIA_SUFFIX[highlight]}`}
+      aria-label={`${cardLabel(card)} (${interactionLabel})`}
+      aria-disabled={!isInteractive}
+      aria-pressed={highlight === 'selected' ? true : undefined}
       style={{
         padding: '6px 10px',
         margin: '3px',
