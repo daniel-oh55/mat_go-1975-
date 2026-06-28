@@ -110,8 +110,8 @@ This flow is reached when two or more same-month cards are on the field and the 
 - [ ] Status bar shows "게임 종료" in gray.
 - [ ] Go/Stop panel is **not** shown.
 - [ ] Hand cards are still visible (non-clickable).
-- [ ] Clicking "다시 하기" resets to the Idle state → "새 게임 시작" button is shown.
-- [ ] Starting a new game from the idle state works correctly (full smoke test passes again).
+- [ ] Clicking "다시 하기" dispatches `START_GAME` → transitions directly to Human Turn. The idle screen is **not** shown between games.
+- [ ] The new game starts correctly: "▶ 내 차례", legal hand cards highlighted, field cards visible.
 
 ---
 
@@ -147,7 +147,7 @@ Run these checks for any PR that modifies components in `src/components/game/` o
 - [ ] `EventLog` updates correctly after each action.
 - [ ] Score breakdown row appears and disappears correctly (section 10).
 - [ ] `ResultPanel` shows correct winner, reason, and breakdown (section 8).
-- [ ] "다시 하기" resets to idle correctly (section 8).
+- [ ] "다시 하기" starts a new game directly in Human Turn, not through Idle (section 8).
 - [ ] `tsc --noEmit` reports 0 errors.
 - [ ] All 402+ tests pass (`npx vitest run`).
 
