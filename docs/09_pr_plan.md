@@ -23,7 +23,135 @@ Each PR must do one thing. Engine PRs must be small, testable, and reviewable in
 
 ---
 
-## 3. Milestone 2 Proposed PRs
+## 3. Milestone 5 Proposed PRs — Save / Progress (Active Game Resume)
+
+Milestone 5 implements Category A save only: the player can resume an in-progress game after closing the app. Category B (Player Statistics) and Category C (App Settings) are deferred.
+
+See `docs/16_save_progress_architecture.md` for the full architecture.
+
+---
+
+### M5-PR1 — Save/Progress Architecture Document
+
+**Goal:** Document the full save/progress architecture before any implementation begins.
+
+| Deliverable | Notes |
+|---|---|
+| `docs/16_save_progress_architecture.md` | Three data categories, storage keys, save triggers, JSON schema, layer responsibilities, StorageService interface, save/load flows |
+| `docs/10_decision_log.md` updates | Four M5 architecture decisions |
+
+**Constraints:** Documentation only. No code.
+
+---
+
+### M5-PR1A — Save Architecture Scope Cleanup
+
+**Goal:** Narrow M5 implementation scope to "Active Game resume only". Add M5 PR plan to `docs/09_pr_plan.md`.
+
+| Deliverable | Notes |
+|---|---|
+| `docs/16_save_progress_architecture.md` | Add §3 MVP scope section; mark Category B and C as Deferred |
+| `docs/09_pr_plan.md` | Add Milestone 5 PR plan (this section) |
+| `docs/10_decision_log.md` | Add M5-PR1A scope decision |
+
+**Constraints:** Documentation only. No code.
+
+---
+
+### M5-PR2 — `StorageService` Interface + `InMemoryStorageService`
+
+**Goal:** Define the storage contract and provide a testable in-memory implementation.
+
+| Deliverable | Notes |
+|---|---|
+| `StorageService` interface | `read(key): Promise<string \| null>`, `write(key, value): Promise<void>`, `delete(key): Promise<void>` |
+| `InMemoryStorageService` | Map-backed in-process implementation; no Capacitor dependency |
+| Tests for `InMemoryStorageService` | Read null on missing key; write/read roundtrip; delete removes key |
+
+**Where:** `src/platform/storage/` or `src/application/gameSession/` (interface in Application Layer per dependency inversion)
+
+**Constraints:** No Capacitor import yet. No Application Layer save logic yet.
+
+---
+
+### M5-PR3 — Application Layer Save/Load Module
+
+**Goal:** Implement serialize, write, load, and validate for the Active Game document (Category A).
+
+| Deliverable | Notes |
+|---|---|
+| `serializeActiveGame(session)` | Produces Category A JSON document from session state |
+| `saveActiveGame(storage, session)` | Calls `StorageService.write` — fire-and-forget error handling |
+| `loadActiveGame(storage)` | Reads and deserializes; returns `null` if missing or corrupted |
+| `validateActiveGameDoc(doc)` | Checks `saveVersion`, `sessionPhase`, `gameState` shape |
+| `deleteActiveGame(storage)` | Calls `StorageService.delete` |
+| Tests | Roundtrip save/load; validation rejects malformed docs; load null on missing key |
+
+**Dependency:** M5-PR2.
+
+---
+
+### M5-PR4 — Save Triggers in `GameSessionScreen`
+
+**Goal:** Wire save calls into the existing dispatch flow so the active game is persisted after each turn.
+
+| Deliverable | Notes |
+|---|---|
+| Save after human turn | Call `saveActiveGame` after `SUBMIT_HUMAN_ACTION` resolves |
+| Save after AI turn | Call `saveActiveGame` after `ADVANCE_AI` resolves |
+| Delete on game end | Call `deleteActiveGame` when `session.phase === 'ended'` |
+| Delete on "다시 하기" | Call `deleteActiveGame` before `START_GAME` dispatch |
+| Tests | Verify save is called at correct trigger points (using `InMemoryStorageService`) |
+
+**Dependency:** M5-PR3.
+
+---
+
+### M5-PR5 — Resume UX ("게임 이어하기")
+
+**Goal:** On app startup, if a valid active game exists, offer the player a resume option before the title screen.
+
+| Deliverable | Notes |
+|---|---|
+| Startup load check | `GameSessionScreen` calls `loadActiveGame` on mount |
+| "게임 이어하기" prompt | Shown on the idle screen when a valid active game is loaded |
+| "새 게임 시작" behavior | Clears the active game, starts fresh |
+| Resume behavior | Restores session state from the loaded document |
+| Tests | Idle screen shows resume prompt when active game exists; no prompt when absent |
+
+**Dependency:** M5-PR4.
+
+---
+
+### M5-PR6 — `CapacitorStorageService`
+
+**Goal:** Provide the production Platform Layer implementation using Capacitor Storage.
+
+| Deliverable | Notes |
+|---|---|
+| `CapacitorStorageService` | Wraps `@capacitor/preferences` (or `@capacitor/storage`); implements `StorageService` |
+| Error handling | Catch and log Capacitor errors; never propagate to Application Layer as uncaught |
+| Manual verification | Verify active game persists across app close/reopen on a device or emulator |
+
+**Dependency:** M5-PR5. Requires Capacitor to be installed in the project.
+
+---
+
+### M5-H1 — Save System Hardening Review
+
+**Goal:** Verify the M5 save system is complete, tested, and consistent with the architecture document.
+
+| Deliverable | Notes |
+|---|---|
+| Implementation vs architecture check | Verify all M5 deliverables match §3 and §8 of `docs/16_save_progress_architecture.md` |
+| Edge case coverage review | App killed mid-turn, empty draw pile at resume, corrupted JSON |
+| M5 completion criteria sign-off | All items checked |
+
+**Constraints:** Documentation only. No new code unless a critical gap is found.
+
+---
+
+## 4. Milestone 2 Proposed PRs
 
 ### M2-PR1 — Engine Types and Card Model
 
@@ -176,7 +304,7 @@ Each PR must do one thing. Engine PRs must be small, testable, and reviewable in
 
 ---
 
-## 4. Open Decisions — All Resolved
+## 5. Open Decisions — All Resolved
 
 All Open Decisions OD-1 through OD-6 are resolved in `docs/12_open_decision_resolution.md`.
 
@@ -193,7 +321,7 @@ All Open Decisions OD-1 through OD-6 are resolved in `docs/12_open_decision_reso
 
 ---
 
-## 5. Milestone 1 Completion Criteria
+## 6. Milestone 1 Completion Criteria
 
 Milestone 1 is complete when all of the following documents exist and are reviewed:
 
@@ -209,7 +337,7 @@ Milestone 1 is complete when all of the following documents exist and are review
 
 ---
 
-## 6. What Comes After Milestone 1
+## 7. What Comes After Milestone 1
 
 The next milestone is **Milestone 2 — Matgo Game Engine Implementation**.
 

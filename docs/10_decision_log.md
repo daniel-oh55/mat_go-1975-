@@ -6,6 +6,21 @@ Entries are listed in reverse chronological order (newest first).
 
 ---
 
+## 2026-06-28 - M5: MVP Save Scope Is "Active Game Resume Only"
+
+**Decision**  
+Milestone 5 implements Category A (Active Game) only. Category B (Player Statistics) and Category C (App Settings) are architecture-documented but not implemented in M5.
+
+**Reason**  
+The highest-value save feature for a single-session mobile game is "not losing your game progress when the app closes." Player statistics are meaningful only after the player has played multiple games and a Stats screen exists to display them. Implementing all three categories in M5 would require a Stats screen UI that is not yet designed, adding scope that is not justified by player value at this stage.
+
+**Impact**  
+- M5 implementation PRs cover: `StorageService` interface, `InMemoryStorageService`, Application Layer save/load module, save triggers in `GameSessionScreen`, resume UX ("게임 이어하기" prompt), and `CapacitorStorageService`.
+- No stats tracking, no stats screen, no settings persistence in M5.
+- Category B and C schema and keys are documented in `docs/16_save_progress_architecture.md` so the architecture is stable before implementation begins in a later milestone.
+
+---
+
 ## 2026-06-28 - M5: Save System Uses Three Independent Data Categories
 
 **Decision**  
