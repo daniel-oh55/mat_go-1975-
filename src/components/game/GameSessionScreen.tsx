@@ -46,6 +46,8 @@ export function GameSessionScreen({ storageService }: GameSessionScreenProps) {
   // Resume state: null = no saved game found (or check not done), non-null = resumable session
   const [resumeSession, setResumeSession] = useState<GameSessionState | null>(null);
   const [isCheckingResume, setIsCheckingResume] = useState(true);
+  // Guards handleStartGame against double-dispatch during the deleteActiveGame await window.
+  const [isStartingGame, setIsStartingGame] = useState(false);
 
   // On mount: check for a saved active game. Never restores automatically.
   useEffect(() => {
@@ -95,12 +97,16 @@ export function GameSessionScreen({ storageService }: GameSessionScreenProps) {
     setResumeSession(null);
   }
 
-  function handleStartGame() {
+  async function handleStartGame() {
+    if (isStartingGame) return;
+    setIsStartingGame(true);
     setResumeSession(null);
     setPendingCardId(null);
-    // Discard any saved game — overwritten by first auto-save, but explicit delete is cleaner.
-    void deleteActiveGame(storageService);
+    // Await delete so the new game's first save (triggered by START_GAME) cannot race
+    // against this delete on async storage adapters (e.g. Capacitor).
+    await deleteActiveGame(storageService);
     dispatch({ type: 'START_GAME', randomProvider });
+    // isStartingGame is not reset: the idle screen unmounts immediately after dispatch.
   }
 
   function handlePlayCard(legalAction: LegalPlayAction) {
@@ -142,14 +148,14 @@ export function GameSessionScreen({ storageService }: GameSessionScreenProps) {
       <div style={styles.container}>
         <h1 style={styles.title}>맞고</h1>
         {!isCheckingResume && resumeSession !== null && (
-          <button onClick={handleResumeGame} style={styles.primaryButton}>
+          <button onClick={handleResumeGame} style={styles.primaryButton} disabled={isStartingGame}>
             게임 이어하기
           </button>
         )}
         <button
           onClick={handleStartGame}
           style={styles.primaryButton}
-          disabled={isCheckingResume}
+          disabled={isCheckingResume || isStartingGame}
         >
           새 게임 시작
         </button>
