@@ -212,7 +212,33 @@ Minimum touch target: `minHeight: 44px` on both buttons. Button layout matches `
 
 ---
 
-## 10. Error State Rules
+## 10. ResultPanel Display Rules
+
+`ResultPanel` is shown only when `session.phase === 'ended'` and `vm.finalResult !== null`. It is a `<section aria-label="게임 결과">` element.
+
+### Content
+
+| Element | Content |
+|---|---|
+| Heading | `게임 종료` (`<h2>`) |
+| Result line | `결과: 승리` / `결과: 패배` / `결과: 무승부` — colored by outcome |
+| Reason line | `종료 이유: 스톱` or `종료 이유: 덱 소진` |
+| Score block | `ScoreBreakdown` (full mode) for human and AI |
+| Restart button | `다시 하기` — dispatches `START_GAME` |
+
+### Outcome styling
+
+| Outcome | Background | Border | Text color |
+|---|---|---|---|
+| 승리 (`winner === humanPlayerId`) | `#e8f5e9` | `2px solid #4caf50` | `#2a7` |
+| 패배 (`winner !== null, !== humanPlayerId`) | `#fdecea` | `2px solid #e57373` | `#c33` |
+| 무승부 (`winner === null`) | `#f5f5f5` | `2px solid #bbb` | `#555` |
+
+> **Props are unchanged from M3-PR7:** `winner`, `reason`, `humanPlayerId`, `humanScoreBreakdown`, `aiScoreBreakdown`, `onRestart`. No callers need to change when updating `ResultPanel` internals.
+
+---
+
+## 11. Error State Rules
 
 - `session.error` is `null` during normal play.
 - An error is set when the reducer rejects an action (all 10 error paths in `gameSessionReducer`).
@@ -223,7 +249,7 @@ Minimum touch target: `minHeight: 44px` on both buttons. Button layout matches `
 
 ---
 
-## 11. Invariants
+## 12. Invariants
 
 These must hold at all times. A PR that violates any of these must be rejected.
 
@@ -240,7 +266,7 @@ These must hold at all times. A PR that violates any of these must be rejected.
 
 ---
 
-## 12. Hidden Information
+## 13. Hidden Information
 
 Matgo has asymmetric information. The human player can see only what is legally visible. `GameViewModel` enforces this boundary — the AI's hand and the draw pile top card are never exposed to the UI.
 
@@ -271,7 +297,7 @@ Matgo has asymmetric information. The human player can see only what is legally 
 
 ---
 
-## 13. Application Layer Boundary
+## 14. Application Layer Boundary
 
 The Application Layer (`src/application/`) is the only permitted import source for UI components. UI components in `src/components/` must never import directly from `src/engine/`.
 
@@ -311,7 +337,7 @@ The Application Layer (`src/application/`) is the only permitted import source f
 
 ---
 
-## 14. Relationship to Other Documents
+## 15. Relationship to Other Documents
 
 | Document | Contents |
 |---|---|
