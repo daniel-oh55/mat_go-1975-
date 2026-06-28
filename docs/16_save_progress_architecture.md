@@ -158,7 +158,7 @@ Each category maps to a stable storage key. Keys are namespaced to avoid collisi
 | After human turn | `session.phase === 'playing'` after SUBMIT_HUMAN_ACTION | Save Category A |
 | After AI turn | After ADVANCE_AI completes | Save Category A |
 | After AI Go/Stop decision | After ADVANCE_AI resolves Go/Stop | Save Category A |
-| App paused / backgrounded | Platform pause event (Capacitor only — wired in M5-PR6) | Save Category A |
+| App paused / backgrounded | Platform pause event (Capacitor only — deferred to M5-PR7; requires `@capacitor/app`) | Save Category A |
 | Game ended | `session.phase === 'ended'` | Delete Category A |
 | Player starts new game from result | "다시 하기" dispatched | Delete Category A (new game starts fresh) |
 
@@ -166,7 +166,7 @@ Each category maps to a stable storage key. Keys are namespaced to avoid collisi
 
 > **Category B update on game end is deferred.** In M5, game end only deletes the Category A document. Category B (Player Statistics) update is a separate concern documented in the "Player Statistics save triggers" table below — it is not part of the M5 Active Game trigger flow.
 
-> **"App paused / backgrounded" requires Capacitor.** `BrowserLocalStorageStorageService` (M5-PR2 through M5-PR5) has no reliable app-pause signal in a browser environment. Per-turn saves provide equivalent protection for the browser development phase. The pause trigger is wired when `CapacitorStorageService` is added in M5-PR6.
+> **"App paused / backgrounded" requires Capacitor.** `BrowserLocalStorageStorageService` (M5-PR2 through M5-PR5) has no reliable app-pause signal in a browser environment. Per-turn saves provide equivalent protection for the browser development phase. The pause trigger requires the `@capacitor/app` plugin and is deferred to M5-PR7. M5-PR6 added `CapacitorStorageService` (Preferences adapter) but did not wire the pause event.
 
 ### Player Statistics save triggers — Deferred (post-M5)
 

@@ -174,9 +174,9 @@ See `docs/16_save_progress_architecture.md` for the full architecture.
 
 | Deliverable | Notes |
 |---|---|
-| `CapacitorStorageService` | Wraps `@capacitor/preferences` (or `@capacitor/storage`); implements `StorageService` |
-| Error handling | Catch and log Capacitor errors; never propagate to Application Layer as uncaught |
-| Manual verification | Verify active game persists across app close/reopen on a device or emulator |
+| `CapacitorStorageService` | Wraps `@capacitor/preferences`; implements `StorageService` |
+| `@capacitor/core` declared as direct dependency | `main.tsx` imports `Capacitor` directly — declared in M5-PR6A |
+| Composition root platform detection | `Capacitor.isNativePlatform()` selects adapter in `main.tsx` |
 
 **Dependency:** M5-PR5. Requires Capacitor to be installed in the project.
 
@@ -188,11 +188,39 @@ See `docs/16_save_progress_architecture.md` for the full architecture.
 
 | Deliverable | Notes |
 |---|---|
-| Implementation vs architecture check | Verify all M5 deliverables match §3 and §8 of `docs/16_save_progress_architecture.md` |
-| Edge case coverage review | App killed mid-turn, empty draw pile at resume, corrupted JSON |
-| M5 completion criteria sign-off | All items checked |
+| Review document | `docs/17_m5_hardening_review.md` — full findings |
+| Doc fix: §6 pause trigger | `docs/16` — corrected "wired in M5-PR6" → "deferred to M5-PR7" |
+| Doc fix: M5-PR6 entry | `docs/09` — removed deprecated `@capacitor/storage` reference; added M5-PR6A deliverable |
+| Follow-up PR logged | M5-H1A: `isStartingGame` never reset on ended→restart path |
 
-**Constraints:** Documentation only. No new code unless a critical gap is found.
+**Constraints:** Documentation review + minor doc fixes. No code changes.
+
+---
+
+### M5-H1A — Fix `isStartingGame` Reset on Restart from Ended Screen
+
+**Goal:** Fix a bug introduced in M5-PR5A where `isStartingGame` is set to `true` on `handleStartGame` but never reset when the handler is called from the `ended` phase (ResultPanel "다시 하기" button).
+
+**Bug:** After the player plays a complete game to the end screen and clicks "다시 하기" once, `isStartingGame` remains `true`. On the second game ending, clicking "다시 하기" again silently no-ops because `if (isStartingGame) return;` fires immediately, blocking all subsequent restarts.
+
+| Deliverable | Notes |
+|---|---|
+| Reset `isStartingGame` to `false` after `dispatch(START_GAME)` | OR restructure so the guard does not apply on the ended→restart path |
+
+**Dependency:** M5-H1.
+
+---
+
+### M5-PR7 — App Pause / Background Save Trigger (Capacitor)
+
+**Goal:** Wire the Capacitor app-pause event to call `saveActiveGame` so in-progress games are saved when the app is backgrounded or force-closed on Android/iOS.
+
+| Deliverable | Notes |
+|---|---|
+| `@capacitor/app` dependency | Adds the App plugin for lifecycle events |
+| Pause event listener | In `GameSessionScreen` (or a Capacitor lifecycle hook) — calls `saveActiveGame` on `appStateChange` → active=false |
+
+**Dependency:** M5-PR6.
 
 ---
 
