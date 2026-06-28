@@ -90,6 +90,7 @@ The UI state is the product of two independent signals:
 | "새 게임 시작" button | ✓ | — | — | — | — | — |
 | `GameStatusBar` (primary row) | — | ✓ | ✓ | ✓ | ✓ | ✓ |
 | `GameStatusBar` score breakdown row | — | when score > 0 | when score > 0 | when score > 0 | when score > 0 | when score > 0 |
+| `ActionHint` | — | ✓ | ✓ | ✓ | ✓ | — |
 | AI area (face-down card placeholders) | — | ✓ | ✓ | ✓ | ✓ | ✓ |
 | Field area | — | ✓ | ✓ | ✓ | ✓ | ✓ |
 | Target selection prompt + Cancel button | — | when `pendingCardId ≠ null` | — | — | — | — |
@@ -168,7 +169,28 @@ The score breakdown row (광/열/띠/피) is shown when `humanScoreBreakdown.tot
 
 ---
 
-## 8. Error State Rules
+## 8. Action Hint Display Rules
+
+`ActionHint` renders a one-line Korean guidance hint immediately below `GameStatusBar` on the active game board. The hint updates on every state transition so the player always knows what action is expected.
+
+| Condition | Hint text | Border-left accent |
+|---|---|---|
+| `statusKind = humanTurn`, `isTargetSelectionPending = false` | 낼 카드를 선택하세요 | `#2a7` |
+| `isTargetSelectionPending = true` | 바닥패를 선택하세요 | `#2a7` |
+| `statusKind = aiTurn` | AI가 생각 중입니다… | `#a72` |
+| `statusKind = humanGoStop` | 고 또는 스톱을 선택하세요 | `#c8860a` |
+| `statusKind = aiGoStop` | AI가 고/스톱을 결정 중입니다… | `#888` |
+| `statusKind = ended` | _(component renders null — `ResultPanel` takes over)_ | — |
+
+> **Priority rule:** `isTargetSelectionPending` takes precedence over `statusKind`. When a hand card is pending field-target selection, the hint is always "바닥패를 선택하세요" regardless of `statusKind` (which is `humanTurn` in this sub-state anyway).
+
+`role="status"` and `aria-live="polite"` are set on the element so screen readers announce hint changes without interrupting the user.
+
+The border-left accent color is the same palette as `GameStatusBar`'s status label color — no new design tokens.
+
+---
+
+## 9. Error State Rules
 
 - `session.error` is `null` during normal play.
 - An error is set when the reducer rejects an action (all 10 error paths in `gameSessionReducer`).
@@ -179,7 +201,7 @@ The score breakdown row (광/열/띠/피) is shown when `humanScoreBreakdown.tot
 
 ---
 
-## 9. Invariants
+## 10. Invariants
 
 These must hold at all times. A PR that violates any of these must be rejected.
 
@@ -196,7 +218,7 @@ These must hold at all times. A PR that violates any of these must be rejected.
 
 ---
 
-## 10. Hidden Information
+## 11. Hidden Information
 
 Matgo has asymmetric information. The human player can see only what is legally visible. `GameViewModel` enforces this boundary — the AI's hand and the draw pile top card are never exposed to the UI.
 
@@ -227,7 +249,7 @@ Matgo has asymmetric information. The human player can see only what is legally 
 
 ---
 
-## 11. Application Layer Boundary
+## 12. Application Layer Boundary
 
 The Application Layer (`src/application/`) is the only permitted import source for UI components. UI components in `src/components/` must never import directly from `src/engine/`.
 
@@ -267,7 +289,7 @@ The Application Layer (`src/application/`) is the only permitted import source f
 
 ---
 
-## 12. Relationship to Other Documents
+## 13. Relationship to Other Documents
 
 | Document | Contents |
 |---|---|
