@@ -141,7 +141,19 @@ Invalid actions must never crash the app. They should set `session.error` and le
 
 ---
 
-## 10. Score Breakdown Visibility
+## 10. Captured Cards Display
+
+The "획득 카드 보기" collapsible section uses `DisplayCard` (read-only chips) for both captured piles.
+
+- [ ] "획득 카드 보기" summary is visible and clickable during play and in the Ended state.
+- [ ] Expanding it shows "내 획득 (N장)" and "AI 획득 (N장)" rows.
+- [ ] Captured cards appear as small gray chips (not as interactive `CardButton` elements — no yellow/blue/red borders, no 44px height).
+- [ ] Hovering a chip shows the tooltip `카드명 획득 카드` (from `title` attribute).
+- [ ] At game start (no captures yet), both rows show "(0장)" and no chips.
+
+---
+
+## 11. Score Breakdown Visibility
 
 - [ ] At game start, the secondary breakdown row in `GameStatusBar` is hidden (both totals are 0).
 - [ ] Once either player scores > 0, the breakdown row appears.
@@ -151,7 +163,7 @@ Invalid actions must never crash the app. They should set `session.error` and le
 
 ---
 
-## 11. Regression Checklist After Any PR
+## 12. Regression Checklist After Any PR
 
 Run these checks for any PR that modifies components in `src/components/game/` or `src/application/gameSession/`:
 
@@ -161,7 +173,8 @@ Run these checks for any PR that modifies components in `src/components/game/` o
 - [ ] `ActionHint` shows "바닥패를 선택하세요" during target selection (section 5).
 - [ ] `ActionHint` is **not** shown in the Ended state (section 8).
 - [ ] `EventLog` updates correctly after each action.
-- [ ] Score breakdown row appears and disappears correctly (section 10).
+- [ ] Captured card chips are small and gray — not interactive button-style (section 10).
+- [ ] Score breakdown row appears and disappears correctly (section 11).
 - [ ] `ResultPanel` shows correct winner, reason, and breakdown (section 8).
 - [ ] "다시 하기" starts a new game directly in Human Turn, not through Idle (section 8).
 - [ ] `tsc --noEmit` reports 0 errors.
@@ -169,7 +182,7 @@ Run these checks for any PR that modifies components in `src/components/game/` o
 
 ---
 
-## 12. Not in Scope for This Checklist
+## 13. Not in Scope for This Checklist
 
 The following are out of scope for the MVP playtest and must not be added:
 
@@ -186,7 +199,7 @@ The following are out of scope for the MVP playtest and must not be added:
 
 ---
 
-## 13. Known Gaps (to be addressed in later milestones)
+## 14. Known Gaps (to be addressed in later milestones)
 
 | Gap | Impact | Planned Milestone |
 |---|---|---|

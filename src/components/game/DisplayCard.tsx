@@ -8,8 +8,11 @@ interface DisplayCardProps {
 // Read-only card chip for non-interactive contexts (e.g. captured card piles).
 // Not a button — avoids misleading interactivity semantics for display-only cards.
 export function DisplayCard({ card }: DisplayCardProps) {
+  const label = cardLabel(card);
   return (
     <span
+      aria-label={`${label}, 획득 카드`}
+      title={`${label} 획득 카드`}
       style={{
         display: 'inline-block',
         padding: '2px 7px',
@@ -22,7 +25,7 @@ export function DisplayCard({ card }: DisplayCardProps) {
         whiteSpace: 'nowrap',
       }}
     >
-      {cardLabel(card)}
+      {label}
     </span>
   );
 }
