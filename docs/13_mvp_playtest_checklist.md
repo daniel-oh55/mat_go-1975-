@@ -82,11 +82,15 @@ This flow is reached when two or more same-month cards are on the field and the 
 
 - [ ] Status bar transitions to "고/스톱 선택 중" in orange.
 - [ ] `ActionHint` updates to "고 또는 스톱을 선택하세요" with a gold left border.
-- [ ] The Go/Stop panel appears below the event log with the human's current score and two buttons: "고 (계속)" and "스톱 (종료)".
+- [ ] `GoStopPanel` appears below the event log showing:
+  - Heading: `{N}점 달성 — 고 또는 스톱을 선택하세요`
+  - Guidance: `고: 계속 플레이해서 더 많은 점수를 노립니다.`
+  - Guidance: `스톱: 지금 점수로 게임을 종료합니다.`
+  - Two buttons: "고 / 계속 플레이" (green) and "스톱 / 게임 종료" (red)
 - [ ] Hand cards are shown (non-clickable, since it is not a card-play turn).
-- [ ] Clicking "스톱 (종료)" ends the game → `ResultPanel` appears (see section 8).
-- [ ] Clicking "고 (계속)" continues the game → AI takes its turn → returns to Human Turn or AI Go/Stop.
-- [ ] The Go/Stop panel disappears after a decision is made.
+- [ ] Clicking "스톱 / 게임 종료" ends the game → `ResultPanel` appears (see section 8).
+- [ ] Clicking "고 / 계속 플레이" continues the game → AI takes its turn → returns to Human Turn or AI Go/Stop.
+- [ ] `GoStopPanel` disappears after a decision is made.
 
 ---
 
