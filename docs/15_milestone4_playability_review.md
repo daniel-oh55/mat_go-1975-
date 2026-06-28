@@ -1,189 +1,109 @@
 # Milestone 4 Playability Polish — Review
 
-## 1. Purpose
+## 1. Scope
 
-This document is the M4 hardening review. It:
+### Included in Milestone 4
 
-- Summarizes all Milestone 4 PRs and what each accomplished.
-- Verifies that implementation and documentation are mutually consistent.
-- Audits accessibility attributes added during M4.
-- Defines the completion criteria that must hold before M4 is closed.
+- `CardButton` interaction clarity (touch target, border consistency, state badges, `aria-label`, `aria-disabled`, `aria-pressed`)
+- `DisplayCard` for captured card display (read-only `<span>` chip)
+- `ActionHint` context-sensitive guidance bar
+- `GoStopPanel` extracted presentational component with choice explanation
+- `ResultPanel` clarity (outcome-aware styling, separated heading, reason line, restart button)
+- MVP playtest checklist updates (`docs/13_mvp_playtest_checklist.md`)
+- UI state matrix updates (`docs/14_ui_state_matrix.md`)
 
-Use this document when deciding whether M4 is done, or when planning M5.
+### Excluded from Milestone 4
 
----
-
-## 2. M4 PR Summary
-
-| PR | Branch | Purpose |
-|---|---|---|
-| M4-PR1 | `pr1-card-interaction-clarity` | `CardButton` touch size (44px), 2px border all states, `opacity:1` override, `aria-label` with suffix, `CardRow` horizontal scroll |
-| M4-PR1A | `pr1a-card-state-badges` | State badge second line: `낼 수 있음` / `선택됨` / `대상`; `flexDirection:'column'` layout |
-| M4-PR1B | `pr1b-card-accessibility-helper-cleanup-main` | `cardInteractionLabel()` helper unifies badge and aria-label; adds `aria-disabled`, `aria-pressed` |
-| M4-PR2 | `pr2-action-hint-bar` | New `ActionHint` component: context-sensitive guidance below status bar |
-| M4-PR2A | `pr2a-action-hint-docs` | Document `ActionHint` in §4 visibility matrix and §8 of doc 14; update doc 13 |
-| M4-PR3 | `pr3-gostop-panel-clarity` | Extract `GoStopPanel` from inline JSX; add guidance text |
-| M4-PR3A | `pr3a-gostop-copy-docs` | Fix "승리 선언" → "게임 종료"; document `GoStopPanel` in doc 14 §9 |
-| M4-PR4 | `pr4-result-panel-clarity` | `ResultPanel`: `<section aria-label>`, separated heading, outcome-aware styling |
-| M4-PR5 | `pr5-captured-cards-display-clarity` | New `DisplayCard` (`<span>`); replaces `CardButton` in captured card rows |
-| M4-PR5A | `pr5a-display-card-accessibility-docs` | `DisplayCard` `aria-label` + `title`; doc 14 §5 Display-only spec; doc 13 §10 |
+- Card images and artwork
+- Animation and state transition effects
+- 1970s theme visual design
+- Story, NPC, region content
+- Save / load / cloud sync
+- Ads, billing, entitlements
+- Online multiplayer
+- BGM, sound effects
 
 ---
 
-## 3. Implementation vs Documentation Consistency Check
+## 2. Player Flow Checklist
 
-For each M4 component, verify that the implementation matches its spec in `docs/14_ui_state_matrix.md`.
+The complete player flow reachable from the current UI:
 
-### 3.1 `CardButton` (§5 Card Interactivity Matrix)
+```
+Idle
+  → "새 게임 시작" button
+Human Turn
+  → Card selection (legal card highlighted)
+    → Target selection (if multi-target card played)
+  → Card played → AI Turn
+    → (auto-advance 400 ms) → Human Turn
+      or
+    → Human Go/Stop (human score ≥ threshold)
+      → Human clicks 고 → AI Turn
+      → Human clicks 스톱 → Ended
+    → AI Go/Stop (AI score ≥ threshold, auto-advance 400 ms)
+      → AI decides 고 → Human Turn
+      → AI decides 스톱 → Ended
+    → Ended (deck exhausted)
+  → Ended (deck exhausted during human's turn)
+Ended
+  → ResultPanel
+    → "다시 하기" → Human Turn (Idle is NOT re-entered)
+```
 
-| Spec claim | Implementation | ✓/✗ |
-|---|---|---|
-| All states use `2px border` | `HIGHLIGHT_STYLES` — all four entries use `2px solid` | ✓ |
-| `none` uses `opacity: 1` | `HIGHLIGHT_STYLES.none` includes `opacity: 1` | ✓ |
-| `minHeight: 44`, `minWidth: 52` | Present in `style` object | ✓ |
-| `aria-label` = `카드명 (interactionLabel)` | `aria-label={\`${cardLabel(card)} (${interactionLabel})\`}` | ✓ |
-| `aria-disabled` mirrors `disabled` | `aria-disabled={!isInteractive}` | ✓ |
-| `aria-pressed` only on `selected` | `aria-pressed={highlight === 'selected' ? true : undefined}` | ✓ |
-| Badge text = `cardInteractionLabel(h)` | `badge = isInteractive ? interactionLabel : null` | ✓ |
-| Badge: `none` → null | `badge = isInteractive ? interactionLabel : null` — `none` is not interactive | ✓ |
+### Key UI Component per Flow State
 
-### 3.2 `DisplayCard` (§5 Display-only cards)
-
-| Spec claim | Implementation | ✓/✗ |
-|---|---|---|
-| Element is `<span>` | `<span ...>` | ✓ |
-| `aria-label` = `카드명, 획득 카드` | `` `${label}, 획득 카드` `` | ✓ |
-| `title` = `카드명 획득 카드` | `` `${label} 획득 카드` `` | ✓ |
-| `12px`, `#eee` bg, `1px solid #ddd` | `fontSize: 12`, `background: '#eee'`, `border: '1px solid #ddd'` | ✓ |
-| Not clickable | `<span>` — no `onClick`, no button role | ✓ |
-
-### 3.3 `ActionHint` (§8 Action Hint Display Rules)
-
-| Spec claim | Implementation | ✓/✗ |
-|---|---|---|
-| `humanTurn` → `낼 카드를 선택하세요` | `HINT_TEXT.humanTurn` | ✓ |
-| `isTargetSelectionPending` → `바닥패를 선택하세요` | `text = isTargetSelectionPending ? '바닥패를 선택하세요' : HINT_TEXT[statusKind]` | ✓ |
-| `aiTurn` → `AI가 생각 중입니다…` | `HINT_TEXT.aiTurn` | ✓ |
-| `humanGoStop` → `고 또는 스톱을 선택하세요` | `HINT_TEXT.humanGoStop` | ✓ |
-| `aiGoStop` → `AI가 고/스톱을 결정 중입니다…` | `HINT_TEXT.aiGoStop` | ✓ |
-| `ended` → null | `HINT_TEXT.ended = null` → returns null | ✓ |
-| `role="status"`, `aria-live="polite"` | Present on `<div>` | ✓ |
-| Border-left accent color from status palette | `ACCENT_COLOR` map matches `STATUS_COLOR` in `GameStatusBar` | ✓ |
-| Priority: `isTargetSelectionPending` overrides `statusKind` | Ternary checks pending first | ✓ |
-
-### 3.4 `GoStopPanel` (§9 GoStopPanel Display Rules)
-
-| Spec claim | Implementation | ✓/✗ |
-|---|---|---|
-| Heading: `{N}점 달성 — 고 또는 스톱을 선택하세요` | `` `${humanScore}점 달성 — 고 또는 스톱을 선택하세요` `` | ✓ |
-| Guidance — 고: `계속 플레이해서 더 많은 점수를 노립니다.` | Present as `<span>` | ✓ |
-| Guidance — 스톱: `지금 점수로 게임을 종료합니다.` | Present as `<span>` | ✓ |
-| 고 button: two-line `고 / 계속 플레이` | `<span>고</span>` + `<span>계속 플레이</span>` | ✓ |
-| 스톱 button: two-line `스톱 / 게임 종료` | `<span>스톱</span>` + `<span>게임 종료</span>` | ✓ |
-| 고 `aria-label` = `고 — 계속 플레이` | `aria-label="고 — 계속 플레이"` | ✓ |
-| 스톱 `aria-label` = `스톱 — 게임 종료` | `aria-label="스톱 — 게임 종료"` | ✓ |
-| `minHeight: 44` on both buttons | Both buttons have `minHeight: 44` | ✓ |
-
-### 3.5 `ResultPanel` (§10 ResultPanel Display Rules)
-
-| Spec claim | Implementation | ✓/✗ |
-|---|---|---|
-| `<section aria-label="게임 결과">` | `<section aria-label="게임 결과">` | ✓ |
-| `<h2>게임 종료</h2>` | `<h2 ...>게임 종료</h2>` | ✓ |
-| `결과: 승리/패배/무승부` with color | `결과: {OUTCOME_TEXT[outcomeKey]}` + `color` from `OUTCOME_STYLE` | ✓ |
-| `종료 이유: 스톱` or `종료 이유: 덱 소진` | `종료 이유: {REASON_TEXT[reason]}` | ✓ |
-| win: `#e8f5e9` / `#4caf50` / `#2a7` | `OUTCOME_STYLE.win` | ✓ |
-| lose: `#fdecea` / `#e57373` / `#c33` | `OUTCOME_STYLE.lose` | ✓ |
-| draw: `#f5f5f5` / `#bbb` / `#555` | `OUTCOME_STYLE.draw` | ✓ |
-| `다시 하기` button `minHeight: 44` | `minHeight: 44` | ✓ |
-
-### 3.6 Element Visibility Matrix (§4)
-
-All M4 components are in the visibility matrix:
-
-| Component | Listed in §4 | Correct visibility | ✓/✗ |
-|---|---|---|---|
-| `ActionHint` | ✓ | Idle=—, Ended=— (returns null), active states=✓ | ✓ |
-| `GoStopPanel` | ✓ | Only Human Go/Stop state | ✓ |
-
-`DisplayCard` is not a separate top-level region — it is rendered inside the "Captured cards (collapsible)" row, which is already in the matrix.
-
----
-
-## 4. Accessibility Audit
-
-| Component | Accessible name | Role | Interactive |
-|---|---|---|---|
-| `CardButton` (interactive) | `aria-label` = `카드명 (상태)` | `button` | Yes |
-| `CardButton` (none) | `aria-label` = `카드명 (선택 불가)` | `button` (`disabled`) | No |
-| `DisplayCard` | `aria-label` = `카드명, 획득 카드` | _(none — `span`)_ | No |
-| `ActionHint` | _(hint text is the content)_ | `status` (`aria-live="polite"`) | No |
-| `GoStopPanel` 고 button | `고 — 계속 플레이` | `button` | Yes |
-| `GoStopPanel` 스톱 button | `스톱 — 게임 종료` | `button` | Yes |
-| `ResultPanel` | `게임 결과` | `section` | No (contains `다시 하기` button) |
-| `다시 하기` button | _(visible text)_ | `button` | Yes |
-
-**Touch targets:** All interactive buttons have `minHeight: 44px`. `DisplayCard` chips intentionally do not — they are display-only.
-
-**Known gap:** `GoStopPanel` has no wrapping ARIA landmark. `ResultPanel` uses `<section>`. `GoStopPanel` uses `<div>` — a minor accessibility improvement deferred to a later milestone.
-
----
-
-## 5. Component Registry (M4 additions)
-
-| Component | File | Type | Added in |
-|---|---|---|---|
-| `ActionHint` | `ActionHint.tsx` | Presentational | M4-PR2 |
-| `GoStopPanel` | `GoStopPanel.tsx` | Presentational | M4-PR3 |
-| `DisplayCard` | `DisplayCard.tsx` | Presentational | M4-PR5 |
-
-All three are exported from `src/components/game/index.ts`.
-
-Previously existing components improved in M4:
-
-| Component | Improvements |
+| Flow state | Main UI component |
 |---|---|
-| `CardButton` | Touch size, 2px border consistency, `opacity:1`, `aria-label`, badge, `cardInteractionLabel()`, `aria-disabled`, `aria-pressed` |
-| `ResultPanel` | `<section>` landmark, separated heading, outcome-aware colors, `종료 이유` wording |
+| Idle | `GameSessionScreen` (title + start button) |
+| Human Turn | `GameStatusBar`, `ActionHint`, `CardButton` |
+| Target Selection | `ActionHint`, `CardButton` (target state), target prompt |
+| AI Turn | `GameStatusBar`, `ActionHint`, `EventLog` |
+| Human Go/Stop | `ActionHint`, `GoStopPanel` |
+| AI Go/Stop | `ActionHint` |
+| Ended | `ResultPanel` |
+| Restart | `ResultPanel` → `GameSessionScreen` dispatches `START_GAME` |
 
 ---
 
-## 6. M4 Completion Criteria
+## 3. Component Responsibility Table
 
-M4 is complete when all of the following hold:
-
-- [ ] All 422+ tests pass (`npx vitest run`)
-- [ ] `tsc --noEmit` reports 0 errors
-- [ ] All M4 PRs are merged to `main`
-- [ ] `docs/14_ui_state_matrix.md` §4 includes `ActionHint` and `GoStopPanel` rows ✓
-- [ ] `docs/14_ui_state_matrix.md` §5 includes `DisplayCard` spec ✓
-- [ ] `docs/14_ui_state_matrix.md` has §8 (ActionHint), §9 (GoStopPanel), §10 (ResultPanel) display rules ✓
-- [ ] `docs/13_mvp_playtest_checklist.md` has check items for all M4 components ✓
-- [ ] §3 consistency check in this document shows no ✗ rows ✓
-- [ ] M4 decisions are logged in `docs/10_decision_log.md` (see below)
-
----
-
-## 7. Deferred Items (Not M4 Scope)
-
-The following were identified but intentionally deferred:
-
-| Item | Reason deferred |
-|---|---|
-| `GoStopPanel` ARIA landmark (`<section>`) | Minor; `<div>` is functional | 
-| Card images / artwork | M4 is text-only polish; images are a separate milestone |
-| Animation between states | Same as above |
-| `CardButton` keyboard navigation improvements | Beyond MVP scope |
-| Captured cards collapsible UX (expand by default?) | Out of M4 scope |
-| Go multiplier display in `GoStopPanel` | OD-5: multiplier tracked but not applied in MVP |
+| Component | Responsibility | Must not do |
+|---|---|---|
+| `CardButton` | Interactive card display — hand cards and field cards that can be selected or targeted | Scoring logic, rule evaluation, dispatch |
+| `DisplayCard` | Read-only card chip for display-only contexts (captured piles) | Click handling, button affordance |
+| `ActionHint` | Show the player what to do next based on current status | Dispatch actions, call engine, evaluate game state |
+| `GoStopPanel` | Render the human Go/Stop choice UI with explanation text | Decide winner, evaluate outcome, dispatch anything other than `CHOOSE_GO` / `CHOOSE_STOP` |
+| `ResultPanel` | Display final outcome, score breakdown, and restart button | Change winner determination, alter restart flow |
+| `GameSessionScreen` | Own session state, dispatch all human actions, auto-advance AI turns | Implement engine rules, call engine directly |
+| `GameStatusBar` | Show current status label, scores, score breakdown | Dispatch, interpret raw game events |
+| `EventLog` | Display the last 1–5 Korean event messages | Format raw engine events directly |
 
 ---
 
-## 8. Documents Updated in M4
+## 4. Hidden Information Check
 
-| Document | M4 changes |
-|---|---|
-| `docs/14_ui_state_matrix.md` | Added `ActionHint` to §4; added DisplayCard spec to §5; added §8 ActionHint rules, §9 GoStopPanel rules, §10 ResultPanel rules; renumbered subsequent sections |
-| `docs/13_mvp_playtest_checklist.md` | Added ActionHint checks (§3, 4, 5, 6, 7, 8), GoStopPanel checks (§6), captured card checks (§10); updated regression checklist |
-| `docs/10_decision_log.md` | M4 decisions to be added via this PR |
-| `docs/15_milestone4_playability_review.md` | This document (created in M4-H1) |
+The following invariants must hold at all times. A PR that violates any of these must be rejected.
+
+- **AI hand contents are never rendered.** `GameViewModel.aiHandCount` is a `number` — the array of `Card` objects is never exposed to the UI.
+- **AI hand is shown only as count and face-down card placeholders.** `GameSessionScreen` renders `Array.from({ length: vm.aiHandCount }, ...)` placeholder elements only.
+- **Draw pile contents are never rendered.** `GameViewModel.drawPileCount` is a `number` — the actual card array is not in `GameViewModel`.
+- **Draw pile is shown only as count.** `GameStatusBar` displays `drawPileCount` as a number label only.
+- **Captured cards are public and may be rendered.** Both `humanCaptured` and `aiCaptured` are `ReadonlyArray<Card>` in `GameViewModel`. They are correctly displayed via `DisplayCard`.
+- **UI must not import from the engine directly.** All UI imports go through `src/application/gameSession/index.ts`. Any `import ... from '../../engine/...'` in `src/components/` must be rejected at PR review.
+
+---
+
+## 5. M4 Completion Criteria
+
+- [ ] Card state is readable without relying only on color (text badge + border shape + `aria-label` all convey state).
+- [ ] The player can tell what to do next from `ActionHint` at every state except Ended.
+- [ ] Human Go/Stop (`GoStopPanel`) explains both choices before the player decides.
+- [ ] `ResultPanel` clearly separates: outcome (승리/패배/무승부), reason (스톱/덱 소진), scores, and restart.
+- [ ] Captured cards use `DisplayCard` (not disabled `CardButton`) everywhere captured piles are rendered.
+- [ ] AI hand contents and draw pile contents remain hidden — count/placeholders only.
+- [ ] Restart starts a new game directly in Human Turn state, not via Idle.
+- [ ] `docs/13_mvp_playtest_checklist.md` matches the current UI (section numbers, component names, flow steps).
+- [ ] `docs/14_ui_state_matrix.md` matches the current UI (visibility matrix, component specs, hidden information).
+- [ ] All tests pass (`npx vitest run`).
+- [ ] TypeScript check passes (`npx tsc --noEmit`).
