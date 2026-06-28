@@ -17,7 +17,7 @@ export function CardRow({ label, cardCount, children }: CardRowProps) {
       }}>
         {label} <span style={{ color: '#888', fontWeight: 'normal' }}>({cardCount}장)</span>
       </div>
-      <div style={{ display: 'flex', flexWrap: 'wrap' as const }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap' as const, overflowX: 'auto' }}>
         {children}
       </div>
     </section>
