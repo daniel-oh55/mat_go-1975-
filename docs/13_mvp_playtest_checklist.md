@@ -113,11 +113,13 @@ This flow is reached when two or more same-month cards are on the field and the 
 
 - [ ] `ActionHint` is **not** shown (it returns null for the `ended` state).
 - [ ] `ResultPanel` appears with:
-  - [ ] "게임 종료 — 승리!" / "게임 종료 — 패배..." / "게임 종료 — 무승부"
-  - [ ] Reason: "스톱" or "덱 소진"
+  - [ ] `<h2>게임 종료</h2>` heading
+  - [ ] `결과: 승리` (green) / `결과: 패배` (red) / `결과: 무승부` (gray)
+  - [ ] `종료 이유: 스톱` or `종료 이유: 덱 소진`
   - [ ] Human score with breakdown, e.g. "내 점수: 7점 (광2 · 피5)"
   - [ ] AI score with breakdown, e.g. "AI 점수: 3점 (피3)"
   - [ ] "다시 하기" button
+  - [ ] Panel border/background color reflects outcome (green=win, red=lose, gray=draw)
 - [ ] Status bar shows "게임 종료" in gray.
 - [ ] Go/Stop panel is **not** shown.
 - [ ] Hand cards are still visible (non-clickable).
