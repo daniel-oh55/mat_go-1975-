@@ -44,11 +44,11 @@ The following are out of scope for the Save/Progress system and must not be adde
 **Rationale for scope:** The highest-value save feature for a single-session mobile game is "not losing your game progress when the app closes." Player statistics are meaningful only once the core play loop is stable and the player has played multiple games. Implementing stats in M5 would require a Stats screen UI that is not yet designed.
 
 **What M5 delivers:**
-- `StorageService` interface + `InMemoryStorageService` (testable without Capacitor)
+- `StorageService` interface + `BrowserLocalStorageStorageService` + `InMemoryStorageService` (browser/Vite environment first, no Capacitor dependency)
 - Application Layer save/load module for Category A (serialize, validate, migrate)
 - Save triggers wired into `GameSessionScreen` (after each turn, on game end)
 - Resume UX — "게임 이어하기" prompt when an active game is detected on startup
-- `CapacitorStorageService` (Platform Layer implementation for production)
+- `CapacitorStorageService` (Platform Layer implementation for production mobile — M5-PR6, after browser validation)
 
 **What M5 does not deliver:**
 - Category B (Player Statistics) — no stats tracking, no stats screen
@@ -130,7 +130,7 @@ Player preferences that persist between sessions.
 
 ---
 
-## 4. Storage Key Design
+## 5. Storage Key Design
 
 Each category maps to a stable storage key. Keys are namespaced to avoid collisions if multiple apps share the same storage space (e.g., Capacitor Storage on shared device storage).
 
@@ -149,7 +149,7 @@ Each category maps to a stable storage key. Keys are namespaced to avoid collisi
 
 ---
 
-## 5. Save Triggers
+## 6. Save Triggers
 
 ### Active Game save triggers
 
@@ -184,7 +184,7 @@ Stats are updated once per game, not once per turn.
 
 ---
 
-## 6. JSON Schema (document format)
+## 7. JSON Schema (document format)
 
 All saved documents are JSON objects. No binary format. The Application Layer serializes and deserializes all fields.
 
@@ -231,7 +231,7 @@ All saved documents are JSON objects. No binary format. The Application Layer se
 
 ---
 
-## 7. Schema Versioning and Migration
+## 8. Schema Versioning and Migration
 
 Every saved document contains a `saveVersion: number` field. The version is an integer starting at 1.
 
@@ -254,7 +254,7 @@ Every saved document contains a `saveVersion: number` field. The version is an i
 
 ---
 
-## 8. Layer Responsibilities
+## 9. Layer Responsibilities
 
 ### Engine Layer
 
@@ -265,7 +265,7 @@ Every saved document contains a `saveVersion: number` field. The version is an i
 
 ### Application Layer
 
-- **Decides when to trigger a save** (see §5).
+- **Decides when to trigger a save** (see §6).
 - **Serializes** `GameState` and session metadata into a Category A document.
 - **Deserializes** a loaded document back into a `GameState` and session metadata.
 - **Validates** a loaded `GameState` before passing it to the engine (rejects corrupted or mismatched documents).
@@ -281,7 +281,7 @@ Every saved document contains a `saveVersion: number` field. The version is an i
 
 ### Platform Layer
 
-- **Implements** the storage interface for the target platform (Capacitor Storage in production, in-memory mock in tests).
+- **Implements** the storage interface for the target environment: `BrowserLocalStorageStorageService` for browser/Vite, `CapacitorStorageService` for production mobile, `InMemoryStorageService` for tests.
 - Provides `read(key): Promise<string | null>` and `write(key, value: string): Promise<void>` and `delete(key): Promise<void>`.
 - Has no knowledge of what is stored — it works with opaque strings.
 - Returns `null` when a key does not exist (first-run case).
@@ -296,7 +296,7 @@ Every saved document contains a `saveVersion: number` field. The version is an i
 
 ---
 
-## 9. Platform Layer Interface
+## 10. Platform Layer Interface
 
 The Platform Layer exposes a storage service interface. The interface is defined in the Application Layer (as a dependency inversion) so the Application Layer can be tested with a mock without a Capacitor environment.
 
@@ -308,18 +308,21 @@ interface StorageService {
 }
 ```
 
-**Two implementations are needed:**
+**Three implementations are needed:**
 
-| Implementation | Environment |
-|---|---|
-| `CapacitorStorageService` | Production (Capacitor Storage API) |
-| `InMemoryStorageService` | Tests and development environments |
+| Implementation | Environment | M5 status |
+|---|---|---|
+| `BrowserLocalStorageStorageService` | Browser / Vite dev server (`window.localStorage`) | **M5-PR2** — primary implementation |
+| `InMemoryStorageService` | Tests (no browser or Capacitor dependency) | **M5-PR2** — test implementation |
+| `CapacitorStorageService` | Production mobile (Capacitor Storage API) | M5-PR6 — after browser validation |
+
+**Why browser-first?** The game runs in a Vite/React browser environment during development. Validating save/load against `window.localStorage` — which is available in any browser — eliminates the need to run on a device or emulator for the first implementation pass. `CapacitorStorageService` is added in M5-PR6 once the Application Layer save logic is proven correct.
 
 The Application Layer always receives a `StorageService` through dependency injection — it never imports a concrete implementation directly.
 
 ---
 
-## 10. Application Layer Save Flow
+## 11. Application Layer Save Flow
 
 When a save trigger fires:
 
@@ -356,7 +359,7 @@ When the game ends (M5 scope):
 
 ---
 
-## 11. Application Layer Load Flow
+## 12. Application Layer Load Flow
 
 On app startup:
 
@@ -391,7 +394,7 @@ Partial validation failure is not recoverable — the entire active game documen
 
 ---
 
-## 12. Boundary Constraints
+## 13. Boundary Constraints
 
 These must be enforced at PR review.
 
@@ -401,13 +404,13 @@ These must be enforced at PR review.
 | Application Layer never imports a concrete storage implementation | PR review — Application Layer imports only the `StorageService` interface |
 | `GameState` contains no NPC, region, or content identity | Existing engine boundary (doc 03 §6) |
 | Save failure does not crash the game or corrupt `GameState` | Application Layer error handling — save is fire-and-forget |
-| Loading validates before passing to engine | Application Layer load flow (§11) — never pass a raw loaded blob to the engine |
+| Loading validates before passing to engine | Application Layer load flow (§12) — never pass a raw loaded blob to the engine |
 | Stats are updated from engine `FinalResult` only — not computed in UI | Application Layer owns stats delta computation |
 | No speculative settings fields | Category C schema must not grow until a Settings UI is implemented |
 
 ---
 
-## 13. What Is Not Saved (explicit exclusions)
+## 14. What Is Not Saved (explicit exclusions)
 
 | Data | Reason |
 |---|---|
@@ -423,7 +426,7 @@ These must be enforced at PR review.
 
 ---
 
-## 14. Relationship to Other Documents
+## 15. Relationship to Other Documents
 
 | Document | Contents |
 |---|---|

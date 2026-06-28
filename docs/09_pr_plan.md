@@ -58,19 +58,34 @@ See `docs/16_save_progress_architecture.md` for the full architecture.
 
 ---
 
-### M5-PR2 — `StorageService` Interface + `InMemoryStorageService`
+### M5-PR1B — Save Architecture Final Cleanup
 
-**Goal:** Define the storage contract and provide a testable in-memory implementation.
+**Goal:** Fix section numbering error in `docs/16` (duplicate §4); reflect browser-first implementation order; add M5-PR1B to PR plan.
+
+| Deliverable | Notes |
+|---|---|
+| `docs/16_save_progress_architecture.md` | Fix §4 duplicate → renumber §5–§15; update §3/§9/§10 for `BrowserLocalStorageStorageService` |
+| `docs/09_pr_plan.md` | Add M5-PR1B entry; update M5-PR2 to include `BrowserLocalStorageStorageService` |
+| `docs/10_decision_log.md` | Add browser-first decision |
+
+**Constraints:** Documentation only. No code.
+
+---
+
+### M5-PR2 — `StorageService` Interface + `BrowserLocalStorageStorageService` + `InMemoryStorageService`
+
+**Goal:** Define the storage contract and provide two implementations: browser localStorage for development validation, and in-memory for tests.
 
 | Deliverable | Notes |
 |---|---|
 | `StorageService` interface | `read(key): Promise<string \| null>`, `write(key, value): Promise<void>`, `delete(key): Promise<void>` |
-| `InMemoryStorageService` | Map-backed in-process implementation; no Capacitor dependency |
-| Tests for `InMemoryStorageService` | Read null on missing key; write/read roundtrip; delete removes key |
+| `BrowserLocalStorageStorageService` | Wraps `window.localStorage`; no Capacitor dependency; works in browser / Vite dev server |
+| `InMemoryStorageService` | Map-backed in-process implementation; no browser or Capacitor dependency |
+| Tests for both implementations | Read null on missing key; write/read roundtrip; delete removes key |
 
-**Where:** `src/platform/storage/` or `src/application/gameSession/` (interface in Application Layer per dependency inversion)
+**Where:** Interface in `src/application/` (dependency inversion); implementations in `src/platform/storage/`
 
-**Constraints:** No Capacitor import yet. No Application Layer save logic yet.
+**Constraints:** No Capacitor import. No Application Layer save logic yet.
 
 ---
 
