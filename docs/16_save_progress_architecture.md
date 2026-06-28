@@ -428,6 +428,39 @@ These must be enforced at PR review.
 | Go multiplier (goCount applied) | OD-5: multiplier is tracked but not applied; stats track `totalGoCount` as a declaration count, not as a modifier |
 | Error messages | Ephemeral |
 
+### Do not persist derived view state
+
+The save system must not persist `GameViewModel`.
+
+`GameViewModel` is derived from `GameState` after restore by the Application Layer. It is always a pure function of the current `GameState` — saving it would create a redundant copy that can drift out of sync with the source.
+
+**Do not persist:**
+
+- `GameViewModel` (the entire derived view object)
+- score display strings (e.g., `humanScoreBreakdown`, `aiScoreBreakdown`)
+- `legalCardIds`
+- `legalPlayActions`
+- `statusDisplay`
+- React component local state
+- timers
+- transient errors
+
+### UI receives GameViewModel after restore, not raw GameState
+
+When resuming a saved game, the Application Layer reconstructs the session as follows:
+
+1. Load and validate the saved `GameState` document from storage.
+2. Pass the validated `GameState` to the engine (engine treats it identically to a live state).
+3. Derive a fresh `GameViewModel` from the restored `GameState` — same derivation function used during live play.
+4. Pass `GameViewModel` to the UI.
+
+**The UI never receives a raw saved document.** React components receive only `GameViewModel`, regardless of whether the session was restored or started fresh. There is no "resume mode" in the UI layer — the UI cannot tell the difference between a restored game and a live game one turn in.
+
+**Why this matters:**
+- No deserialization logic belongs in React components.
+- A stale or saved `GameViewModel` cannot cause a mismatch between displayed state and actual engine state.
+- Adding a new derived field to `GameViewModel` never requires a save schema migration.
+
 ---
 
 ## 15. Relationship to Other Documents

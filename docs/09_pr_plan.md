@@ -87,6 +87,21 @@ See `docs/16_save_progress_architecture.md` for the full architecture.
 
 ---
 
+### M5-PR1D — Save Derived State Boundary
+
+**Goal:** Document that `GameViewModel` and derived view state must not be persisted; document the restore flow where the UI always receives a freshly-derived `GameViewModel`, never a raw saved document.
+
+| Deliverable | Notes |
+|---|---|
+| `docs/16_save_progress_architecture.md` §14 | Add "Do not persist derived view state" subsection: list prohibited items (`GameViewModel`, score strings, `legalCardIds`, etc.) |
+| `docs/16_save_progress_architecture.md` §14 | Add "UI receives GameViewModel after restore, not raw GameState" subsection: 4-step restore flow, no resume mode in UI |
+| `docs/09_pr_plan.md` | Add M5-PR1D entry (this section) |
+| `docs/10_decision_log.md` | Add M5-PR1D derived state boundary decision |
+
+**Constraints:** Documentation only. No code.
+
+---
+
 ### M5-PR2 — `StorageService` Interface + `BrowserLocalStorageStorageService` + `InMemoryStorageService`
 
 **Goal:** Define the storage contract and provide two implementations: browser localStorage for development validation, and in-memory for tests.
