@@ -43,16 +43,19 @@ The UI state is the product of two independent signals:
 ## 3. State Transitions
 
 ```
-[Idle]
-  │  START_GAME dispatch
+[App Mount]
+  │  createIdleSession() — useReducer initializer, called once only
   ▼
-[Human Turn] ←──────────────────────────────────────────┐
-  │  Human plays a card (SUBMIT_HUMAN_ACTION)            │
-  ▼                                                      │
-[AI Turn]                                               │
-  │  ADVANCE_AI (auto, 400 ms delay)                    │
-  │                                                      │
-  ├──→ [Human Turn] ──────────────────────────────────→ ┘
+[Idle]
+  │  START_GAME dispatch (human clicks "새 게임 시작")
+  ▼
+[Human Turn] ←──────────────────────────────────────────────────────┐
+  │  Human plays a card (SUBMIT_HUMAN_ACTION)                        │
+  ▼                                                                  │
+[AI Turn]                                                           │
+  │  ADVANCE_AI (auto, 400 ms delay)                                │
+  │                                                                  │
+  ├──→ [Human Turn] ────────────────────────────────────────────→ ─┘
   │     (human score < threshold, or human chose Go)
   │
   ├──→ [Human Go/Stop]
@@ -79,12 +82,12 @@ The UI state is the product of two independent signals:
   └──→ AI chooses Go  → [Human Turn]
 
 [Ended]
-  │  Human clicks "다시 하기"
+  │  Human clicks "다시 하기" — START_GAME dispatch
   ▼
-[Idle]
+[Human Turn]   ← Idle is NOT re-entered
 ```
 
-> The restart path resets via `START_GAME` → `createIdleSession` → the Idle state is entered, then immediately a new game starts.
+> **Restart note:** Clicking "다시 하기" dispatches `START_GAME`, which calls `createGameSession()` and returns `phase: 'playing'` directly. `createIdleSession()` is the `useReducer` initialization function — it is called once on mount, never on restart. The Idle screen is never shown between games.
 
 ---
 
