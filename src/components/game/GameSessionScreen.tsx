@@ -8,6 +8,7 @@ import { MathRandomProvider } from '../../application/mathRandomProvider.js';
 import type { LegalPlayAction } from '../../application/gameSession/index.js';
 import { CardButton } from './CardButton.js';
 import { CardRow } from './CardRow.js';
+import { ActionHint } from './ActionHint.js';
 import { GameStatusBar } from './GameStatusBar.js';
 import { EventLog } from './EventLog.js';
 import { ResultPanel } from './ResultPanel.js';
@@ -132,6 +133,10 @@ export function GameSessionScreen() {
         statusDisplay={vm.statusDisplay}
         humanScoreBreakdown={vm.humanScoreBreakdown}
         aiScoreBreakdown={vm.aiScoreBreakdown}
+      />
+      <ActionHint
+        statusKind={vm.statusDisplay.kind}
+        isTargetSelectionPending={pendingCardId !== null}
       />
 
       {/* ── 2. AI Area ────────────────────────────────────────────────── */}
