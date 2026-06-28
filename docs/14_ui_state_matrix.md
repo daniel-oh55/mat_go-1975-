@@ -44,50 +44,41 @@ The UI state is the product of two independent signals:
 
 ```
 [App Mount]
-  │  createIdleSession() — useReducer initializer, called once only
+  │  createIdleSession() — called once as useReducer initializer
   ▼
 [Idle]
-  │  START_GAME dispatch (human clicks "새 게임 시작")
+  │  START_GAME (human clicks "새 게임 시작")
   ▼
-[Human Turn] ←──────────────────────────────────────────────────────┐
-  │  Human plays a card (SUBMIT_HUMAN_ACTION)                        │
-  ▼                                                                  │
-[AI Turn]                                                           │
-  │  ADVANCE_AI (auto, 400 ms delay)                                │
-  │                                                                  │
-  ├──→ [Human Turn] ────────────────────────────────────────────→ ─┘
-  │     (human score < threshold, or human chose Go)
-  │
-  ├──→ [Human Go/Stop]
-  │     (human score ≥ threshold after AI plays)
-  │       │  Human chooses Stop → [Ended]
-  │       │  Human chooses Go  → [AI Turn]
-  │
-  └──→ [Ended]
-        (deck exhausted)
-
 [Human Turn]
-  │  Human plays a card that pushes human score ≥ threshold
-  ▼
-[Human Go/Stop]
-  │  Human chooses Stop → [Ended]
-  │  Human chooses Go  → [AI Turn]
-
-[AI Turn]
-  │  AI play pushes AI score ≥ threshold
-  ▼
-[AI Go/Stop]
-  │  ADVANCE_AI (auto, 400 ms delay)
-  ├──→ AI chooses Stop → [Ended]
-  └──→ AI chooses Go  → [Human Turn]
+  │  SUBMIT_HUMAN_ACTION (human plays a card)
+  │
+  ├─→ [Human Go/Stop]      human score ≥ threshold
+  │       │  human clicks "스톱"  → [Ended]
+  │       └─ human clicks "고"   → [AI Turn]
+  │
+  ├─→ [AI Turn]            human score < threshold
+  │       │  ADVANCE_AI (auto, 400 ms)
+  │       │
+  │       ├─→ [Human Turn]        ai score < threshold
+  │       │
+  │       ├─→ [AI Go/Stop]        ai score ≥ threshold
+  │       │       │  ADVANCE_AI (auto, 400 ms)
+  │       │       ├─→ [Ended]      AI chooses Stop
+  │       │       └─→ [Human Turn] AI chooses Go
+  │       │
+  │       └─→ [Ended]             deck exhausted
+  │
+  └─→ [Ended]              deck exhausted during human's turn
 
 [Ended]
-  │  Human clicks "다시 하기" — START_GAME dispatch
+  │  START_GAME ("다시 하기" button)
   ▼
 [Human Turn]   ← Idle is NOT re-entered
 ```
 
-> **Restart note:** Clicking "다시 하기" dispatches `START_GAME`, which calls `createGameSession()` and returns `phase: 'playing'` directly. `createIdleSession()` is the `useReducer` initialization function — it is called once on mount, never on restart. The Idle screen is never shown between games.
+> **Go/Stop trigger rule:** `GO_STOP_DECISION_REQUIRED` is emitted for `currentPlayer` only — the player who just completed a capture that pushed their own score to the threshold. The human's Go/Stop can never be triggered during the AI's turn, and vice versa. This is enforced by `pendingDecision.playerId = currentPlayer.id` in `applyAction.ts`.
+
+> **Restart note:** Clicking "다시 하기" dispatches `START_GAME`, which calls `createGameSession()` and returns `phase: 'playing'` directly. `createIdleSession()` is the `useReducer` initialization function — called once on mount, never on restart. The Idle screen is never shown between games.
 
 ---
 

@@ -6,6 +6,36 @@ Entries are listed in reverse chronological order (newest first).
 
 ---
 
+## 2026-06-28 - State Transition Diagrams Must Be Verified Against Engine Source (M3-H1B, M3-H1C)
+
+**Decision**  
+Any state transition diagram in the documentation must be verified against engine source code before merging. Specifically: the triggering condition for `GO_STOP_DECISION_REQUIRED` — that `pendingDecision.playerId = currentPlayer.id` — must be reflected correctly in diagrams. A diagram claiming a cross-player Go/Stop trigger (e.g., "Human Go/Stop triggered after AI plays") must be rejected.
+
+**Reason**  
+M3-H1A introduced two inaccuracies that were caught in subsequent PRs: (1) the "다시 하기" button was described as resetting to the Idle state when it actually dispatches `START_GAME` directly to `phase: 'playing'`; (2) the state transition diagram showed `AI Turn → Human Go/Stop`, which is structurally impossible — Go/Stop is only triggered for the current player. These errors demonstrate that plausible-sounding diagrams can silently misrepresent engine behavior.
+
+**Impact**  
+- New or updated state transition diagrams must cite the engine function or field that enforces the described behavior (e.g., `pendingDecision.playerId` in `applyAction.ts`).
+- PR reviews must check diagram accuracy against the implementation, not just readability.
+- `createIdleSession()` vs `createGameSession()` call sites are now documented explicitly in `docs/14_ui_state_matrix.md` §3.
+
+---
+
+## 2026-06-28 - QA Checklist and UI State Matrix Are Separate Documents (M3-H1, M3-H1A)
+
+**Decision**  
+Manual QA procedure is documented in `docs/13_mvp_playtest_checklist.md` (step-by-step test cases). The authoritative UI state machine specification is documented separately in `docs/14_ui_state_matrix.md` (state definitions, transitions, invariants). The checklist references the matrix by link — it does not duplicate the tables.
+
+**Reason**  
+Keeping both in one document creates redundancy and maintenance burden: the same tables appear in two documents and drift out of sync. Separating them makes each document's purpose clear: the checklist tells a tester *what to do* and the matrix tells a developer *how the system works*. The matrix is the reference; the checklist is the procedure.
+
+**Impact**  
+- `docs/13_mvp_playtest_checklist.md` §2 contains only a link to `docs/14_ui_state_matrix.md`.
+- Element visibility tables, status bar colors, and card highlight rules live in `docs/14_ui_state_matrix.md` only.
+- When the state machine changes (new phase, new component), update the matrix first, then verify the checklist references are still accurate.
+
+---
+
 ## 2026-06-28 - ScoreBreakdown Is a Reusable Presentational Component (M3-PR7)
 
 **Decision**  
