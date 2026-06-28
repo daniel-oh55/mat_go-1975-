@@ -137,6 +137,20 @@ All states use a 2px border — card size never shifts when highlight changes. `
 | Hand card is pending, this field card is **not** a valid target | `none` | No |
 | Hand card is pending, this field card **is** a valid target | `target` | Yes — completes play |
 
+### Display-only cards (`DisplayCard`)
+
+Captured card piles (`내 획득`, `AI 획득`) use `DisplayCard` instead of `CardButton`. `DisplayCard` is a `<span>` — not a button — so it carries no interactivity semantics.
+
+| Attribute | Value |
+|---|---|
+| Element | `<span>` |
+| `aria-label` | `카드명, 획득 카드` |
+| `title` | `카드명 획득 카드` |
+| Style | `12px`, `#eee` background, `1px solid #ddd` border |
+| Clickable | No |
+
+> **Why not `CardButton`?** Using `<button disabled>` for display-only cards implies the card could be selectable in some state. `DisplayCard`'s `<span>` element eliminates that semantic ambiguity. `cardLabel()` is shared between both components — no label duplication.
+
 ---
 
 ## 6. Auto-Advance Behavior
