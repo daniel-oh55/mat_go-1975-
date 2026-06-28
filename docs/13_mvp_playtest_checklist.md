@@ -32,6 +32,7 @@ Run this first. If it fails, stop — the app is broken.
 - [ ] The idle screen shows the title "맞고" and the "새 게임 시작" button.
 - [ ] Clicking "새 게임 시작" transitions immediately to the Human Turn state.
 - [ ] `GameStatusBar` shows "▶ 내 차례" in green.
+- [ ] `ActionHint` shows "낼 카드를 선택하세요" with a green left border.
 - [ ] Hand cards are shown with yellow-orange borders.
 - [ ] AI face-down card placeholders are visible in the AI area.
 - [ ] Field cards are visible in the field area.
@@ -48,8 +49,10 @@ Run this first. If it fails, stop — the app is broken.
   - If `multiTargetCardIds` does **not** include this card → card is played immediately, game advances.
   - If `multiTargetCardIds` includes this card → enters target selection mode (see section 6).
 - [ ] After the human plays, status transitions to "⌛ AI 차례" (AI Turn).
+- [ ] `ActionHint` updates to "AI가 생각 중입니다…" with an amber left border.
 - [ ] AI Turn auto-advances after ~400 ms — no user action needed.
 - [ ] After AI plays, status returns to "▶ 내 차례".
+- [ ] `ActionHint` returns to "낼 카드를 선택하세요" with a green left border.
 - [ ] The `EventLog` updates after each action (shows the last 1–5 Korean messages).
 - [ ] Scores in `GameStatusBar` are non-decreasing.
 - [ ] Score breakdown row (광/열/띠/피) appears as soon as either player scores > 0.
@@ -63,6 +66,7 @@ This flow is reached when two or more same-month cards are on the field and the 
 **How to reproduce (manual):** Play until two field cards share a month. This may not occur on every game.
 
 - [ ] Clicking the multi-target hand card shows "바닥패를 선택하세요" prompt and a "취소" button.
+- [ ] `ActionHint` updates to "바닥패를 선택하세요" (same text, different location — the prompt is inside the human area; `ActionHint` is above the board).
 - [ ] The hand card changes highlight to `selected` (blue border).
 - [ ] Valid field card targets appear with `target` highlight (red border).
 - [ ] Clicking a valid target field card completes the play (both highlights clear, game advances).
@@ -77,6 +81,7 @@ This flow is reached when two or more same-month cards are on the field and the 
 **Precondition:** Human player's score reaches or exceeds the threshold (7 points) during their play.
 
 - [ ] Status bar transitions to "고/스톱 선택 중" in orange.
+- [ ] `ActionHint` updates to "고 또는 스톱을 선택하세요" with a gold left border.
 - [ ] The Go/Stop panel appears below the event log with the human's current score and two buttons: "고 (계속)" and "스톱 (종료)".
 - [ ] Hand cards are shown (non-clickable, since it is not a card-play turn).
 - [ ] Clicking "스톱 (종료)" ends the game → `ResultPanel` appears (see section 8).
@@ -90,6 +95,7 @@ This flow is reached when two or more same-month cards are on the field and the 
 **Precondition:** AI player's score reaches or exceeds the threshold during its play.
 
 - [ ] Status bar transitions to "AI 고/스톱 선택 중" in gray.
+- [ ] `ActionHint` updates to "AI가 고/스톱을 결정 중입니다…" with a gray left border.
 - [ ] No Go/Stop panel is shown (AI decides automatically).
 - [ ] AI auto-advances after ~400 ms (same timer as AI Turn).
 - [ ] After the AI's decision, status returns to Human Turn or transitions to Ended.
@@ -101,6 +107,7 @@ This flow is reached when two or more same-month cards are on the field and the 
 
 **Triggered by:** Human chooses Stop, or the draw pile is exhausted.
 
+- [ ] `ActionHint` is **not** shown (it returns null for the `ended` state).
 - [ ] `ResultPanel` appears with:
   - [ ] "게임 종료 — 승리!" / "게임 종료 — 패배..." / "게임 종료 — 무승부"
   - [ ] Reason: "스톱" or "덱 소진"
@@ -144,12 +151,15 @@ Run these checks for any PR that modifies components in `src/components/game/` o
 
 - [ ] Smoke test (section 3) passes.
 - [ ] Human turn → AI turn cycle works (section 4).
+- [ ] `ActionHint` updates with every state transition (sections 3, 4, 6, 7).
+- [ ] `ActionHint` shows "바닥패를 선택하세요" during target selection (section 5).
+- [ ] `ActionHint` is **not** shown in the Ended state (section 8).
 - [ ] `EventLog` updates correctly after each action.
 - [ ] Score breakdown row appears and disappears correctly (section 10).
 - [ ] `ResultPanel` shows correct winner, reason, and breakdown (section 8).
 - [ ] "다시 하기" starts a new game directly in Human Turn, not through Idle (section 8).
 - [ ] `tsc --noEmit` reports 0 errors.
-- [ ] All 402+ tests pass (`npx vitest run`).
+- [ ] All 422+ tests pass (`npx vitest run`).
 
 ---
 
