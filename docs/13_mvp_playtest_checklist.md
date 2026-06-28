@@ -47,7 +47,7 @@ Run this first. If it fails, stop — the app is broken.
 - [ ] Clicking an illegal card does nothing (no state change, no error).
 - [ ] Clicking a legal hand card triggers an action:
   - If `multiTargetCardIds` does **not** include this card → card is played immediately, game advances.
-  - If `multiTargetCardIds` includes this card → enters target selection mode (see section 6).
+  - If `multiTargetCardIds` includes this card → enters target selection mode (see section 5).
 - [ ] After the human plays, status transitions to "⌛ AI 차례" (AI Turn).
 - [ ] `ActionHint` updates to "AI가 생각 중입니다…" with an amber left border.
 - [ ] AI Turn auto-advances after ~400 ms — no user action needed.

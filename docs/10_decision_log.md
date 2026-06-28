@@ -275,6 +275,66 @@ The engine is the foundation. Building content before the engine is stable and v
 
 ---
 
+## 2026-06-28 - M4: Interactive Cards and Display-Only Cards Are Separate Components
+
+**Decision**  
+`CardButton` (`<button>`) is used for hand cards and field cards where interaction is possible. `DisplayCard` (`<span>`) is used for captured card piles where display is the only purpose. Display-only cards must never be rendered as a disabled button.
+
+**Reason**  
+`<button disabled>` implies that the element could be interactable in some state. For captured cards — which are always public and never selectable — this is semantically wrong and misleads assistive technology. A `<span>` conveys no affordance.
+
+**Impact**  
+- Any new display-only card context (card preview, history view, reference panel) must use `DisplayCard`, not `CardButton`.
+- `cardLabel()` is shared between both components — no label duplication.
+- `DisplayCard` carries `aria-label` and `title` but no interactive ARIA attributes.
+
+---
+
+## 2026-06-28 - M4: `ActionHint` Is UI Guidance, Not Game Logic
+
+**Decision**  
+`ActionHint` is a presentational component that shows the player what to do next. It reads `statusKind` and `isTargetSelectionPending` from props and renders a hint string. It does not dispatch, does not call the engine, and does not compute game state.
+
+**Reason**  
+Mixing guidance rendering with action dispatch blurs the boundary between presentation and logic. `GameSessionScreen` owns dispatch; `buildGameViewModel` owns state derivation. `ActionHint` must stay on the presentation side of that line.
+
+**Impact**  
+- All state derivation that `ActionHint` needs must be pre-computed in `GameSessionScreen` or `buildGameViewModel` and passed as props.
+- Adding a new `GameStatusKind` requires adding a matching entry to `ActionHint`'s `HINT_TEXT` map — no other component changes.
+- `role="status"` + `aria-live="polite"` ensure screen readers announce hint changes without disruption.
+
+---
+
+## 2026-06-28 - M4: `GoStopPanel` Explains the Choice but Does Not Decide the Result
+
+**Decision**  
+`GoStopPanel` renders the human Go/Stop decision UI — heading, guidance text, and two buttons. It dispatches `CHOOSE_GO` or `CHOOSE_STOP`. Winner determination happens inside the Application Layer after the dispatch; `GoStopPanel` never computes or implies the outcome.
+
+**Reason**  
+In the MVP engine, choosing Stop ends the game but the winner is determined by score comparison — not by pressing Stop. Labelling the Stop button "승리 선언" (victory declaration) would be factually wrong; the human could still lose if the AI score is higher.
+
+**Impact**  
+- Stop button copy: "게임 종료" (not "승리 선언").
+- Stop `aria-label`: "스톱 — 게임 종료".
+- `ResultPanel` is the authoritative outcome display; `GoStopPanel` never indicates who won.
+
+---
+
+## 2026-06-28 - M4: `ResultPanel` Is the Only Ended-State Next-Action UI
+
+**Decision**  
+In the `ended` session phase: `ActionHint` renders `null`, `GoStopPanel` is not shown, and `ResultPanel` is the sole UI region that presents the outcome and the restart action. Restart dispatches `START_GAME` directly to Human Turn — the Idle screen is not shown between games.
+
+**Reason**  
+Showing multiple UI elements that both summarize outcome and offer next steps (ActionHint + ResultPanel) creates redundancy and visual noise. `ResultPanel` is purpose-built for this role; `ActionHint`'s null return is intentional and documented.
+
+**Impact**  
+- `HINT_TEXT.ended = null` in `ActionHint` — this is a documented intentional omission, not a missing entry.
+- The "다시 하기" button in `ResultPanel` dispatches `START_GAME`, which calls `createGameSession()` and returns `phase: 'playing'` directly.
+- `createIdleSession()` is called only once (on mount via `useReducer` initializer) — never on restart.
+
+---
+
 ## 2026-06-26 - M4: `cardInteractionLabel()` as Single Source of Truth
 
 **Decision**  
