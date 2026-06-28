@@ -13,11 +13,20 @@ export function cardLabel(card: Card): string {
   return `${card.month}월 ${CATEGORY_KO[card.category] ?? card.category}`;
 }
 
+// All states use 2px border so card size never shifts when highlight changes.
+// none uses opacity:1 to override the browser's default disabled-button dimming.
 const HIGHLIGHT_STYLES: Record<CardHighlight, React.CSSProperties> = {
-  none:     { border: '1px solid #bbb',   background: '#f5f5f5', color: '#888', cursor: 'default' },
+  none:     { border: '2px solid #ddd',   background: '#f5f5f5', color: '#bbb', cursor: 'default',  opacity: 1 },
   legal:    { border: '2px solid #e8a000', background: '#fff8e0', color: '#333', cursor: 'pointer' },
   selected: { border: '2px solid #2255aa', background: '#dceeff', color: '#111', cursor: 'pointer' },
   target:   { border: '2px solid #c00',   background: '#ffe8e8', color: '#333', cursor: 'pointer' },
+};
+
+const ARIA_SUFFIX: Record<CardHighlight, string> = {
+  none:     '',
+  legal:    ' (선택 가능)',
+  selected: ' (선택됨)',
+  target:   ' (대상 선택)',
 };
 
 interface CardButtonProps {
@@ -28,17 +37,20 @@ interface CardButtonProps {
 
 export function CardButton({ card, highlight = 'none', onClick }: CardButtonProps) {
   const hl = HIGHLIGHT_STYLES[highlight];
+  const isInteractive = highlight !== 'none';
   return (
     <button
-      onClick={onClick}
-      disabled={highlight === 'none'}
+      onClick={isInteractive ? onClick : undefined}
+      disabled={!isInteractive}
+      aria-label={`${cardLabel(card)}${ARIA_SUFFIX[highlight]}`}
       style={{
         padding: '6px 10px',
         margin: '3px',
         borderRadius: 4,
         fontSize: 13,
         whiteSpace: 'nowrap',
-        minHeight: 36,
+        minHeight: 44,
+        minWidth: 52,
         ...hl,
       }}
     >
