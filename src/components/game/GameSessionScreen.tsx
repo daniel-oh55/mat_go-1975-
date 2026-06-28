@@ -50,11 +50,18 @@ export function GameSessionScreen({ storageService }: GameSessionScreenProps) {
   const [isStartingGame, setIsStartingGame] = useState(false);
 
   // On mount: check for a saved active game. Never restores automatically.
+  // cancelled flag prevents stale setState calls if storageService changes or component unmounts
+  // before the async load resolves (guards against React StrictMode double-invoke as well).
   useEffect(() => {
+    let cancelled = false;
     void loadActiveGame(storageService).then((saved) => {
+      if (cancelled) return;
       setResumeSession(saved);
       setIsCheckingResume(false);
     });
+    return () => {
+      cancelled = true;
+    };
   }, [storageService]);
 
   // Clear target selection whenever the session changes (after any dispatch)
