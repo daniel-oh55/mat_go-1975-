@@ -18,6 +18,7 @@
     "vitest": "^2.0.0"
   },
   "dependencies": {
+    "@capacitor/preferences": "^8.0.1",
     "react": "^19.2.7",
     "react-dom": "^19.2.7"
   }
