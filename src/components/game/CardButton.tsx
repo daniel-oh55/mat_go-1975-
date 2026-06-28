@@ -29,6 +29,15 @@ const ARIA_SUFFIX: Record<CardHighlight, string> = {
   target:   ' (대상 선택)',
 };
 
+// Short label shown below the card name.
+// null means no badge (none state — button is disabled and visually inactive).
+const STATE_BADGE: Record<CardHighlight, string | null> = {
+  none:     null,
+  legal:    '낼 수 있음',
+  selected: '선택됨',
+  target:   '대상',
+};
+
 interface CardButtonProps {
   card: Card;
   highlight?: CardHighlight;
@@ -38,6 +47,7 @@ interface CardButtonProps {
 export function CardButton({ card, highlight = 'none', onClick }: CardButtonProps) {
   const hl = HIGHLIGHT_STYLES[highlight];
   const isInteractive = highlight !== 'none';
+  const badge = STATE_BADGE[highlight];
   return (
     <button
       onClick={isInteractive ? onClick : undefined}
@@ -48,13 +58,22 @@ export function CardButton({ card, highlight = 'none', onClick }: CardButtonProp
         margin: '3px',
         borderRadius: 4,
         fontSize: 13,
-        whiteSpace: 'nowrap',
         minHeight: 44,
         minWidth: 52,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 2,
         ...hl,
       }}
     >
-      {cardLabel(card)}
+      <span>{cardLabel(card)}</span>
+      {badge !== null && (
+        <span style={{ fontSize: 10, opacity: 0.75, whiteSpace: 'nowrap' }}>
+          {badge}
+        </span>
+      )}
     </button>
   );
 }
