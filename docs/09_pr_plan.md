@@ -72,6 +72,21 @@ See `docs/16_save_progress_architecture.md` for the full architecture.
 
 ---
 
+### M5-PR1C — Save Architecture Safety Finalization
+
+**Goal:** Remove the stray Category B reference from the Active Game save triggers table; add clarifying notes for deferred triggers.
+
+| Deliverable | Notes |
+|---|---|
+| `docs/16_save_progress_architecture.md` §6 | Active Game "Game ended" trigger: remove `, then update Category B`; add explanatory note that Category B update is in the separate deferred table |
+| `docs/16_save_progress_architecture.md` §6 | "App paused / backgrounded" trigger: note that this requires Capacitor (M5-PR6); browser per-turn saves cover the browser phase |
+| `docs/09_pr_plan.md` | Add M5-PR1C entry (this section) |
+| `docs/10_decision_log.md` | Add M5-PR1C safety note decision |
+
+**Constraints:** Documentation only. No code.
+
+---
+
 ### M5-PR2 — `StorageService` Interface + `BrowserLocalStorageStorageService` + `InMemoryStorageService`
 
 **Goal:** Define the storage contract and provide two implementations: browser localStorage for development validation, and in-memory for tests.

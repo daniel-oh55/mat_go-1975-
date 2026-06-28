@@ -6,6 +6,22 @@ Entries are listed in reverse chronological order (newest first).
 
 ---
 
+## 2026-06-28 - M5: Active Game Trigger Table Must Not Reference Deferred Categories (M5-PR1C)
+
+**Decision**  
+The Active Game save triggers table (§6 of `docs/16_save_progress_architecture.md`) must only list actions that are part of M5 scope. References to Category B or Category C updates must not appear in the Active Game trigger flow, even if logically related to the same event (e.g., game end).
+
+**Reason**  
+The "Game ended" trigger previously read "Delete Category A, then update Category B." Category B (Player Statistics) is deferred to post-M5. Including it in the Active Game trigger table implied that M5 implementations would need to update Category B on game end — which they must not. A reader implementing M5-PR4 (Save Triggers) would see that row and add Category B update code that is explicitly out of scope. The Category B trigger is correctly documented in its own "Player Statistics save triggers — Deferred" table below.
+
+**Impact**  
+- "Game ended" Active Game trigger action: `Delete Category A` (Category B reference removed).
+- "App paused / backgrounded" Active Game trigger: annotated as Capacitor-only (M5-PR6); `BrowserLocalStorageStorageService` (M5-PR2 through M5-PR5) has no reliable pause event in a browser environment.
+- Explanatory notes added below the trigger table to explain both constraints without changing behavior.
+- No code changes.
+
+---
+
 ## 2026-06-28 - M5: Browser localStorage Adapter Is Implemented First; Capacitor Is M5-PR6
 
 **Decision**  
