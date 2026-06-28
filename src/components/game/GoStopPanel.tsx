@@ -18,7 +18,7 @@ export function GoStopPanel({ humanScore, onGo, onStop }: GoStopPanelProps) {
       </div>
       <div style={{ fontSize: 12, color: '#666', marginBottom: 12, lineHeight: '1.5' }}>
         <span style={{ display: 'block' }}>고: 계속 플레이해서 더 많은 점수를 노립니다.</span>
-        <span style={{ display: 'block' }}>스톱: 지금 점수로 승리를 선언합니다.</span>
+        <span style={{ display: 'block' }}>스톱: 지금 점수로 게임을 종료합니다.</span>
       </div>
       <div style={{ display: 'flex', gap: 12 }}>
         <button
@@ -44,7 +44,7 @@ export function GoStopPanel({ humanScore, onGo, onStop }: GoStopPanelProps) {
         </button>
         <button
           onClick={onStop}
-          aria-label="스톱 — 승리 선언"
+          aria-label="스톱 — 게임 종료"
           style={{
             padding: '8px 20px',
             background: '#c33',
@@ -61,7 +61,7 @@ export function GoStopPanel({ humanScore, onGo, onStop }: GoStopPanelProps) {
           }}
         >
           <span>스톱</span>
-          <span style={{ fontSize: 11, fontWeight: 'normal', opacity: 0.85 }}>승리 선언</span>
+          <span style={{ fontSize: 11, fontWeight: 'normal', opacity: 0.85 }}>게임 종료</span>
         </button>
       </div>
     </div>

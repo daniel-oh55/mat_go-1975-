@@ -96,7 +96,7 @@ The UI state is the product of two independent signals:
 | Target selection prompt + Cancel button | — | when `pendingCardId ≠ null` | — | — | — | — |
 | Human hand area | — | ✓ | ✓ | ✓ | ✓ | ✓ |
 | `EventLog` | — | when msgs > 0 | when msgs > 0 | when msgs > 0 | when msgs > 0 | when msgs > 0 |
-| Go/Stop panel | — | — | — | ✓ | — | — |
+| `GoStopPanel` | — | — | — | ✓ | — | — |
 | `ResultPanel` | — | — | — | — | — | ✓ |
 | Error box | — | when error ≠ null | when error ≠ null | when error ≠ null | when error ≠ null | when error ≠ null |
 | Captured cards (collapsible) | — | ✓ | ✓ | ✓ | ✓ | ✓ |
@@ -190,7 +190,29 @@ The border-left accent color is the same palette as `GameStatusBar`'s status lab
 
 ---
 
-## 9. Error State Rules
+## 9. GoStopPanel Display Rules
+
+`GoStopPanel` is shown only when `session.phase === 'pendingGoStop'` AND `vm.isPendingGoStopDecisionForHuman === true`. It is a purely human-facing decision UI — AI decisions never show this panel.
+
+### Content
+
+| Element | Text |
+|---|---|
+| Heading | `{N}점 달성 — 고 또는 스톱을 선택하세요` |
+| Guidance — 고 | `고: 계속 플레이해서 더 많은 점수를 노립니다.` |
+| Guidance — 스톱 | `스톱: 지금 점수로 게임을 종료합니다.` |
+| 고 button label | `고` / `계속 플레이` (two-line) |
+| 스톱 button label | `스톱` / `게임 종료` (two-line) |
+| 고 `aria-label` | `고 — 계속 플레이` |
+| 스톱 `aria-label` | `스톱 — 게임 종료` |
+
+> **"게임 종료" not "승리 선언":** In the MVP engine, choosing Stop ends the game and the winner is determined by score comparison — not by a declaration of victory. Using "승리 선언" would imply the outcome is already decided, which is inaccurate.
+
+Minimum touch target: `minHeight: 44px` on both buttons. Button layout matches `CardButton` — `flexDirection: 'column'` with sub-label at 11px.
+
+---
+
+## 10. Error State Rules
 
 - `session.error` is `null` during normal play.
 - An error is set when the reducer rejects an action (all 10 error paths in `gameSessionReducer`).
@@ -201,7 +223,7 @@ The border-left accent color is the same palette as `GameStatusBar`'s status lab
 
 ---
 
-## 10. Invariants
+## 11. Invariants
 
 These must hold at all times. A PR that violates any of these must be rejected.
 
@@ -218,7 +240,7 @@ These must hold at all times. A PR that violates any of these must be rejected.
 
 ---
 
-## 11. Hidden Information
+## 12. Hidden Information
 
 Matgo has asymmetric information. The human player can see only what is legally visible. `GameViewModel` enforces this boundary — the AI's hand and the draw pile top card are never exposed to the UI.
 
@@ -249,7 +271,7 @@ Matgo has asymmetric information. The human player can see only what is legally 
 
 ---
 
-## 12. Application Layer Boundary
+## 13. Application Layer Boundary
 
 The Application Layer (`src/application/`) is the only permitted import source for UI components. UI components in `src/components/` must never import directly from `src/engine/`.
 
@@ -289,7 +311,7 @@ The Application Layer (`src/application/`) is the only permitted import source f
 
 ---
 
-## 13. Relationship to Other Documents
+## 14. Relationship to Other Documents
 
 | Document | Contents |
 |---|---|
