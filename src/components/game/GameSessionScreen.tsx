@@ -5,7 +5,9 @@ import {
   HUMAN_PLAYER_ID,
   saveActiveGame,
   deleteActiveGame,
+  loadActiveGame,
 } from '../../application/gameSession/index.js';
+import type { GameSessionState } from '../../application/gameSession/index.js';
 import type { StorageService } from '../../application/storage/StorageService.js';
 import { MathRandomProvider } from '../../application/mathRandomProvider.js';
 import type { LegalPlayAction } from '../../application/gameSession/index.js';
@@ -41,6 +43,18 @@ export function GameSessionScreen({ storageService }: GameSessionScreenProps) {
   // Tracks which hand card is awaiting field-target selection (OD-2 multi-match flow)
   const [pendingCardId, setPendingCardId] = useState<string | null>(null);
 
+  // Resume state: null = no saved game found (or check not done), non-null = resumable session
+  const [resumeSession, setResumeSession] = useState<GameSessionState | null>(null);
+  const [isCheckingResume, setIsCheckingResume] = useState(true);
+
+  // On mount: check for a saved active game. Never restores automatically.
+  useEffect(() => {
+    void loadActiveGame(storageService).then((saved) => {
+      setResumeSession(saved);
+      setIsCheckingResume(false);
+    });
+  }, [storageService]);
+
   // Clear target selection whenever the session changes (after any dispatch)
   useEffect(() => {
     setPendingCardId(null);
@@ -75,8 +89,17 @@ export function GameSessionScreen({ storageService }: GameSessionScreenProps) {
 
   // ── Handlers ──────────────────────────────────────────────────────────────
 
+  function handleResumeGame() {
+    if (resumeSession === null) return;
+    dispatch({ type: 'RESTORE_SESSION', session: resumeSession });
+    setResumeSession(null);
+  }
+
   function handleStartGame() {
+    setResumeSession(null);
     setPendingCardId(null);
+    // Discard any saved game — overwritten by first auto-save, but explicit delete is cleaner.
+    void deleteActiveGame(storageService);
     dispatch({ type: 'START_GAME', randomProvider });
   }
 
@@ -118,7 +141,16 @@ export function GameSessionScreen({ storageService }: GameSessionScreenProps) {
     return (
       <div style={styles.container}>
         <h1 style={styles.title}>맞고</h1>
-        <button onClick={handleStartGame} style={styles.primaryButton}>
+        {!isCheckingResume && resumeSession !== null && (
+          <button onClick={handleResumeGame} style={styles.primaryButton}>
+            게임 이어하기
+          </button>
+        )}
+        <button
+          onClick={handleStartGame}
+          style={styles.primaryButton}
+          disabled={isCheckingResume}
+        >
           새 게임 시작
         </button>
       </div>
