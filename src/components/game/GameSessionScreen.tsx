@@ -7,6 +7,7 @@ import {
 import { MathRandomProvider } from '../../application/mathRandomProvider.js';
 import type { LegalPlayAction } from '../../application/gameSession/index.js';
 import { CardButton } from './CardButton.js';
+import { DisplayCard } from './DisplayCard.js';
 import { CardRow } from './CardRow.js';
 import { ActionHint } from './ActionHint.js';
 import { GameStatusBar } from './GameStatusBar.js';
@@ -230,10 +231,10 @@ export function GameSessionScreen() {
         <summary style={{ cursor: 'pointer', color: '#555', fontSize: 13 }}>획득 카드 보기</summary>
         <div style={{ marginTop: 8 }}>
           <CardRow label="내 획득" cardCount={vm.humanCaptured.length}>
-            {vm.humanCaptured.map((card) => <CardButton key={card.id} card={card} />)}
+            {vm.humanCaptured.map((card) => <DisplayCard key={card.id} card={card} />)}
           </CardRow>
           <CardRow label="AI 획득" cardCount={vm.aiCaptured.length}>
-            {vm.aiCaptured.map((card) => <CardButton key={card.id} card={card} />)}
+            {vm.aiCaptured.map((card) => <DisplayCard key={card.id} card={card} />)}
           </CardRow>
         </div>
       </details>
