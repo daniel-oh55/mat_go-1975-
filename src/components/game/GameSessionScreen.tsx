@@ -10,6 +10,7 @@ import { CardButton } from './CardButton.js';
 import { CardRow } from './CardRow.js';
 import { ActionHint } from './ActionHint.js';
 import { GameStatusBar } from './GameStatusBar.js';
+import { GoStopPanel } from './GoStopPanel.js';
 import { EventLog } from './EventLog.js';
 import { ResultPanel } from './ResultPanel.js';
 
@@ -201,23 +202,11 @@ export function GameSessionScreen() {
 
       {/* ── 6. Go/Stop / Result Panel ─────────────────────────────────── */}
       {session.phase === 'pendingGoStop' && vm.isPendingGoStopDecisionForHuman && (
-        <div style={styles.goStopPanel}>
-          <strong>고/스톱 선택 ({vm.humanScore}점 달성)</strong>
-          <div style={{ marginTop: 10, display: 'flex', gap: 12 }}>
-            <button
-              onClick={() => dispatch({ type: 'SUBMIT_HUMAN_ACTION', action: { type: 'CHOOSE_GO' } })}
-              style={styles.goButton}
-            >
-              고 (계속)
-            </button>
-            <button
-              onClick={() => dispatch({ type: 'SUBMIT_HUMAN_ACTION', action: { type: 'CHOOSE_STOP' } })}
-              style={styles.stopButton}
-            >
-              스톱 (종료)
-            </button>
-          </div>
-        </div>
+        <GoStopPanel
+          humanScore={vm.humanScore}
+          onGo={() => dispatch({ type: 'SUBMIT_HUMAN_ACTION', action: { type: 'CHOOSE_GO' } })}
+          onStop={() => dispatch({ type: 'SUBMIT_HUMAN_ACTION', action: { type: 'CHOOSE_STOP' } })}
+        />
       )}
 
       {session.phase === 'ended' && vm.finalResult !== null && (
@@ -336,36 +325,6 @@ const styles = {
     borderRadius: 4,
     cursor: 'pointer',
     fontSize: 12,
-  } as React.CSSProperties,
-
-  goStopPanel: {
-    padding: 12,
-    marginBottom: 10,
-    background: '#fffbe6',
-    border: '2px solid #e8a000',
-    borderRadius: 8,
-  } as React.CSSProperties,
-
-  goButton: {
-    padding: '8px 20px',
-    background: '#2a7',
-    color: '#fff',
-    border: 'none',
-    borderRadius: 4,
-    cursor: 'pointer',
-    fontSize: 14,
-    minHeight: 44,
-  } as React.CSSProperties,
-
-  stopButton: {
-    padding: '8px 20px',
-    background: '#c33',
-    color: '#fff',
-    border: 'none',
-    borderRadius: 4,
-    cursor: 'pointer',
-    fontSize: 14,
-    minHeight: 44,
   } as React.CSSProperties,
 
   errorBox: {
