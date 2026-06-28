@@ -6,6 +6,94 @@ Entries are listed in reverse chronological order (newest first).
 
 ---
 
+## 2026-06-28 - ScoreBreakdown Is a Reusable Presentational Component (M3-PR7)
+
+**Decision**  
+Score breakdown display (광/열/띠/피) is extracted into a standalone `ScoreBreakdown` component with `compact` and `showZeroCategories` props. It is used by both `GameStatusBar` (compact mode) and `ResultPanel` (full mode).
+
+**Reason**  
+The same breakdown rendering logic existed as a local `formatBreakdown()` string helper in `GameStatusBar` and was absent from `ResultPanel`. Extracting it into a component eliminates duplication, enforces consistent display across the UI, and makes future styling changes a single-file edit.
+
+**Impact**  
+- `ResultPanel` props changed: `humanScore`/`aiScore` removed; `humanScoreBreakdown`/`aiScoreBreakdown` added.
+- `GameSessionScreen` no longer accesses `finalResult.scores` for the result panel — it passes `vm.humanScoreBreakdown`/`vm.aiScoreBreakdown` directly.
+- Any future component that displays score breakdown must use `ScoreBreakdown`, not a local string helper.
+
+---
+
+## 2026-06-28 - PlayerScoreBreakdown Is Defined in the Application Layer (M3-PR6)
+
+**Decision**  
+`PlayerScoreBreakdown` (with `total`, `gwang`, `yeol`, `tti`, `pi` fields) is defined in `src/application/gameSession/gameViewModel.ts` and exported from the Application Layer boundary. It is not re-exported from the engine.
+
+**Reason**  
+Re-exporting engine types into the UI would break the boundary: UI components would gain an indirect engine import path. Defining the type independently in the Application Layer keeps the boundary clean. The shape mirrors `PlayerScoreState` in the engine, but the two types are unrelated in the import graph.
+
+**Impact**  
+- UI components import `PlayerScoreBreakdown` from `../../application/gameSession/index.js` only.
+- Adding new engine score fields does not automatically surface them to the UI — the Application Layer must explicitly choose to expose them.
+
+---
+
+## 2026-06-26 - GameStatusKind Encodes Phase + Turn as a Discriminated Union (M3-PR5)
+
+**Decision**  
+A `GameStatusKind` discriminated union (`'humanTurn' | 'aiTurn' | 'humanGoStop' | 'aiGoStop' | 'ended'`) is added to `GameViewModel.statusDisplay`. `GameStatusBar` uses `kind` for color decisions and `label` for display text.
+
+**Reason**  
+Before this change, `GameStatusBar` derived its display from a raw `isHumanTurn` boolean, which could not express the `pendingGoStop` or `ended` phases. Adding a pre-computed discriminated union in the ViewModel keeps the conditional logic in one place (`buildStatusDisplay`) and makes component props strictly typed.
+
+**Impact**  
+- `GameStatusBar` no longer needs to import or interpret `SessionPhase` directly.
+- New phase-specific status displays are added by extending `GameStatusKind` and updating `buildStatusDisplay` — no UI component changes required.
+
+---
+
+## 2026-06-26 - GameSessionScreen Is Split into Presentational Sub-components (M3-PR4)
+
+**Decision**  
+`GameSessionScreen` is refactored into a container + five presentational sub-components: `CardButton`, `CardRow`, `GameStatusBar`, `EventLog`, `ResultPanel`. Sub-components receive only the data they need and contain no dispatch logic.
+
+**Reason**  
+A single 400-line component is hard to review, test, and extend. The container/presentational split makes the rendering logic independently readable and prevents accidental coupling of sub-component props to session internals.
+
+**Impact**  
+- Sub-components are pure rendering functions — they do not call hooks or dispatch actions.
+- `GameSessionScreen` is the single owner of `session` state and all `dispatch` calls.
+- New UI areas are added as new sub-components, not as inline JSX blocks in `GameSessionScreen`.
+
+---
+
+## 2026-06-26 - UI Components Import Only from the Application Layer Boundary (M3-PR3)
+
+**Decision**  
+UI components (`src/components/`) must not import directly from `src/engine/`. All engine types needed by the UI (e.g., `Card`) are re-exported from `src/application/gameSession/index.ts`.
+
+**Reason**  
+A direct UI → engine import bypasses the Application Layer contract. If the engine's internal types change, UI components break without going through the Application Layer review path. The re-export from the Application Layer makes the boundary explicit and checkable.
+
+**Impact**  
+- `src/application/gameSession/index.ts` is the only import source for UI components that need engine-originated types.
+- PR reviews must reject any `import ... from '../../engine/...'` in `src/components/`.
+- The Application Layer decides which engine types are surfaced to the UI — not all engine types are eligible.
+
+---
+
+## 2026-06-26 - Event Messages Are Formatted in the Application Layer, Not the UI (M3-PR3)
+
+**Decision**  
+`GameEvent[]` is converted to Korean UI strings by `formatGameEvents()` in `src/application/gameSession/gameEventMessages.ts`. `GameSessionState` exposes `lastEventMessages: ReadonlyArray<string>` — a pre-formatted array. UI components render strings directly without interpreting event types.
+
+**Reason**  
+If UI components interpret `GameEvent` types, they must import from the engine and embed display logic (Korean strings, conditional phrasing) inside rendering code. Moving formatting to the Application Layer keeps UI components as pure renderers and makes message logic independently testable.
+
+**Impact**  
+- `EventLog` receives `messages: ReadonlyArray<string>` — it never sees `GameEvent`.
+- New event types require changes in `gameEventMessages.ts` only; no UI component changes are needed.
+- `CARD_MATCHED` and `INVALID_ACTION_REJECTED` events are silently filtered (return `null`) — this is documented in `gameEventMessages.ts`.
+
+---
+
 ## 2026-06-26 - MVP Rule Open Decisions Are Resolved Before Engine Implementation
 
 **Decision**  

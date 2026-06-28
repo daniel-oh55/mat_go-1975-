@@ -16,54 +16,11 @@ The goal is not to replace automated tests. The goal is to catch visual regressi
 
 ## 2. UI State Matrix
 
-The UI has six meaningful display states, derived from `SessionPhase` and `GameStatusKind`.
+UI state behavior is documented separately in:
 
-| State | `SessionPhase` | `GameStatusKind` | Trigger |
-|---|---|---|---|
-| **Idle** | `idle` | — | App load; after restart |
-| **Human Turn** | `playing` | `humanTurn` | Game started; after AI completes its turn |
-| **AI Turn** | `playing` | `aiTurn` | After human plays a card; auto-advances |
-| **Human Go/Stop** | `pendingGoStop` | `humanGoStop` | Human reaches score threshold |
-| **AI Go/Stop** | `pendingGoStop` | `aiGoStop` | AI reaches score threshold; auto-advances |
-| **Ended** | `ended` | `ended` | Stop declared or deck exhausted |
+- [docs/14_ui_state_matrix.md](14_ui_state_matrix.md)
 
-### Element visibility per state
-
-| UI Element | Idle | Human Turn | AI Turn | Human Go/Stop | AI Go/Stop | Ended |
-|---|:---:|:---:|:---:|:---:|:---:|:---:|
-| Title "맞고" | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| "새 게임 시작" button | ✓ | — | — | — | — | — |
-| `GameStatusBar` | — | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Score breakdown row | — | when > 0 | when > 0 | when > 0 | when > 0 | when > 0 |
-| AI area (face-down cards) | — | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Field area | — | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Human hand area | — | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Target selection prompt | — | when selected | — | — | — | — |
-| `EventLog` | — | when msgs > 0 | when msgs > 0 | when msgs > 0 | when msgs > 0 | when msgs > 0 |
-| Go/Stop panel | — | — | — | ✓ | — | — |
-| `ResultPanel` | — | — | — | — | — | ✓ |
-| Error box | — | on error | on error | on error | on error | on error |
-| Captured cards (collapsible) | — | ✓ | ✓ | ✓ | ✓ | ✓ |
-
-### Status bar color per state
-
-| `GameStatusKind` | Label | Color |
-|---|---|---|
-| `humanTurn` | ▶ 내 차례 | Green `#2a7` |
-| `aiTurn` | ⌛ AI 차례 | Amber `#a72` |
-| `humanGoStop` | 고/스톱 선택 중 | Orange `#c8860a` |
-| `aiGoStop` | AI 고/스톱 선택 중 | Gray `#888` |
-| `ended` | 게임 종료 | Gray `#555` |
-
-### Card highlight states (Human Turn only)
-
-| Condition | `CardHighlight` | Visual |
-|---|---|---|
-| Card is legal to play | `legal` | Yellow-orange border |
-| Card is selected (awaiting target) | `selected` | Blue border |
-| Not human's turn | `none` | Gray, not clickable |
-| Field card is a valid capture target | `target` | Red border |
-| Field card is not a target | `none` | No highlight |
+Run that matrix together with this checklist when reviewing PRs that touch `src/components/game/` or `src/application/gameSession/`.
 
 ---
 
