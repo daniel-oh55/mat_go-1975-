@@ -6,6 +6,23 @@ Entries are listed in reverse chronological order (newest first).
 
 ---
 
+## 2026-06-28 - M5: GameViewModel Is Never Saved; UI Receives Derived State After Restore (M5-PR1D)
+
+**Decision**  
+`GameViewModel` and all derived view state (score display strings, `legalCardIds`, `legalPlayActions`, `statusDisplay`, `humanScoreBreakdown`, `aiScoreBreakdown`, React local state, timers, transient errors) must not be persisted. On game resume, the Application Layer restores `GameState`, derives a fresh `GameViewModel` using the same derivation function used during live play, and passes `GameViewModel` to the UI. The UI never receives a raw saved document.
+
+**Reason**  
+`GameViewModel` is a pure function of `GameState`. Saving it creates a redundant copy that can drift out of sync with the engine source of truth. If a derived field (e.g., a new score breakdown format) changes, a saved `GameViewModel` would carry the old shape, requiring a migration for data that is trivially re-computable. Conversely, if the UI is allowed to receive a raw saved `GameState`, deserialization and validation logic leaks into React components — violating the Application Layer / UI boundary. The restore path must be indistinguishable from a live-turn path at the UI layer.
+
+**Impact**  
+- The save document (Category A) contains only `GameState`, `sessionPhase`, `saveVersion`, and `savedAt` — never any derived view fields.
+- On resume: validate `GameState` → pass to engine → derive `GameViewModel` → pass to UI. This is identical to the post-turn flow.
+- No "resume mode" or special rendering path in the UI — components cannot tell whether a session was restored or started fresh.
+- Adding a new field to `GameViewModel` never requires a save schema migration.
+- PR review must reject any attempt to serialize `GameViewModel` or any field derived from it.
+
+---
+
 ## 2026-06-28 - M5: Active Game Trigger Table Must Not Reference Deferred Categories (M5-PR1C)
 
 **Decision**  
