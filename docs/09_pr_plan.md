@@ -274,6 +274,23 @@ See `docs/18_m5_5_one_full_game_playability_review.md` for the primary review fi
 
 ---
 
+### M5.5-H1 — Final Pre-Story Playability Sign-off
+
+**Goal:** Verify that all M5.5 findings are resolved or deliberately deferred, confirm that one full game is playable without UX blockers, and sign off that the codebase is ready to enter Milestone 6 (Story System).
+
+| Deliverable | Notes |
+|---|---|
+| `docs/18_m5_5_one_full_game_playability_review.md` §4-A | Update finding 4-A status: resolved after M5.5-PR2 |
+| `docs/18` §6 UX Risk Summary | Update UX-1 row status: resolved |
+| Sign-off statement | Formal confirmation in §7 sign-off table that M5.5 is complete and M6 may begin |
+| `docs/09_pr_plan.md` | Add M5.5-H1 entry (this entry) |
+
+**Constraints:** Documentation only. No code.
+
+**Dependency:** M5.5-PR2.
+
+---
+
 ## 4. Milestone 2 Proposed PRs
 
 ### M2-PR1 — Engine Types and Card Model
