@@ -217,10 +217,10 @@ This is the highest-stakes interactive moment in the game. The player must under
 | Trigger text | ActionHint updates to "고 또는 스톱을 선택하세요" near the top of the screen | ✅ Player is informed immediately. |
 | GoStopPanel heading | `N점 달성 — 고 또는 스톱을 선택하세요` | ✅ Score is stated explicitly — the player knows why this appeared. |
 | Guidance text | `고: 계속 플레이해서 더 많은 점수를 노립니다.` / `스톱: 지금 점수로 게임을 종료합니다.` | ✅ Both choices are explained before the player commits. |
-| Panel position | Below EventLog, potentially below fold on small screens | ⚠️ Player sees ActionHint but must scroll to see the actual buttons. May cause confusion: "I know I need to do something, but where are the buttons?" |
+| Panel position | Above Human Area — between Field Area and hand cards (M5.5-PR2) | ✅ GoStopPanel is now immediately visible on all screen sizes without scrolling. |
 | No timer | Decision is open-ended | ✅ No pressure. Player can read and decide at their pace. |
 
-**Assessment:** The Go/Stop decision content is clear. The position is the weak point: the player has the information (ActionHint is visible) but the action (the two buttons) may require scrolling. This is finding 4-A and the subject of M5.5-PR2.
+**Assessment:** The Go/Stop decision content is clear and the decision panel is now visible without scrolling after M5.5-PR2. Both the information (ActionHint) and the action (the two buttons) are immediately in view.
 
 ---
 
@@ -248,10 +248,10 @@ The result screen is the emotional peak of each game — the player learns wheth
 | Outcome line | `결과: 승리 / 패배 / 무승부` in matching color | ✅ Confirms what the color already communicated. |
 | Reason line | `종료 이유: 스톱 / 덱 소진` | ✅ Player understands why the game ended, not just that it ended. |
 | Score breakdown | Human and AI scores with category detail (광/열/띠/피) | ✅ Player can see what drove their score — where they did well. |
-| Panel position | Same issue as GoStopPanel — below fold on small screens | ⚠️ On a small device the first thing the player sees after the game ends is the game board in its final state, not the result. They must scroll down to see whether they won. |
-| "다시 하기" button | Visible when the panel is in view | ⚠️ Same scrolling issue applies to the restart button. |
+| Panel position | Above Human Area — between Field Area and hand cards (M5.5-PR2) | ✅ ResultPanel is now immediately visible on all screen sizes without scrolling. |
+| "다시 하기" button | Visible within the ResultPanel without scrolling | ✅ The restart button is in view as soon as the game ends. |
 
-**Assessment:** The result screen content is strong. The color-coded outcome is the right primary signal. The main problem is discoverability on small viewports: the panel exists but may not be in the initial viewport after game end. Finding 4-A (M5.5-PR2) is the resolution path.
+**Assessment:** The result screen content is strong. The color-coded outcome is the right primary signal. Finding 4-A (resolved in M5.5-PR2) has improved discoverability: the panel now renders above the hand area and is immediately visible without scrolling.
 
 ---
 
@@ -279,9 +279,9 @@ The resume flow is a power feature — players who return to the app after closi
 | Return to app | Idle screen shows both "게임 이어하기" and "새 게임 시작" | ✅ Clear choice. Player is not forced to resume — they can start fresh if they prefer. |
 | "게임 이어하기" position | Shown above "새 게임 시작" | ✅ Resume is the primary action; listed first. |
 | After resuming | Directly in the saved game state (playing or pendingGoStop) | ✅ No recap screen or "welcome back" state. The board is exactly where the player left it. |
-| Resume when mid-GoStop | Board restores to pendingGoStop — GoStopPanel visible if the scroll issue is fixed | ⚠️ Currently has the same below-fold risk as 4-A. Player resumes but the decision panel may not be visible immediately. |
+| Resume when mid-GoStop | Board restores to pendingGoStop — GoStopPanel now above Human Area (M5.5-PR2) | ✅ Player resumes directly to the visible decision panel. No scrolling required. |
 
-**Assessment:** Resume flow is functionally correct and the UX intent is right. The viewport issue (4-A) affects the pendingGoStop resume path too — another reason M5.5-PR2 matters.
+**Assessment:** Resume flow is functionally correct and the UX intent is right. After M5.5-PR2, the pendingGoStop resume path also benefits: the GoStopPanel renders above the hand area and is immediately visible on resume.
 
 ---
 
@@ -295,15 +295,14 @@ The resume flow is a power feature — players who return to the app after closi
 | Card play | Immediate feedback | ✅ High |
 | AI turn wait | Aware, not anxious | ✅ High |
 | Go/Stop decision (content) | Informed | ✅ High |
-| Go/Stop decision (button discoverability) | Confused on small screens | ⚠️ Medium — blocked by 4-A |
+| Go/Stop decision (button discoverability) | Buttons immediately visible (M5.5-PR2) | ✅ High |
 | AI Go/Stop wait | Passive but informed | ✅ High |
 | Game end (result content) | Clear emotional signal (color + text) | ✅ High |
-| Game end (discoverability) | May miss result on small screens | ⚠️ Medium — blocked by 4-A |
+| Game end (discoverability) | Result immediately visible (M5.5-PR2) | ✅ High |
 | Restart | Smooth, instant | ✅ High |
 | Resume flow | Comfortable, familiar board | ✅ High |
 
-**One blocker for confident player experience: M5.5-PR2 (GoStopPanel / ResultPanel viewport position).**
-All other moments rate high for clarity and emotional correctness.
+**All moments rate high for clarity and emotional correctness after M5.5-PR2. No remaining blocker for confident player experience.**
 
 ---
 
@@ -318,8 +317,11 @@ The table below consolidates all UX risks identified in §4 (Findings) and §5 (
 | UX-3 | Two same-month 피 cards display identical labels in OD-2 target selection | Low | Multi-target card play (OD-2) | Both targets are game-equivalent; no unfair outcome | Resolved by card artwork — no separate PR needed |
 | UX-4 | Human hand count not visible in GameStatusBar | Info | All human turns | Hand area shows cards directly; player can count visually | Post-M5.5 polish |
 | UX-5 | Go multiplier not applied to final score (OD-5 known gap) | Known gap | Game end result | GoStopPanel text does not mention multiplier; UI text is accurate | Not in MVP scope (OD-5) |
+| UX-6 | EventLog messages may be terse / unfamiliar to beginner players | Low | After human / AI actions | ActionHint explains current required action; EventLog gives recent action feedback | Future beginner-help polish; not an M6 blocker |
+| UX-7 | Mobile touch target size / card spacing not audited under compact conditions | Low | Card selection; Go/Stop buttons; Restart button | `CardButton` and primary buttons use `minHeight: 44px`; M5.5-PR2 positions high-priority panels above the fold | Manual QA in M5.5-H1; future polish if issues found |
+| UX-8 | Score breakdown category labels (광/열/띠/피) may be unclear to new players | Low | ResultPanel | ResultPanel shows both human and AI breakdown by category; all four categories are labeled | Future beginner-help polish; not an M6 blocker |
 
-**Summary:** UX-1 resolved in M5.5-PR2. UX-2 and UX-4 are low-priority polish items. UX-3 resolves itself with card artwork. UX-5 is an intentional MVP scope deferral. No remaining blocker-class UX risks.
+**Summary:** UX-1 resolved in M5.5-PR2. UX-2, UX-4, UX-6, UX-7, UX-8 are low-priority polish items. UX-3 resolves itself with card artwork. UX-5 is an intentional MVP scope deferral. No remaining Blocker or High severity UX risks.
 
 ---
 
@@ -358,3 +360,44 @@ The table below consolidates all UX risks identified in §4 (Findings) and §5 (
 | Identical labels for same-month same-category 피 cards in target selection | Low | Resolved by card artwork |
 | Human hand count not shown in status bar | Informational | Post-M5.5 polish |
 | `docs/13` stale test count → fixed in this PR | Done | M5.5-PR1 |
+
+---
+
+## 9. Final Pre-Story Sign-off
+
+### M5.5 Milestone Completion Checklist
+
+| Item | Status | PR |
+|---|---|---|
+| One full game flow reviewed and verified | ✅ | M5.5-PR1 |
+| Player emotion / experience assessment | ✅ | M5.5-PR1A |
+| UX Risk Summary and M5.5-H1 plan added | ✅ | M5.5-PR1B |
+| GoStopPanel / ResultPanel viewport issue (UX-1) resolved | ✅ | M5.5-PR2 |
+| Stale emotion-map entries updated post-PR2 | ✅ | M5.5-H1 |
+| UX-6, UX-7, UX-8 risks documented | ✅ | M5.5-H1 |
+
+### Remaining Risk Assessment
+
+| Category | Count | Verdict |
+|---|---|---|
+| Blocker / High severity | 0 | None |
+| Medium severity | 0 | None — UX-1 resolved in M5.5-PR2 |
+| Low severity | 4 (UX-2, UX-6, UX-7, UX-8) | Deferred to post-M5.5 polish |
+| Info | 1 (UX-4) | Deferred |
+| Known deferred scope | 2 (UX-3, UX-5) | Intentional MVP scope decisions |
+
+### Player Capability Confirmed
+
+After M5.5, a player can:
+
+- Start the app and begin a new game without friction
+- Play one full game through all turn phases (human, AI, Go/Stop, Deck exhausted)
+- See a result screen with clear outcome, reason, and score breakdown
+- Restart immediately from the result screen
+- Close and reopen the app mid-game and resume to the exact game state
+- Make a Go/Stop decision with the decision panel immediately visible (M5.5-PR2)
+- See the result panel immediately visible at game end (M5.5-PR2)
+
+### Sign-off
+
+**Milestone 5.5 is complete. Milestone 6 Story System may begin.**

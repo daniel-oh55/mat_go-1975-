@@ -280,10 +280,16 @@ See `docs/18_m5_5_one_full_game_playability_review.md` for the primary review fi
 
 | Deliverable | Notes |
 |---|---|
-| `docs/18_m5_5_one_full_game_playability_review.md` §4-A | Update finding 4-A status: resolved after M5.5-PR2 |
-| `docs/18` §6 UX Risk Summary | Update UX-1 row status: resolved |
-| Sign-off statement | Formal confirmation in §7 sign-off table that M5.5 is complete and M6 may begin |
-| `docs/09_pr_plan.md` | Add M5.5-H1 entry (this entry) |
+| `docs/18` §5 stale entries | Updated — 5-B, 5-D, 5-F, 5-G now reflect M5.5-PR2 fix |
+| `docs/18` §6 UX Risk Summary | UX-1 confirmed resolved; UX-6, UX-7, UX-8 added |
+| `docs/18` §9 Final Pre-Story Sign-off | New section — milestone completion checklist, risk assessment, player capability, formal sign-off |
+| `docs/10_decision_log.md` | M5.5 completion decision added — M6 Story System may begin |
+
+**Result:**
+- Final playability sign-off completed.
+- UX-1 resolved by M5.5-PR2 (GoStopPanel / ResultPanel hoisted above hand area).
+- No remaining Blocker or High severity UX risks.
+- M6 Story System may begin.
 
 **Constraints:** Documentation only. No code.
 
