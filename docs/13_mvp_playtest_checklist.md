@@ -178,7 +178,7 @@ Run these checks for any PR that modifies components in `src/components/game/` o
 - [ ] `ResultPanel` shows correct winner, reason, and breakdown (section 8).
 - [ ] "다시 하기" starts a new game directly in Human Turn, not through Idle (section 8).
 - [ ] `tsc --noEmit` reports 0 errors.
-- [ ] All 422+ tests pass (`npx vitest run`).
+- [ ] All 485+ tests pass (`npx vitest run`).
 
 ---
 
