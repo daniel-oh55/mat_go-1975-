@@ -6,6 +6,24 @@ Entries are listed in reverse chronological order (newest first).
 
 ---
 
+## 2026-06-29 - M5.5: One Full Game Playability Must Be Verified Before Story System (M5.5-PR1)
+
+**Decision**
+Milestone 5.5 (One Full Game Playability) is inserted between Milestone 5 (Save / Progress Foundation) and Milestone 6 (Story System). No Story System work begins until it is confirmed that a player can complete one full game — from app launch through result screen and restart — without any blockers or disorienting moments.
+
+**Reason**
+The Save/Progress foundation (M5) added several async flows: resume prompt on startup, `await deleteActiveGame` before new game, cancellation guards, and the `isStartingGame` guard. These flows interact with the core game loop in ways that are easy to unit-test individually but harder to verify together as a coherent player experience. A Story System (M6) built on top of an unverified core loop would amplify any latent friction or confusion, because Story wraps around every game session transition. Discovering a playability gap mid-M6 would require rework of both the story integration and the underlying session flow.
+
+The playability milestone is explicitly not a feature milestone: it produces one review document, targeted UX fixes if blockers are found, and documentation alignment. Its cost is low; its value is catching problems at the cheapest possible point.
+
+**Impact**
+- Milestone 6 (Story System) does not begin until M5.5-PR2 (viewport fix) is complete and all M5.5 blockers are resolved.
+- The primary review document is `docs/18_m5_5_one_full_game_playability_review.md`.
+- The M5.5 PR plan is documented in `docs/09_pr_plan.md` §3.5.
+- No game rule changes, no AI changes, no new save schema. M5.5 scope is limited to: review, doc alignment, and one targeted UI fix (GoStopPanel/ResultPanel viewport position).
+
+---
+
 ## 2026-06-28 - M5: GameViewModel Is Never Saved; UI Receives Derived State After Restore (M5-PR1D)
 
 **Decision**  
