@@ -92,11 +92,11 @@ M5 added persistent save and resume. This section verifies the integration is so
 
 ## 4. Findings
 
-### 4-A. OBSERVATION — GoStopPanel is below the fold on small viewports
+### 4-A. ~~OBSERVATION~~ RESOLVED — GoStopPanel / ResultPanel hoisted above hand area (M5.5-PR2)
 
-**Severity:** Medium — UX issue; functional behavior is correct.
+**Severity:** Medium — UX issue; functional behavior was correct. **Resolved in M5.5-PR2.**
 
-**Detail:** The game board renders in this top-to-bottom order:
+**Original detail:** The game board rendered in this top-to-bottom order:
 
 ```
 Title + GameStatusBar + ActionHint
@@ -104,19 +104,27 @@ AI area (face-down placeholders)
 Field area (8 cards)
 Human area (up to 10 hand cards + target prompt)
 EventLog
-GoStopPanel ← rendered here
-ResultPanel ← rendered here
+GoStopPanel ← was here (below fold on small screens)
+ResultPanel ← was here (below fold on small screens)
 Error box
 Captured cards (collapsible)
 ```
 
-On a compact mobile viewport (e.g. 375 × 667 px with 10 hand cards displayed), the `GoStopPanel` may appear below the visible area. The `ActionHint` bar correctly updates to "고 또는 스톱을 선택하세요" (visible near the top), so the player has a textual cue, but the action buttons are off-screen.
+**Fix (M5.5-PR2):** `GoStopPanel` and `ResultPanel` moved above the Human Area in `GameSessionScreen.tsx`. New order:
 
-`ResultPanel` has the same position and the same risk for small viewports.
+```
+Title + GameStatusBar + ActionHint
+AI area (face-down placeholders)
+Field area (8 cards)
+GoStopPanel ← now here (visible without scrolling)
+ResultPanel ← now here (visible without scrolling)
+Human area (up to 10 hand cards + target prompt)
+EventLog
+Error box
+Captured cards (collapsible)
+```
 
-**No code change in this PR.**
-
-**Follow-up:** M5.5-PR2 — evaluate whether the action panels (`GoStopPanel`, `ResultPanel`) should float above the hand area or scroll into view on trigger.
+Both panels are conditionally rendered (only when their phase is active), so there is no layout impact during normal play turns. The new position places decision panels in the natural reading flow between the field context (what was captured) and the hand (remaining cards).
 
 ---
 
@@ -305,13 +313,13 @@ The table below consolidates all UX risks identified in §4 (Findings) and §5 (
 
 | Risk ID | Description | Severity | Affected Moments | Current Mitigation | Resolution |
 |---|---|---|---|---|---|
-| UX-1 | GoStopPanel and ResultPanel below fold on small viewports — action buttons require scrolling | Medium | Go/Stop decision (5-B); game end (5-D); pendingGoStop resume (5-F) | ActionHint at top of screen gives textual cue; buttons are present but not immediately visible | M5.5-PR2 |
+| UX-1 | ~~GoStopPanel and ResultPanel below fold on small viewports — action buttons require scrolling~~ | ~~Medium~~ | ~~Go/Stop decision (5-B); game end (5-D); pendingGoStop resume (5-F)~~ | **Resolved in M5.5-PR2**: panels hoisted above Human Area in `GameSessionScreen.tsx` | ✅ Done |
 | UX-2 | No loading indicator during resume check on Capacitor (100–300ms button-disabled window) | Low | App launch | Near-instant on `BrowserLocalStorageStorageService`; gap is Capacitor-only | Post-M5.5 polish |
 | UX-3 | Two same-month 피 cards display identical labels in OD-2 target selection | Low | Multi-target card play (OD-2) | Both targets are game-equivalent; no unfair outcome | Resolved by card artwork — no separate PR needed |
 | UX-4 | Human hand count not visible in GameStatusBar | Info | All human turns | Hand area shows cards directly; player can count visually | Post-M5.5 polish |
 | UX-5 | Go multiplier not applied to final score (OD-5 known gap) | Known gap | Game end result | GoStopPanel text does not mention multiplier; UI text is accurate | Not in MVP scope (OD-5) |
 
-**Summary:** UX-1 is the only blocker-class risk. UX-2 and UX-4 are low-priority polish items. UX-3 resolves itself with card artwork. UX-5 is an intentional MVP scope deferral.
+**Summary:** UX-1 resolved in M5.5-PR2. UX-2 and UX-4 are low-priority polish items. UX-3 resolves itself with card artwork. UX-5 is an intentional MVP scope deferral. No remaining blocker-class UX risks.
 
 ---
 
@@ -345,7 +353,7 @@ The table below consolidates all UX risks identified in §4 (Findings) and §5 (
 
 | Item | Priority | Suggested PR |
 |---|---|---|
-| GoStopPanel / ResultPanel below fold on small viewports | Medium | M5.5-PR2 |
+| ~~GoStopPanel / ResultPanel below fold on small viewports~~ | ~~Medium~~ | Resolved — M5.5-PR2 |
 | "새 게임 시작" disabled with no loading indicator during resume check | Low | Post-M5.5 polish |
 | Identical labels for same-month same-category 피 cards in target selection | Low | Resolved by card artwork |
 | Human hand count not shown in status bar | Informational | Post-M5.5 polish |
