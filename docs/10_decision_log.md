@@ -6,6 +6,23 @@ Entries are listed in reverse chronological order (newest first).
 
 ---
 
+## 2026-06-29 - M5.5: Full Local AI Match Is Ready for Story System (M5.5-H1)
+
+**Decision**
+After M5.5-H1, the local AI 맞고 loop is considered ready for Milestone 6 (Story System). The player can start, play, make Go/Stop decisions, see a result, restart, and resume a match without blockers.
+
+**Reason**
+The only M5.5 UX risk considered blocking for M6 — GoStopPanel / ResultPanel viewport visibility (UX-1) — was resolved in M5.5-PR2 by hoisting both panels above the Human Area in `GameSessionScreen.tsx`. Remaining risks (UX-2, UX-4, UX-6, UX-7, UX-8) are polish-level items that do not block Story System foundation work. UX-3 and UX-5 are intentional MVP scope deferrals.
+
+**Impact**
+- Milestone 5.5 is complete.
+- Milestone 6 Story System may begin.
+- M6 must keep engine/content separation: story, NPC, and region data must be data-driven and must not enter engine logic.
+- M6 must not change shuffle/deal fairness or game outcomes.
+- No remaining Blocker or High severity UX risks on the local AI game loop.
+
+---
+
 ## 2026-06-29 - M5.5: One Full Game Playability Must Be Verified Before Story System (M5.5-PR1)
 
 **Decision**
