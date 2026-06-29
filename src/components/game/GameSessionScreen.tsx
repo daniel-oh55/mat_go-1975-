@@ -235,7 +235,28 @@ export function GameSessionScreen({ storageService }: GameSessionScreenProps) {
         </CardRow>
       </div>
 
-      {/* ── 4. Human Area ─────────────────────────────────────────────── */}
+      {/* ── 4. Action / Result Panels ─────────────────────────────────── */}
+      {/* Rendered between field and hand so buttons are above the fold on small viewports. */}
+      {session.phase === 'pendingGoStop' && vm.isPendingGoStopDecisionForHuman && (
+        <GoStopPanel
+          humanScore={vm.humanScore}
+          onGo={() => dispatch({ type: 'SUBMIT_HUMAN_ACTION', action: { type: 'CHOOSE_GO' } })}
+          onStop={() => dispatch({ type: 'SUBMIT_HUMAN_ACTION', action: { type: 'CHOOSE_STOP' } })}
+        />
+      )}
+
+      {session.phase === 'ended' && vm.finalResult !== null && (
+        <ResultPanel
+          winner={vm.finalResult.winner}
+          reason={vm.finalResult.reason}
+          humanPlayerId={HUMAN_PLAYER_ID}
+          humanScoreBreakdown={vm.humanScoreBreakdown}
+          aiScoreBreakdown={vm.aiScoreBreakdown}
+          onRestart={handleStartGame}
+        />
+      )}
+
+      {/* ── 5. Human Area ─────────────────────────────────────────────── */}
       <div style={styles.humanArea}>
         {/* Target selection prompt */}
         {pendingCardId !== null && (
@@ -263,28 +284,8 @@ export function GameSessionScreen({ storageService }: GameSessionScreenProps) {
         </CardRow>
       </div>
 
-      {/* ── 5. Event Feedback ─────────────────────────────────────────── */}
+      {/* ── 6. Event Feedback ─────────────────────────────────────────── */}
       <EventLog messages={session.lastEventMessages} />
-
-      {/* ── 6. Go/Stop / Result Panel ─────────────────────────────────── */}
-      {session.phase === 'pendingGoStop' && vm.isPendingGoStopDecisionForHuman && (
-        <GoStopPanel
-          humanScore={vm.humanScore}
-          onGo={() => dispatch({ type: 'SUBMIT_HUMAN_ACTION', action: { type: 'CHOOSE_GO' } })}
-          onStop={() => dispatch({ type: 'SUBMIT_HUMAN_ACTION', action: { type: 'CHOOSE_STOP' } })}
-        />
-      )}
-
-      {session.phase === 'ended' && vm.finalResult !== null && (
-        <ResultPanel
-          winner={vm.finalResult.winner}
-          reason={vm.finalResult.reason}
-          humanPlayerId={HUMAN_PLAYER_ID}
-          humanScoreBreakdown={vm.humanScoreBreakdown}
-          aiScoreBreakdown={vm.aiScoreBreakdown}
-          onRestart={handleStartGame}
-        />
-      )}
 
       {/* Error indicator */}
       {session.error !== null && (
