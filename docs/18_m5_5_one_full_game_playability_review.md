@@ -299,7 +299,23 @@ All other moments rate high for clarity and emotional correctness.
 
 ---
 
-## 6. Full Flow Playability Sign-off
+## 6. UX Risk Summary
+
+The table below consolidates all UX risks identified in §4 (Findings) and §5 (Player Emotion Assessment) into a single risk register. Severity ratings follow the same scale used in §4.
+
+| Risk ID | Description | Severity | Affected Moments | Current Mitigation | Resolution |
+|---|---|---|---|---|---|
+| UX-1 | GoStopPanel and ResultPanel below fold on small viewports — action buttons require scrolling | Medium | Go/Stop decision (5-B); game end (5-D); pendingGoStop resume (5-F) | ActionHint at top of screen gives textual cue; buttons are present but not immediately visible | M5.5-PR2 |
+| UX-2 | No loading indicator during resume check on Capacitor (100–300ms button-disabled window) | Low | App launch | Near-instant on `BrowserLocalStorageStorageService`; gap is Capacitor-only | Post-M5.5 polish |
+| UX-3 | Two same-month 피 cards display identical labels in OD-2 target selection | Low | Multi-target card play (OD-2) | Both targets are game-equivalent; no unfair outcome | Resolved by card artwork — no separate PR needed |
+| UX-4 | Human hand count not visible in GameStatusBar | Info | All human turns | Hand area shows cards directly; player can count visually | Post-M5.5 polish |
+| UX-5 | Go multiplier not applied to final score (OD-5 known gap) | Known gap | Game end result | GoStopPanel text does not mention multiplier; UI text is accurate | Not in MVP scope (OD-5) |
+
+**Summary:** UX-1 is the only blocker-class risk. UX-2 and UX-4 are low-priority polish items. UX-3 resolves itself with card artwork. UX-5 is an intentional MVP scope deferral.
+
+---
+
+## 7. Full Flow Playability Sign-off
 
 | Flow path | Status |
 |---|---|
@@ -325,7 +341,7 @@ All other moments rate high for clarity and emotional correctness.
 
 ---
 
-## 7. Follow-up Items
+## 8. Follow-up Items
 
 | Item | Priority | Suggested PR |
 |---|---|---|
