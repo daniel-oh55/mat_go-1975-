@@ -113,7 +113,8 @@ export function GameSessionScreen({ storageService }: GameSessionScreenProps) {
     // against this delete on async storage adapters (e.g. Capacitor).
     await deleteActiveGame(storageService);
     dispatch({ type: 'START_GAME', randomProvider });
-    // isStartingGame is not reset: the idle screen unmounts immediately after dispatch.
+    // Reset guard so the ended→playing path can call handleStartGame again on the next game.
+    setIsStartingGame(false);
   }
 
   function handlePlayCard(legalAction: LegalPlayAction) {
