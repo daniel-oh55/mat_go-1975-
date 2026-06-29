@@ -182,7 +182,124 @@ The `GoStopPanel` correctly explains "고: 계속 플레이해서 더 많은 점
 
 ---
 
-## 5. Full Flow Playability Sign-off
+## 5. Player Emotion Assessment
+
+Technical flow correctness is necessary but not sufficient. A player experiences the game through feedback, clarity, and momentum — not through function calls. This section evaluates the same flow paths through a player experience lens.
+
+### 5-A. Turn Clarity
+
+| Moment | What the player sees | Emotional read |
+|---|---|---|
+| App launches | Title "맞고" + "새 게임 시작" button (grayed for ~0ms on localStorage, longer on Capacitor) | ✅ Clear starting point. On Capacitor, the brief gray state may feel like a frozen UI. |
+| Click "새 게임 시작" | Instant transition to hand + field board | ✅ No loading screen. Feels responsive. |
+| Human turn starts | Green "▶ 내 차례" label + ActionHint "낼 카드를 선택하세요" + yellow card borders | ✅ Three independent signals all confirm "your turn." Low confusion risk. |
+| Player clicks a legal card | Board updates, AI turn label appears | ✅ Immediate visual feedback. |
+| AI turn (400ms wait) | "⌛ AI 차례" label + amber ActionHint | ✅ Player knows AI is deciding. 400ms is short enough not to feel stuck. |
+
+**Assessment:** Turn clarity is good. The three-signal system (status bar label + ActionHint + card highlight) makes the current state unambiguous.
+
+---
+
+### 5-B. Go/Stop Decision Moment
+
+This is the highest-stakes interactive moment in the game. The player must understand what "고" and "스톱" mean before pressing one.
+
+| Element | Current behavior | Player experience |
+|---|---|---|
+| Trigger text | ActionHint updates to "고 또는 스톱을 선택하세요" near the top of the screen | ✅ Player is informed immediately. |
+| GoStopPanel heading | `N점 달성 — 고 또는 스톱을 선택하세요` | ✅ Score is stated explicitly — the player knows why this appeared. |
+| Guidance text | `고: 계속 플레이해서 더 많은 점수를 노립니다.` / `스톱: 지금 점수로 게임을 종료합니다.` | ✅ Both choices are explained before the player commits. |
+| Panel position | Below EventLog, potentially below fold on small screens | ⚠️ Player sees ActionHint but must scroll to see the actual buttons. May cause confusion: "I know I need to do something, but where are the buttons?" |
+| No timer | Decision is open-ended | ✅ No pressure. Player can read and decide at their pace. |
+
+**Assessment:** The Go/Stop decision content is clear. The position is the weak point: the player has the information (ActionHint is visible) but the action (the two buttons) may require scrolling. This is finding 4-A and the subject of M5.5-PR2.
+
+---
+
+### 5-C. AI Go/Stop — Passive Wait
+
+When the AI triggers Go/Stop, the player is a passive observer. This requires the UI to communicate "something is happening, be patient."
+
+| Element | Current behavior | Player experience |
+|---|---|---|
+| ActionHint | "AI가 고/스톱을 결정 중입니다…" | ✅ Player knows AI is deciding, not that the app froze. |
+| EventLog | Shows the events from the turn that triggered Go/Stop | ✅ Player can see what just happened. |
+| Auto-advance | 400ms → EventLog updates with "AI가 고! (N번째)" or "AI가 스톱!" | ✅ Resolution is fast. The ellipsis in ActionHint implies pending action. |
+
+**Assessment:** Passive AI states are communicated clearly. No feeling of being stuck.
+
+---
+
+### 5-D. Game End and Result Screen
+
+The result screen is the emotional peak of each game — the player learns whether they won or lost.
+
+| Element | Current behavior | Player experience |
+|---|---|---|
+| Panel color | Green (win), Red (lose), Gray (draw) | ✅ Pre-attentive. Player knows the outcome before reading any text. |
+| Outcome line | `결과: 승리 / 패배 / 무승부` in matching color | ✅ Confirms what the color already communicated. |
+| Reason line | `종료 이유: 스톱 / 덱 소진` | ✅ Player understands why the game ended, not just that it ended. |
+| Score breakdown | Human and AI scores with category detail (광/열/띠/피) | ✅ Player can see what drove their score — where they did well. |
+| Panel position | Same issue as GoStopPanel — below fold on small screens | ⚠️ On a small device the first thing the player sees after the game ends is the game board in its final state, not the result. They must scroll down to see whether they won. |
+| "다시 하기" button | Visible when the panel is in view | ⚠️ Same scrolling issue applies to the restart button. |
+
+**Assessment:** The result screen content is strong. The color-coded outcome is the right primary signal. The main problem is discoverability on small viewports: the panel exists but may not be in the initial viewport after game end. Finding 4-A (M5.5-PR2) is the resolution path.
+
+---
+
+### 5-E. Restart Momentum
+
+A player who just finished a game should be able to start another quickly.
+
+| Moment | Current behavior | Player experience |
+|---|---|---|
+| Click "다시 하기" | `await deleteActiveGame` (~0ms on localStorage) → `dispatch(START_GAME)` → board resets | ✅ Nearly instant. No loading screen between games. |
+| New game state | Directly in Human Turn — same board layout, fresh cards | ✅ No friction. The game re-enters the same familiar layout immediately. |
+| Old save cleared | Previous game's save is deleted before new game starts | ✅ Player pressing "게임 이어하기" after a restart will not see the previous game. |
+| Multiple restarts | `isStartingGame` reset fixed (M5-H1A) — unlimited restarts work correctly | ✅ No permanent lock after first restart. |
+
+**Assessment:** Restart flow feels smooth and fast. No emotional friction points.
+
+---
+
+### 5-F. Resume Flow
+
+The resume flow is a power feature — players who return to the app after closing it mid-game.
+
+| Moment | Current behavior | Player experience |
+|---|---|---|
+| Return to app | Idle screen shows both "게임 이어하기" and "새 게임 시작" | ✅ Clear choice. Player is not forced to resume — they can start fresh if they prefer. |
+| "게임 이어하기" position | Shown above "새 게임 시작" | ✅ Resume is the primary action; listed first. |
+| After resuming | Directly in the saved game state (playing or pendingGoStop) | ✅ No recap screen or "welcome back" state. The board is exactly where the player left it. |
+| Resume when mid-GoStop | Board restores to pendingGoStop — GoStopPanel visible if the scroll issue is fixed | ⚠️ Currently has the same below-fold risk as 4-A. Player resumes but the decision panel may not be visible immediately. |
+
+**Assessment:** Resume flow is functionally correct and the UX intent is right. The viewport issue (4-A) affects the pendingGoStop resume path too — another reason M5.5-PR2 matters.
+
+---
+
+### 5-G. Summary: Player Emotion Map
+
+| Game moment | Feel | Confidence |
+|---|---|---|
+| App launch | Clean start | ✅ High |
+| "새 게임 시작" | Responsive, no delay | ✅ High |
+| Human turn recognition | Clear ("your turn" is unambiguous) | ✅ High |
+| Card play | Immediate feedback | ✅ High |
+| AI turn wait | Aware, not anxious | ✅ High |
+| Go/Stop decision (content) | Informed | ✅ High |
+| Go/Stop decision (button discoverability) | Confused on small screens | ⚠️ Medium — blocked by 4-A |
+| AI Go/Stop wait | Passive but informed | ✅ High |
+| Game end (result content) | Clear emotional signal (color + text) | ✅ High |
+| Game end (discoverability) | May miss result on small screens | ⚠️ Medium — blocked by 4-A |
+| Restart | Smooth, instant | ✅ High |
+| Resume flow | Comfortable, familiar board | ✅ High |
+
+**One blocker for confident player experience: M5.5-PR2 (GoStopPanel / ResultPanel viewport position).**
+All other moments rate high for clarity and emotional correctness.
+
+---
+
+## 6. Full Flow Playability Sign-off
 
 | Flow path | Status |
 |---|---|
@@ -208,7 +325,7 @@ The `GoStopPanel` correctly explains "고: 계속 플레이해서 더 많은 점
 
 ---
 
-## 6. Follow-up Items
+## 7. Follow-up Items
 
 | Item | Priority | Suggested PR |
 |---|---|---|

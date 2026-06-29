@@ -224,6 +224,56 @@ See `docs/16_save_progress_architecture.md` for the full architecture.
 
 ---
 
+## 3.5. Milestone 5.5 Proposed PRs — One Full Game Playability
+
+Milestone 5.5 is a validation milestone between M5 (Save / Progress Foundation) and M6 (Story System). Its only goal is to confirm that a real player can complete one full game of 맞고 — launch to result, resume to restart — without getting stuck or confused.
+
+There are no new features in this milestone. PRs are documentation and targeted UX fixes only.
+
+See `docs/18_m5_5_one_full_game_playability_review.md` for the primary review findings.
+
+---
+
+### M5.5-PR1 — One Full Game Playability Review
+
+**Goal:** Review and document whether a player can complete one full game without blockers. Produce `docs/18_m5_5_one_full_game_playability_review.md`.
+
+| Deliverable | Notes |
+|---|---|
+| `docs/18_m5_5_one_full_game_playability_review.md` | Full flow verification, save/resume integration check, findings table, follow-up items |
+| `docs/13_mvp_playtest_checklist.md` §12 | Updated stale test count: 422+ → 485+ |
+
+**Constraints:** Documentation only. No code.
+
+---
+
+### M5.5-PR1A — Playability Review Doc Alignment
+
+**Goal:** Add M5.5 PR plan to `docs/09_pr_plan.md`; add the Milestone 5.5 decision to `docs/10_decision_log.md`; enhance `docs/18` with player emotion/experience perspective.
+
+| Deliverable | Notes |
+|---|---|
+| `docs/09_pr_plan.md` | Add §3.5 Milestone 5.5 PR plan (this section) |
+| `docs/10_decision_log.md` | Add M5.5 decision: one full game playability before Story System |
+| `docs/18_m5_5_one_full_game_playability_review.md` | Add §6 player emotion assessment and expand follow-up table |
+
+**Constraints:** Documentation only. No code.
+
+---
+
+### M5.5-PR2 — GoStopPanel / ResultPanel Viewport Fix
+
+**Goal:** Fix finding 4-A from the playability review: `GoStopPanel` and `ResultPanel` appear below the fold on small mobile viewports when the hand area is fully populated.
+
+| Deliverable | Notes |
+|---|---|
+| UI layout change | Evaluate options: scroll-into-view on trigger, panel hoisted above hand area, or sticky-bottom overlay |
+| `docs/18` §4-A status | Mark finding 4-A as resolved |
+
+**Dependency:** M5.5-PR1A.
+
+---
+
 ## 4. Milestone 2 Proposed PRs
 
 ### M2-PR1 — Engine Types and Card Model
