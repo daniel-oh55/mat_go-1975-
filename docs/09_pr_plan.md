@@ -297,6 +297,21 @@ See `docs/18_m5_5_one_full_game_playability_review.md` for the primary review fi
 
 ---
 
+### M5.5-PR3 — Captured Card Display Grouped by Category
+
+**Goal:** Improve the captured card area in `GameSessionScreen` so that each player's captured pile is shown split into the four scoring groups (광/열/띠/피) instead of a single flat list.
+
+| Deliverable | Notes |
+|---|---|
+| `src/application/gameSession/capturedCardGroups.ts` | Pure `groupCapturedCards()` helper; `CapturedGroup` type; `CAPTURED_GROUP_LABEL` map |
+| `src/application/gameSession/capturedCardGroups.test.ts` | 8 tests: empty input, category order, group omission, card order, Korean labels |
+| `src/components/game/CapturedCardGroups.tsx` | Presentational component — renders one section per non-empty group |
+| `src/components/game/GameSessionScreen.tsx` | Replace flat `CardRow` + `DisplayCard` captured rendering with `CapturedCardGroups` |
+
+**Constraints:** UI information structure improvement only. No engine, scoring, AI, or save logic changes.
+
+---
+
 ## 4. Milestone 2 Proposed PRs
 
 ### M2-PR1 — Engine Types and Card Model

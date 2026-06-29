@@ -12,13 +12,13 @@ import type { StorageService } from '../../application/storage/StorageService.js
 import { MathRandomProvider } from '../../application/mathRandomProvider.js';
 import type { LegalPlayAction } from '../../application/gameSession/index.js';
 import { CardButton } from './CardButton.js';
-import { DisplayCard } from './DisplayCard.js';
 import { CardRow } from './CardRow.js';
 import { ActionHint } from './ActionHint.js';
 import { GameStatusBar } from './GameStatusBar.js';
 import { GoStopPanel } from './GoStopPanel.js';
 import { EventLog } from './EventLog.js';
 import { ResultPanel } from './ResultPanel.js';
+import { CapturedCardGroups } from './CapturedCardGroups.js';
 
 // ─── GameSessionScreen ────────────────────────────────────────────────────────
 
@@ -292,16 +292,12 @@ export function GameSessionScreen({ storageService }: GameSessionScreenProps) {
         <div style={styles.errorBox}>오류: {session.error}</div>
       )}
 
-      {/* Captured cards (collapsible) */}
+      {/* Captured cards (collapsible, grouped by 광/열/띠/피) */}
       <details style={{ marginTop: 12 }}>
         <summary style={{ cursor: 'pointer', color: '#555', fontSize: 13 }}>획득 카드 보기</summary>
         <div style={{ marginTop: 8 }}>
-          <CardRow label="내 획득" cardCount={vm.humanCaptured.length}>
-            {vm.humanCaptured.map((card) => <DisplayCard key={card.id} card={card} />)}
-          </CardRow>
-          <CardRow label="AI 획득" cardCount={vm.aiCaptured.length}>
-            {vm.aiCaptured.map((card) => <DisplayCard key={card.id} card={card} />)}
-          </CardRow>
+          <CapturedCardGroups label="내 획득" cards={vm.humanCaptured} />
+          <CapturedCardGroups label="AI 획득" cards={vm.aiCaptured} />
         </div>
       </details>
 
