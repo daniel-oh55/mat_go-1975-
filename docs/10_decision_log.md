@@ -6,6 +6,23 @@ Entries are listed in reverse chronological order (newest first).
 
 ---
 
+## 2026-07-01 - M6: Story System Architecture Established (M6-PR1)
+
+**Decision**
+The Story System architecture for Milestone 6 is documented in `docs/19_story_system_architecture.md`. M6 begins with architecture documentation only. No engine code is modified. No full content is written.
+
+**Reason**
+A clear architecture document is required before implementation to ensure all contributors understand the layer boundaries, prohibited patterns, and data-driven content model. The core constraint — story must never affect shuffle, deal, scoring, AI fairness, or match outcome — must be established before any code is written.
+
+**Impact**
+- Engine Layer: unchanged. No engine file may be modified in any M6 PR.
+- Application Layer: will gain `src/application/storySession/` in M6-PR2.
+- Content Layer: will gain `src/content/stories/sample/` in M6-PR2 (minimal validation sample only).
+- `advanceStory()` must be a pure function — no engine imports, no side effects.
+- Full 팔도맞고 1975 content (regions, NPCs, dialogue) is M7+.
+
+---
+
 ## 2026-06-29 - M5.5: Full Local AI Match Is Ready for Story System (M5.5-H1)
 
 **Decision**

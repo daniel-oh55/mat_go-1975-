@@ -327,6 +327,28 @@ See `docs/18_m5_5_one_full_game_playability_review.md` for the primary review fi
 
 ---
 
+## 3.6 Milestone 6 — Story System Foundation
+
+Milestone 6 builds the Story System foundation: schema, progression logic, and a minimal sample definition for validation. No full content is written. Engine code is not touched.
+
+See `docs/19_story_system_architecture.md` for the full architecture.
+
+---
+
+### M6-PR1 — Story System Architecture Document
+
+**Goal:** Document the Story System architecture before any code is written. Establishes layer boundaries, core concepts, data schema, match-result-to-progression flow, proposed directory structure, and boundary invariants.
+
+| Deliverable | Notes |
+|---|---|
+| `docs/19_story_system_architecture.md` | §1 Purpose, §2 MVP Scope, §3 Layer Boundary, §4 Core Concepts, §5 Data-Driven Content Model, §6 Match Result Flow, §7 Story Progress State, §8 Directory Structure, §9 Boundary Invariants, §10 Non-Goals |
+| `docs/09_pr_plan.md` | M6 section header + M6-PR1 entry added |
+| `docs/10_decision_log.md` | M6 architecture decision entry added |
+
+**Constraints:** Documentation only. No `src/` files created or modified.
+
+---
+
 ## 4. Milestone 2 Proposed PRs
 
 ### M2-PR1 — Engine Types and Card Model
