@@ -320,8 +320,9 @@ The table below consolidates all UX risks identified in §4 (Findings) and §5 (
 | UX-6 | EventLog messages may be terse / unfamiliar to beginner players | Low | After human / AI actions | ActionHint explains current required action; EventLog gives recent action feedback | Future beginner-help polish; not an M6 blocker |
 | UX-7 | Mobile touch target size / card spacing not audited under compact conditions | Low | Card selection; Go/Stop buttons; Restart button | `CardButton` and primary buttons use `minHeight: 44px`; M5.5-PR2 positions high-priority panels above the fold | Manual QA in M5.5-H1; future polish if issues found |
 | UX-8 | Score breakdown category labels (광/열/띠/피) may be unclear to new players | Low | ResultPanel | ResultPanel shows both human and AI breakdown by category; all four categories are labeled | Future beginner-help polish; not an M6 blocker |
+| UX-9 | ~~Captured card groups with zero cards were hidden — scoring structure (광/열/띠/피) invisible until first capture~~ | ~~Low~~ | ~~Captured card display (all turns)~~ | **Resolved in M5.5-PR3A**: all four groups always shown, each with card count | ✅ Done |
 
-**Summary:** UX-1 resolved in M5.5-PR2. UX-2, UX-4, UX-6, UX-7, UX-8 are low-priority polish items. UX-3 resolves itself with card artwork. UX-5 is an intentional MVP scope deferral. No remaining Blocker or High severity UX risks.
+**Summary:** UX-1 resolved in M5.5-PR2. UX-9 resolved in M5.5-PR3A. UX-2, UX-4, UX-6, UX-7, UX-8 are low-priority polish items. UX-3 resolves itself with card artwork. UX-5 is an intentional MVP scope deferral. No remaining Blocker or High severity UX risks.
 
 ---
 
@@ -375,6 +376,8 @@ The table below consolidates all UX risks identified in §4 (Findings) and §5 (
 | GoStopPanel / ResultPanel viewport issue (UX-1) resolved | ✅ | M5.5-PR2 |
 | Stale emotion-map entries updated post-PR2 | ✅ | M5.5-H1 |
 | UX-6, UX-7, UX-8 risks documented | ✅ | M5.5-H1 |
+| Captured card grouping by 광/열/띠/피 | ✅ | M5.5-PR3 |
+| All four captured card groups always visible (UX-9 resolved) | ✅ | M5.5-PR3A |
 
 ### Remaining Risk Assessment
 

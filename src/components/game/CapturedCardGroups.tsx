@@ -8,7 +8,7 @@ interface CapturedCardGroupsProps {
 }
 
 // Displays captured cards split into their four scoring groups (광/열/띠/피).
-// Groups with zero cards are omitted. Empty capture pile shows a placeholder.
+// All four groups are always shown; groups with zero cards display their label with 0장.
 export function CapturedCardGroups({ label, cards }: CapturedCardGroupsProps) {
   const groups = groupCapturedCards(cards);
 
@@ -24,29 +24,25 @@ export function CapturedCardGroups({ label, cards }: CapturedCardGroupsProps) {
       }}>
         {label} <span style={{ color: '#888', fontWeight: 'normal' }}>({cards.length}장)</span>
       </div>
-      {groups.length === 0 ? (
-        <span style={{ fontSize: 12, color: '#aaa' }}>아직 없음</span>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-          {groups.map((group) => (
-            <div key={group.category}>
-              <div style={{
-                fontSize: 11,
-                fontWeight: 'bold',
-                color: '#888',
-                marginBottom: 2,
-              }}>
-                {group.label} <span style={{ fontWeight: 'normal' }}>({group.cards.length}장)</span>
-              </div>
-              <div style={{ display: 'flex', flexWrap: 'wrap' as const }}>
-                {group.cards.map((card) => (
-                  <DisplayCard key={card.id} card={card} />
-                ))}
-              </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        {groups.map((group) => (
+          <div key={group.category}>
+            <div style={{
+              fontSize: 11,
+              fontWeight: 'bold',
+              color: '#888',
+              marginBottom: 2,
+            }}>
+              {group.label} <span style={{ fontWeight: 'normal' }}>({group.cards.length}장)</span>
             </div>
-          ))}
-        </div>
-      )}
+            <div style={{ display: 'flex', flexWrap: 'wrap' as const }}>
+              {group.cards.map((card) => (
+                <DisplayCard key={card.id} card={card} />
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
     </section>
   );
 }
