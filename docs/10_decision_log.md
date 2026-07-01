@@ -19,6 +19,7 @@ A clear architecture document is required before implementation to ensure all co
 - Application Layer: will gain `src/application/storySession/` in M6-PR2.
 - Content Layer: will gain `src/content/stories/sample/` in M6-PR2 (minimal validation sample only).
 - `advanceStory()` must be a pure function — no engine imports, no side effects.
+- `StoryProgress.visitedNodeIds` must use `ReadonlyArray<string>`, not `Set` — JSON-serializable plain data only.
 - Full 팔도맞고 1975 content (regions, NPCs, dialogue) is M7+.
 
 ---
