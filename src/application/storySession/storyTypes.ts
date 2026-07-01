@@ -10,11 +10,19 @@
  */
 
 export type {
+  StoryId,
+  StoryNodeId,
   RegionId,
   NpcId,
   DialogueLine,
   MatchContext,
   UnlockCondition,
+  StoryChoice,
+  BaseStoryNode,
+  DialogueStoryNode,
+  MatchStoryNode,
+  ChoiceStoryNode,
+  EndStoryNode,
   StoryNode,
   StoryDefinition,
 } from '../../content/schemas/storySchema.js';
