@@ -349,6 +349,60 @@ See `docs/19_story_system_architecture.md` for the full architecture.
 
 ---
 
+### M6-PR1A — Story Serialization Fix + Plan Alignment
+
+**Goal:** Correct `StoryProgress.visitedNodeIds` from `ReadonlySet<string>` to `ReadonlyArray<string>` in `docs/19` (two locations); add §11 Final Pre-Implementation Decision to `docs/19`; add M6-PR2/PR3/H1 entries to this document.
+
+| Deliverable | Notes |
+|---|---|
+| `docs/19_story_system_architecture.md` | `visitedNodeIds` fixed in §5 and §7; §9 invariant updated; §11 added |
+| `docs/09_pr_plan.md` | M6-PR2, M6-PR3, M6-H1 entries added |
+| `docs/10_decision_log.md` | Serialization constraint note added to existing M6 decision |
+
+**Constraints:** Documentation only. No `src/` files created or modified.
+
+---
+
+### M6-PR2 — Story Types Schema
+
+**Goal:** Create the Application Layer boundary for the Story System — types only, no progression logic.
+
+| Deliverable | Notes |
+|---|---|
+| `src/application/storySession/storyTypes.ts` | `StoryDefinition`, `StoryNode`, `StoryProgress`, `MatchOutcome`, `MatchContext`, `UnlockCondition`, `DialogueLine`, `RegionId`, `NpcId` |
+| `src/application/storySession/index.ts` | Public boundary — re-exports types used by UI and Content layers |
+| `src/content/stories/sample/sampleStory.ts` | Minimal 2–3 node sample story definition for schema validation |
+
+**Constraints:** Types and sample data only. No progression logic. No engine imports. No UI changes.
+
+---
+
+### M6-PR3 — Story Progression Logic + Tests
+
+**Goal:** Implement `advanceStory()` and `buildMatchOutcome()` — the pure Application Layer functions that advance story state after a match ends.
+
+| Deliverable | Notes |
+|---|---|
+| `src/application/storySession/storyProgression.ts` | `advanceStory(progress, outcome, definition)` → `StoryProgress`; `buildMatchOutcome(finalResult)` → `MatchOutcome`; `evaluateUnlockCondition(condition, progress, outcome)` → `boolean` |
+| `src/application/storySession/storyProgression.test.ts` | Tests covering: no-op when `UnlockCondition` not met; advances `currentNodeId` when condition met; marks node as visited (no duplicates); match history appended; engine not imported |
+
+**Constraints:** Pure functions only. No engine imports. No UI changes. No platform calls.
+
+---
+
+### M6-H1 — Story System Foundation Sign-off
+
+**Goal:** Verify that the schema, progression logic, and sample story are correct and consistent before any content (NPC, region, dialogue) work begins in M7.
+
+| Deliverable | Notes |
+|---|---|
+| `docs/19_story_system_architecture.md` | §11 sign-off updated with M6-PR2/PR3 results |
+| `docs/10_decision_log.md` | M6 foundation complete — M7 content work may begin |
+
+**Constraints:** Documentation only. No code.
+
+---
+
 ## 4. Milestone 2 Proposed PRs
 
 ### M2-PR1 — Engine Types and Card Model

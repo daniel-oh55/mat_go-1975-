@@ -221,7 +221,7 @@ type UnlockCondition =
 type StoryProgress = {
   storyId: string;
   currentNodeId: string;
-  visitedNodeIds: ReadonlySet<string>;
+  visitedNodeIds: ReadonlyArray<string>;   // array, not Set — JSON-serializable
   matchHistory: ReadonlyArray<MatchOutcome>;
 };
 
@@ -233,7 +233,7 @@ type NpcId = string;
 
 1. `StoryNode.next` lists node IDs as strings — the story graph is data, not code pointers.
 2. `MatchContext` carries only content identifiers, never engine state.
-3. `StoryProgress` is a plain-data snapshot — fully serializable, engine-independent.
+3. `StoryProgress` is a fully JSON-serializable plain-data snapshot. `visitedNodeIds` is an array — `advanceStory()` is responsible for ensuring no duplicate node IDs are appended.
 4. `UnlockCondition` is a discriminated union — all condition types are evaluatable from `StoryProgress` and `MatchOutcome` alone, with no engine access needed.
 
 ---
@@ -271,10 +271,12 @@ Match ends
 type StoryProgress = {
   storyId: string;
   currentNodeId: string;
-  visitedNodeIds: ReadonlySet<string>;
+  visitedNodeIds: ReadonlyArray<string>;   // array, not Set — must be JSON-serializable
   matchHistory: ReadonlyArray<MatchOutcome>;
 };
 ```
+
+`visitedNodeIds` uses an array rather than a `Set` because `Set` is not JSON-serializable. `advanceStory()` is responsible for not appending duplicate node IDs when marking a node as visited.
 
 ### Storage location
 
@@ -325,7 +327,7 @@ The following rules must be enforced in every M6 PR review.
 | `MatchOutcome` must be derived from `FinalResult`, not from raw engine state | Application Layer owns the translation boundary |
 | `UnlockCondition` evaluation must not require engine access | Conditions are evaluated from `StoryProgress` and `MatchOutcome` only |
 | Shuffle, deal, scoring, and AI strategy must be unchanged by story context | Fairness is non-negotiable |
-| `StoryProgress` must be fully serializable (no class instances, no functions) | Platform Layer must be able to persist and restore it |
+| `StoryProgress` must be fully JSON-serializable (no `Set`, `Map`, class instances, or functions) | Platform Layer must be able to persist and restore it; `visitedNodeIds` uses `ReadonlyArray<string>` |
 | Sample story content is validation data only — not final production content | Full content is M7+ |
 
 ---
@@ -343,3 +345,31 @@ The following are explicitly out of scope for M6 and must not appear in M6 PRs.
 - Online multiplayer
 - Engine rule variations driven by story state
 - Story branching beyond the minimal sample definition
+
+---
+
+## 11. Final Pre-Implementation Decision
+
+### Architecture Readiness
+
+| Check | Status |
+|---|---|
+| Layer boundary defined; forbidden import directions listed (§3) | ✅ |
+| `StoryProgress` confirmed fully JSON-serializable — `visitedNodeIds` uses `ReadonlyArray<string>`, not `Set` (§5, §7) | ✅ |
+| `advanceStory()` declared a pure function with no engine access (§6, §9) | ✅ |
+| `UnlockCondition` as discriminated union — evaluatable from `StoryProgress` and `MatchOutcome` alone (§5) | ✅ |
+| Engine unchanged in M6 — any engine file modified in a Story System PR must be rejected (§3, §9) | ✅ |
+| Full content, NPC roster, BGM, rewards, fortune, monetization excluded from M6 scope (§2, §10) | ✅ |
+| M6-PR2 and M6-PR3 scope defined in `docs/09_pr_plan.md` | ✅ |
+
+### Decision
+
+The Story System architecture is established. M6-PR2 implementation (story types schema) may begin.
+
+Any PR that:
+- Imports story or content types into engine files
+- Evaluates unlock conditions inside the engine
+- Uses `Set` or `Map` in `StoryProgress`
+- Contains production content (NPC names, region text, BGM keys, dialogue)
+
+…must be rejected as a boundary violation.
