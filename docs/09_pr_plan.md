@@ -407,12 +407,15 @@ See `docs/19_story_system_architecture.md` for the full architecture.
 
 ### M6-PR3 — Story Progression Logic + Tests
 
-**Goal:** Implement `advanceStory()` and `buildMatchOutcome()` — the pure Application Layer functions that advance story state after a match ends.
+**Goal:** Implement `evaluateUnlockCondition()` and `advanceStory()` — the pure Application Layer functions that advance story state after a node transition.
 
 | Deliverable | Notes |
 |---|---|
-| `src/application/storySession/storyProgression.ts` | `advanceStory(progress, outcome, definition)` → `StoryProgress`; `buildMatchOutcome(finalResult)` → `MatchOutcome`; `evaluateUnlockCondition(condition, progress, outcome)` → `boolean` |
-| `src/application/storySession/storyProgression.test.ts` | Tests covering: no-op when `UnlockCondition` not met; advances `currentNodeId` when condition met; marks node as visited (no duplicates); match history appended; engine not imported |
+| `src/application/storySession/storyProgression.ts` | `evaluateUnlockCondition(condition, progress, outcome)` → `boolean`; `advanceStory(progress, outcome, definition, choiceId?)` → `StoryProgress` |
+| `src/application/storySession/storyProgression.test.ts` | 24 tests: all four `UnlockCondition` types; all four node type transitions; no-op cases (end node, unknown node, no eligible next, wrong choiceId); deduplication invariant; `matchesPlayed` counts current match |
+| `src/application/storySession/index.ts` | Exports `evaluateUnlockCondition` and `advanceStory` from the public boundary |
+
+**Note on `buildMatchOutcome`:** Deferred. Translating engine `FinalResult` → `MatchOutcome` requires importing from `src/engine/` which is forbidden in this PR. `buildMatchOutcome` will be added when the match-to-story integration is wired in M6-H1 or later.
 
 **Constraints:** Pure functions only. No engine imports. No UI changes. No platform calls.
 

@@ -24,3 +24,5 @@ export type {
   MatchOutcome,
   StoryProgress,
 } from './storyTypes.js';
+
+export { evaluateUnlockCondition, advanceStory } from './storyProgression.js';
