@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { evaluateUnlockCondition, advanceStory } from './storyProgression.js';
+import {
+  evaluateUnlockCondition,
+  advanceStory,
+  findStoryNode,
+  getCandidateNextNodeIds,
+  buildStoryViewModel,
+} from './storyProgression.js';
 import type { StoryProgress, MatchOutcome, StoryDefinition } from './storyTypes.js';
 
 // ─── Shared fixtures ────────────────────────────────────────────────────────
@@ -57,10 +63,58 @@ const testDef: StoryDefinition = {
   ],
 };
 
-// ─── evaluateUnlockCondition ────────────────────────────────────────────────
+// ─── findStoryNode ───────────────────────────────────────────────────────────
+
+describe('findStoryNode', () => {
+  it('returns the node when nodeId exists in the definition', () => {
+    const node = findStoryNode(testDef, 'dia-1');
+    expect(node).not.toBeNull();
+    expect(node?.nodeId).toBe('dia-1');
+    expect(node?.type).toBe('dialogue');
+  });
+
+  it('returns null when nodeId does not exist in the definition', () => {
+    expect(findStoryNode(testDef, 'does-not-exist')).toBeNull();
+  });
+});
+
+// ─── getCandidateNextNodeIds ─────────────────────────────────────────────────
+
+describe('getCandidateNextNodeIds', () => {
+  it('returns next[] for a dialogue node', () => {
+    const node = findStoryNode(testDef, 'dia-1');
+    expect(node).not.toBeNull();
+    expect(getCandidateNextNodeIds(node!)).toEqual(['match-1']);
+  });
+
+  it('returns next[] for a match node', () => {
+    const node = findStoryNode(testDef, 'match-1');
+    expect(node).not.toBeNull();
+    expect(getCandidateNextNodeIds(node!)).toEqual(['end-win', 'end-default']);
+  });
+
+  it('returns all choice nextNodeIds for a choice node', () => {
+    const node = findStoryNode(testDef, 'choice-1');
+    expect(node).not.toBeNull();
+    expect(getCandidateNextNodeIds(node!)).toEqual(['dia-1', 'end-default']);
+  });
+
+  it('returns an empty array for an end node', () => {
+    const node = findStoryNode(testDef, 'end-win');
+    expect(node).not.toBeNull();
+    expect(getCandidateNextNodeIds(node!)).toEqual([]);
+  });
+});
+
+// ─── evaluateUnlockCondition ─────────────────────────────────────────────────
 
 describe('evaluateUnlockCondition', () => {
   const emptyProgress = makeProgress('dia-1');
+
+  it('undefined condition is treated as always-true', () => {
+    expect(evaluateUnlockCondition(undefined, emptyProgress, null)).toBe(true);
+    expect(evaluateUnlockCondition(undefined, emptyProgress, winOutcome)).toBe(true);
+  });
 
   it("'always' is always true regardless of outcome", () => {
     expect(evaluateUnlockCondition({ type: 'always' }, emptyProgress, null)).toBe(true);
@@ -121,7 +175,40 @@ describe('evaluateUnlockCondition', () => {
   });
 });
 
-// ─── advanceStory ───────────────────────────────────────────────────────────
+// ─── buildStoryViewModel ─────────────────────────────────────────────────────
+
+describe('buildStoryViewModel', () => {
+  it('returns a view model for a valid current node', () => {
+    const progress = makeProgress('dia-1', ['prev'], [winOutcome]);
+    const vm = buildStoryViewModel(progress, testDef);
+    expect(vm).not.toBeNull();
+    expect(vm?.storyId).toBe('test-01');
+    expect(vm?.currentNode.nodeId).toBe('dia-1');
+    expect(vm?.currentNode.type).toBe('dialogue');
+    expect(vm?.isComplete).toBe(false);
+    expect(vm?.visitedNodeIds).toEqual(['prev']);
+    expect(vm?.matchHistory).toEqual([winOutcome]);
+  });
+
+  it('returns null when currentNodeId is not found in the definition', () => {
+    const progress = makeProgress('ghost-node');
+    expect(buildStoryViewModel(progress, testDef)).toBeNull();
+  });
+
+  it('sets isComplete to true when the current node is an end node', () => {
+    const progress = makeProgress('end-win');
+    const vm = buildStoryViewModel(progress, testDef);
+    expect(vm?.isComplete).toBe(true);
+  });
+
+  it('sets isComplete to false for non-end nodes', () => {
+    const progress = makeProgress('match-1');
+    const vm = buildStoryViewModel(progress, testDef);
+    expect(vm?.isComplete).toBe(false);
+  });
+});
+
+// ─── advanceStory ────────────────────────────────────────────────────────────
 
 describe('advanceStory', () => {
   it('returns unchanged when current node is not found in definition', () => {
@@ -180,8 +267,9 @@ describe('advanceStory', () => {
     expect(result.matchHistory.length).toBe(1);
   });
 
-  it('returns unchanged when a match node has no eligible next candidate', () => {
-    // Definition where all next nodes require humanWon, but human lost
+  it('records outcome in matchHistory even when no eligible next candidate exists', () => {
+    // All next nodes require humanWon, but human lost — no advancement possible.
+    // The match outcome must still be recorded for matchHistory tracking.
     const noFallbackDef: StoryDefinition = {
       storyId: 'test-02',
       startNodeId: 'match-1',
@@ -197,7 +285,13 @@ describe('advanceStory', () => {
     };
     const progress = makeProgress('match-1');
     const result = advanceStory(progress, loseOutcome, noFallbackDef);
-    expect(result).toBe(progress);
+    // Stay on same node
+    expect(result.currentNodeId).toBe('match-1');
+    // But outcome is recorded
+    expect(result.matchHistory.length).toBe(1);
+    expect(result.matchHistory[0]).toEqual(loseOutcome);
+    // Not the same object reference
+    expect(result).not.toBe(progress);
   });
 
   it('advances from a choice node when a matching choiceId is provided', () => {
@@ -220,8 +314,7 @@ describe('advanceStory', () => {
 
   it('includes the current match in matchHistory when evaluating matchesPlayed conditions', () => {
     // Definition where next node requires matchesPlayed minimum:1.
-    // The current match is the very first (history is empty before this call).
-    // advanceStory must count the current outcome so minimum:1 is satisfied.
+    // Empty history before this call — advanceStory must count the current match.
     const matchesPlayedDef: StoryDefinition = {
       storyId: 'test-03',
       startNodeId: 'match-1',
@@ -239,7 +332,7 @@ describe('advanceStory', () => {
         },
       ],
     };
-    const progress = makeProgress('match-1'); // empty matchHistory
+    const progress = makeProgress('match-1');
     const result = advanceStory(progress, winOutcome, matchesPlayedDef);
     expect(result.currentNodeId).toBe('gated-end');
   });

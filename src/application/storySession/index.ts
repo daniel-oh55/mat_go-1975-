@@ -25,4 +25,11 @@ export type {
   StoryProgress,
 } from './storyTypes.js';
 
-export { evaluateUnlockCondition, advanceStory } from './storyProgression.js';
+export type { StoryViewModel } from './storyProgression.js';
+export {
+  findStoryNode,
+  getCandidateNextNodeIds,
+  evaluateUnlockCondition,
+  buildStoryViewModel,
+  advanceStory,
+} from './storyProgression.js';
