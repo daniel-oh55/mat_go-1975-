@@ -312,6 +312,21 @@ See `docs/18_m5_5_one_full_game_playability_review.md` for the primary review fi
 
 ---
 
+### M5.5-PR3A — Captured Card Empty Groups Always Visible + UX-9 Docs
+
+**Goal:** Two corrections to M5.5-PR3: (1) all four scoring groups (광/열/띠/피) always visible even when empty — players see the full structure from turn 1; (2) document M5.5-PR3 result and UX-9 in the playability review.
+
+| Deliverable | Notes |
+|---|---|
+| `src/application/gameSession/capturedCardGroups.ts` | Remove `.filter()` — all 4 groups always returned |
+| `src/application/gameSession/capturedCardGroups.test.ts` | 8 tests updated: empty input returns 4 groups, includes zero-count groups |
+| `src/components/game/CapturedCardGroups.tsx` | Remove `groups.length === 0` branch; all 4 groups always render |
+| `docs/18_m5_5_one_full_game_playability_review.md` | UX-9 added to §6 UX Risk Summary (resolved); §9 checklist updated |
+
+**Constraints:** UI information structure only. No engine, scoring, AI, or save logic changes. `GameSessionScreen.tsx` not modified.
+
+---
+
 ## 4. Milestone 2 Proposed PRs
 
 ### M2-PR1 — Engine Types and Card Model

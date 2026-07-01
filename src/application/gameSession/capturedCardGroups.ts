@@ -17,7 +17,7 @@ export const CAPTURED_GROUP_LABEL: Record<CardCategory, string> = {
 
 /**
  * Groups captured cards into the four scoring categories in display order
- * (gwang → yeol → tti → pi). Groups with zero cards are omitted.
+ * (gwang → yeol → tti → pi). All four groups are always returned, including empty ones.
  */
 export function groupCapturedCards(cards: ReadonlyArray<Card>): ReadonlyArray<CapturedGroup> {
   const buckets = new Map<CardCategory, Card[]>();
@@ -32,6 +32,5 @@ export function groupCapturedCards(cards: ReadonlyArray<Card>): ReadonlyArray<Ca
       category,
       label: CAPTURED_GROUP_LABEL[category],
       cards: buckets.get(category) ?? [],
-    }))
-    .filter((group) => group.cards.length > 0);
+    }));
 }
