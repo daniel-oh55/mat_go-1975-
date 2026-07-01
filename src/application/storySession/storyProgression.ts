@@ -92,18 +92,24 @@ export function evaluateUnlockCondition(
  * A read-only snapshot of the current story state, ready for the UI layer to render.
  * Produced by buildStoryViewModel; the UI must not directly read StoryProgress or
  * StoryDefinition.
+ *
+ * availableNextNodeIds exposes the candidate next-node IDs so the UI can determine
+ * navigation options without traversing the raw StoryDefinition itself.
  */
 export interface StoryViewModel {
   readonly storyId: string;
+  readonly currentNodeId: string;
   readonly currentNode: StoryNode;
   readonly isComplete: boolean;
+  readonly availableNextNodeIds: ReadonlyArray<StoryNodeId>;
   readonly visitedNodeIds: ReadonlyArray<string>;
   readonly matchHistory: ReadonlyArray<MatchOutcome>;
 }
 
 /**
  * Derives a StoryViewModel from the current progress and story definition.
- * Returns null if currentNodeId is not found in the definition (defensive guard).
+ * Returns null if progress.currentNodeId is not found in the definition —
+ * this is the only case where null is returned (progress and definition are not mutated).
  */
 export function buildStoryViewModel(
   progress: StoryProgress,
@@ -113,8 +119,10 @@ export function buildStoryViewModel(
   if (currentNode === null) return null;
   return {
     storyId: progress.storyId,
+    currentNodeId: progress.currentNodeId,
     currentNode,
     isComplete: currentNode.type === 'end',
+    availableNextNodeIds: getCandidateNextNodeIds(currentNode),
     visitedNodeIds: progress.visitedNodeIds,
     matchHistory: progress.matchHistory,
   };

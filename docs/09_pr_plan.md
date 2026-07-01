@@ -444,6 +444,29 @@ See `docs/19_story_system_architecture.md` for the full architecture.
 
 ---
 
+### M6-PR3B — StoryViewModel Shape Alignment
+
+**Goal:** Align `StoryViewModel` with the Application Layer boundary so the UI does not need to interpret raw `StoryNode` traversal data.
+
+| # | Change | Detail |
+|---|---|---|
+| 1 | `currentNodeId` added to `StoryViewModel` | UI can reference current node ID without inspecting `currentNode.nodeId` |
+| 2 | `availableNextNodeIds` added to `StoryViewModel` | UI receives pre-computed candidate next-node IDs |
+| 3 | `buildStoryViewModel` derives `availableNextNodeIds` via `getCandidateNextNodeIds` | Centralises traversal logic; UI must not compute next candidates from raw definition |
+| 4 | `null`-return policy documented in comment and tests | Null only when `currentNodeId` not found in definition |
+| 5 | `buildStoryViewModel` does not mutate input | Verified by test |
+
+| Deliverable | Notes |
+|---|---|
+| `src/application/storySession/storyProgression.ts` | `StoryViewModel` extended with `currentNodeId` and `availableNextNodeIds`; `buildStoryViewModel` updated |
+| `src/application/storySession/storyProgression.test.ts` | 7 new tests for ViewModel shape (currentNodeId, availableNextNodeIds per node type, null for invalid, no-mutate) |
+| `docs/09_pr_plan.md` | This entry |
+| `docs/19_story_system_architecture.md` | §6 and §3 updated with StoryViewModel principles |
+
+**Constraints:** Pure Application Layer helper alignment only. No engine imports. No UI. No storage. No production content.
+
+---
+
 ### M6-H1 — Story System Foundation Sign-off
 
 **Goal:** Verify that the schema, progression logic, and sample story are correct and consistent before any content (NPC, region, dialogue) work begins in M7.
