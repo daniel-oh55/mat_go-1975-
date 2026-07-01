@@ -329,26 +329,29 @@ type StoryProgress = {
 
 ---
 
-## 8. Proposed Directory Structure
+## 8. Directory Structure
 
-The following directories and files are the M6 build target. No files are created by this PR.
+M6 build target (all files created as of M6-PR3):
 
 ```
 src/
 ├─ application/
 │  └─ storySession/
-│     ├─ storyTypes.ts           # StoryDefinition, StoryNode, StoryProgress, etc.
-│     ├─ storyProgression.ts     # advanceStory(), buildMatchOutcome()
-│     ├─ storyProgression.test.ts
-│     └─ index.ts                # Public Application Layer boundary
+│     ├─ storyTypes.ts               # re-exports schema types + MatchOutcome, StoryProgress
+│     ├─ storyProgression.ts         # evaluateUnlockCondition(), advanceStory()
+│     ├─ storyProgression.test.ts    # 24 tests
+│     └─ index.ts                    # Public Application Layer boundary
 │
 └─ content/
    ├─ schemas/
-   │  └─ storySchema.ts          # Re-exports content-facing types (NpcId, RegionId, etc.)
+   │  └─ storySchema.ts              # discriminated StoryNode union + all content types
    └─ stories/
       └─ sample/
-         └─ sampleStory.ts       # Minimal 2–3 node story for M6 validation only
+         ├─ sampleStory.ts           # minimal sample story for M6 validation
+         └─ sampleStory.test.ts      # 10 tests
 ```
+
+`buildMatchOutcome()` (engine `FinalResult` → `MatchOutcome`) is intentionally absent. It requires an engine import and belongs to the integration boundary, not the pure progression layer. It will be added when match-to-story integration is wired.
 
 The `src/engine/` tree is not touched by any M6 PR.
 
