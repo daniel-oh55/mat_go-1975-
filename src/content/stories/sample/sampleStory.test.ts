@@ -22,37 +22,61 @@ describe('sampleStory schema validity', () => {
     expect(unique.size).toBe(ids.length);
   });
 
-  it('all node types are valid', () => {
-    const validTypes = new Set(['dialogue', 'match', 'choice', 'end']);
+  it('all node IDs have sample- prefix', () => {
     for (const node of sampleStory.nodes) {
-      expect(validTypes.has(node.type)).toBe(true);
+      expect(node.nodeId.startsWith('sample-')).toBe(true);
     }
   });
 
-  it('all next references point to existing node IDs', () => {
+  it('all next and choice references point to existing node IDs', () => {
     const nodeIds = new Set(sampleStory.nodes.map((n) => n.nodeId));
     for (const node of sampleStory.nodes) {
-      for (const nextId of node.next ?? []) {
-        expect(nodeIds.has(nextId)).toBe(true);
+      if (node.type === 'dialogue' || node.type === 'match') {
+        for (const nextId of node.next) {
+          expect(nodeIds.has(nextId)).toBe(true);
+        }
+      }
+      if (node.type === 'choice') {
+        for (const choice of node.choices) {
+          expect(nodeIds.has(choice.nextNodeId)).toBe(true);
+        }
       }
     }
   });
 
-  it('match nodes have matchContext', () => {
+  it('match nodes have matchContext with valid npcId and regionId', () => {
     for (const node of sampleStory.nodes) {
       if (node.type === 'match') {
-        expect(node.matchContext).toBeDefined();
-        expect(typeof node.matchContext?.npcId).toBe('string');
-        expect(typeof node.matchContext?.regionId).toBe('string');
+        expect(typeof node.matchContext.npcId).toBe('string');
+        expect(node.matchContext.npcId.length).toBeGreaterThan(0);
+        expect(typeof node.matchContext.regionId).toBe('string');
+        expect(node.matchContext.regionId.length).toBeGreaterThan(0);
       }
     }
   });
 
-  it('end nodes have no next children', () => {
+  it('end nodes have no next property', () => {
     for (const node of sampleStory.nodes) {
       if (node.type === 'end') {
-        expect(node.next === undefined || node.next.length === 0).toBe(true);
+        expect('next' in node).toBe(false);
       }
     }
+  });
+
+  it('dialogue nodes have at least one dialogue line', () => {
+    for (const node of sampleStory.nodes) {
+      if (node.type === 'dialogue') {
+        expect(node.dialogue.length).toBeGreaterThan(0);
+      }
+    }
+  });
+
+  it('is fully JSON-serializable and round-trips correctly', () => {
+    const serialized = JSON.stringify(sampleStory);
+    const restored = JSON.parse(serialized) as typeof sampleStory;
+    expect(restored.storyId).toBe(sampleStory.storyId);
+    expect(restored.startNodeId).toBe(sampleStory.startNodeId);
+    expect(restored.nodes.length).toBe(sampleStory.nodes.length);
+    expect(serialized).not.toContain('[object');
   });
 });

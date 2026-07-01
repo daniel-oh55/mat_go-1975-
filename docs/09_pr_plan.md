@@ -375,6 +375,34 @@ See `docs/19_story_system_architecture.md` for the full architecture.
 
 **Constraints:** Types and sample data only. No progression logic. No engine imports. No UI changes.
 
+**Result (PR #75, merged):** Schema and sample story added. `StoryNode` implemented as a single loose interface — type-specific required fields not yet enforced. PR2A and PR2B follow to strengthen the schema.
+
+---
+
+### M6-PR2A — StoryNode Discriminated Union (side branch, superseded)
+
+**Goal:** Strengthen `StoryNode` to a discriminated union with per-type required fields. Branched from `milestone6/pr2-story-types-schema`, not from `main`.
+
+**Result (PR #76, closed — not merged to main):** Discriminated union implemented and tested, but PR base was `milestone6/pr2-story-types-schema` instead of `main`. Changes did not reach `main`. Superseded by M6-PR2B.
+
+---
+
+### M6-PR2B — Apply Discriminated Schema to Main
+
+**Goal:** Re-apply the M6-PR2A discriminated union changes onto `main`, with additional cleanup: `StoryId`/`StoryNodeId` opaque types, `StoryChoice`/`BaseStoryNode` types, `sample-` prefix on all sample node IDs, updated tests (10 tests including JSON roundtrip and `sample-` prefix guard).
+
+| Deliverable | Notes |
+|---|---|
+| `src/content/schemas/storySchema.ts` | `StoryId`, `StoryNodeId`, `BaseStoryNode`, `DialogueStoryNode`, `MatchStoryNode`, `ChoiceStoryNode`, `EndStoryNode`, `StoryChoice`, `StoryNode` discriminated union |
+| `src/application/storySession/storyTypes.ts` | Full re-export including all discriminated union types |
+| `src/application/storySession/index.ts` | Public boundary updated to export all new types |
+| `src/content/stories/sample/sampleStory.ts` | Node IDs prefixed with `sample-`; nodes declared as explicit typed constants |
+| `src/content/stories/sample/sampleStory.test.ts` | 10 tests: discriminated union guards, JSON roundtrip, `sample-` prefix check |
+| `docs/09_pr_plan.md` | PR2 Result, PR2A note, PR2B entry |
+| `docs/19_story_system_architecture.md` | §5 updated to discriminated union schema |
+
+**Constraints:** Types and sample data only. No progression logic. No engine imports. No UI changes.
+
 ---
 
 ### M6-PR3 — Story Progression Logic + Tests
