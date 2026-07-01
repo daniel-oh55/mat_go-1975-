@@ -421,6 +421,29 @@ See `docs/19_story_system_architecture.md` for the full architecture.
 
 ---
 
+### M6-PR3A — Story Progression补完: ViewModel, Helpers, No-Advance Fix
+
+**Goal:** Four targeted fixes to M6-PR3 before M6-H1 sign-off.
+
+| # | Problem | Fix |
+|---|---|---|
+| 1 | `advanceStory()` silently drops match outcome when no eligible next node exists | Stay on match node but record outcome in `matchHistory` |
+| 2 | No lookup / traversal helpers | Add `findStoryNode()`, `getCandidateNextNodeIds()` |
+| 3 | No view model for UI consumption | Add `StoryViewModel` interface + `buildStoryViewModel()` |
+| 4 | `evaluateUnlockCondition()` requires explicit `UnlockCondition` — callers cannot pass `node.unlockCondition` directly when it may be `undefined` | Accept `UnlockCondition \| undefined`; treat `undefined` as `'always'` |
+
+| Deliverable | Notes |
+|---|---|
+| `src/application/storySession/storyProgression.ts` | `findStoryNode`, `getCandidateNextNodeIds`, `StoryViewModel`, `buildStoryViewModel`; `evaluateUnlockCondition` accepts `undefined`; `advanceStory` records match outcome on no-advance |
+| `src/application/storySession/storyProgression.test.ts` | 38 tests (adds `findStoryNode`, `getCandidateNextNodeIds`, `buildStoryViewModel`, `evaluateUnlockCondition(undefined)`, no-advance-records-outcome) |
+| `src/application/storySession/index.ts` | Exports `StoryViewModel`, `findStoryNode`, `getCandidateNextNodeIds`, `buildStoryViewModel` from public boundary |
+| `docs/09_pr_plan.md` | PR3 Result block + PR3A entry |
+| `docs/19_story_system_architecture.md` | §9 rejection criteria: loose `StoryNode` interface prohibited |
+
+**Constraints:** Pure functions only. No engine imports. No UI changes. No platform calls.
+
+---
+
 ### M6-H1 — Story System Foundation Sign-off
 
 **Goal:** Verify that the schema, progression logic, and sample story are correct and consistent before any content (NPC, region, dialogue) work begins in M7.

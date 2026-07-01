@@ -370,6 +370,7 @@ The following rules must be enforced in every M6 PR review.
 | `UnlockCondition` evaluation must not require engine access | Conditions are evaluated from `StoryProgress` and `MatchOutcome` only |
 | Shuffle, deal, scoring, and AI strategy must be unchanged by story context | Fairness is non-negotiable |
 | `StoryProgress` must be fully JSON-serializable (no `Set`, `Map`, class instances, or functions) | Platform Layer must be able to persist and restore it; `visitedNodeIds` uses `ReadonlyArray<string>` |
+| `StoryNode` must remain a discriminated union — PRs that revert it to a single loose interface must be rejected | Compile-time enforcement of per-type required fields is a key correctness guarantee; a loose interface lets match nodes omit `matchContext` silently |
 | Sample story content is validation data only — not final production content | Full content is M7+ |
 
 ---
