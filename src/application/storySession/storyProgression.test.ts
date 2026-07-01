@@ -190,6 +190,12 @@ describe('buildStoryViewModel', () => {
     expect(vm?.matchHistory).toEqual([winOutcome]);
   });
 
+  it('returns currentNodeId from progress', () => {
+    const progress = makeProgress('match-1');
+    const vm = buildStoryViewModel(progress, testDef);
+    expect(vm?.currentNodeId).toBe('match-1');
+  });
+
   it('returns null when currentNodeId is not found in the definition', () => {
     const progress = makeProgress('ghost-node');
     expect(buildStoryViewModel(progress, testDef)).toBeNull();
@@ -205,6 +211,40 @@ describe('buildStoryViewModel', () => {
     const progress = makeProgress('match-1');
     const vm = buildStoryViewModel(progress, testDef);
     expect(vm?.isComplete).toBe(false);
+  });
+
+  it('returns availableNextNodeIds for a dialogue node', () => {
+    const progress = makeProgress('dia-1');
+    const vm = buildStoryViewModel(progress, testDef);
+    expect(vm?.availableNextNodeIds).toEqual(['match-1']);
+  });
+
+  it('returns availableNextNodeIds for a match node', () => {
+    const progress = makeProgress('match-1');
+    const vm = buildStoryViewModel(progress, testDef);
+    expect(vm?.availableNextNodeIds).toEqual(['end-win', 'end-default']);
+  });
+
+  it('returns availableNextNodeIds (choice nextNodeIds) for a choice node', () => {
+    const progress = makeProgress('choice-1');
+    const vm = buildStoryViewModel(progress, testDef);
+    expect(vm?.availableNextNodeIds).toEqual(['dia-1', 'end-default']);
+  });
+
+  it('returns empty availableNextNodeIds for an end node', () => {
+    const progress = makeProgress('end-win');
+    const vm = buildStoryViewModel(progress, testDef);
+    expect(vm?.availableNextNodeIds).toEqual([]);
+  });
+
+  it('does not mutate the input progress', () => {
+    const visitedBefore = ['prev-node'];
+    const historyBefore = [winOutcome];
+    const progress = makeProgress('dia-1', [...visitedBefore], [...historyBefore]);
+    buildStoryViewModel(progress, testDef);
+    expect(progress.visitedNodeIds).toEqual(visitedBefore);
+    expect(progress.matchHistory).toEqual(historyBefore);
+    expect(progress.currentNodeId).toBe('dia-1');
   });
 });
 

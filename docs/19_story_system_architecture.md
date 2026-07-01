@@ -298,6 +298,26 @@ Match ends
 - If the current node type is `match`, the Application Layer maps `MatchContext` to a `Ruleset`-compatible engine config before starting the match. The engine receives only rule parameters — no content identity.
 - A match may be replayed (if the player loses and the story requires a win) by re-entering the same node. `StoryProgress.currentNodeId` stays on the same node until the `UnlockCondition` is satisfied.
 
+### StoryViewModel principles
+
+`StoryViewModel` is the boundary object the Application Layer hands to the UI. It must contain enough information for the UI to render the current state without reading `StoryProgress` or `StoryDefinition` directly.
+
+| Field | Purpose |
+|---|---|
+| `currentNodeId` | Identifies the current node without requiring the UI to read `currentNode.nodeId` |
+| `currentNode` | Full node data (dialogue lines, match context, choices) for rendering |
+| `isComplete` | True when `currentNode.type === 'end'` — UI can show end-of-story screen |
+| `availableNextNodeIds` | Candidate next-node IDs, pre-computed by `getCandidateNextNodeIds(currentNode)` — UI must not derive this from raw definition |
+| `visitedNodeIds` | Allows UI to mark previously-seen nodes or choices |
+| `matchHistory` | Allows UI to display per-story match statistics |
+
+`buildStoryViewModel` returns `null` only when `StoryProgress.currentNodeId` cannot be found in the `StoryDefinition`. This is a defensive guard; in a well-formed story definition it should not occur during normal play.
+
+The UI must not:
+- Call `getCandidateNextNodeIds` directly
+- Inspect `StoryDefinition.nodes` to determine navigation options
+- Evaluate `UnlockCondition` values
+
 ---
 
 ## 7. Story Progress State
@@ -331,15 +351,17 @@ type StoryProgress = {
 
 ## 8. Directory Structure
 
-M6 build target (all files created as of M6-PR3):
+M6 build target (all files created as of M6-PR3B):
 
 ```
 src/
 ├─ application/
 │  └─ storySession/
 │     ├─ storyTypes.ts               # re-exports schema types + MatchOutcome, StoryProgress
-│     ├─ storyProgression.ts         # evaluateUnlockCondition(), advanceStory()
-│     ├─ storyProgression.test.ts    # 24 tests
+│     ├─ storyProgression.ts         # findStoryNode(), getCandidateNextNodeIds(),
+│     │                              # evaluateUnlockCondition(), buildStoryViewModel(),
+│     │                              # advanceStory(); StoryViewModel interface
+│     ├─ storyProgression.test.ts    # 45 tests
 │     └─ index.ts                    # Public Application Layer boundary
 │
 └─ content/
