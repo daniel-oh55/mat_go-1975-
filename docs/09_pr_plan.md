@@ -473,10 +473,89 @@ See `docs/19_story_system_architecture.md` for the full architecture.
 
 | Deliverable | Notes |
 |---|---|
-| `docs/19_story_system_architecture.md` | §11 sign-off updated with M6-PR2/PR3 results |
-| `docs/10_decision_log.md` | M6 foundation complete — M7 content work may begin |
+| `docs/19_story_system_architecture.md` | §12 M6-H1 sign-off section added: scope reviewed, boundary verification table, final decision, deferred work, recommended next milestone |
+| `docs/09_pr_plan.md` | M6-H1 result + M7 proposed PR plan (this section) |
+| `docs/10_decision_log.md` | M6 foundation approved — M7 may begin |
 
 **Constraints:** Documentation only. No code.
+
+**Result:**
+- Story System Foundation reviewed and signed off.
+- Engine/content boundary confirmed: no engine file modified across any M6 PR.
+- `StoryProgress` JSON serialization confirmed: `ReadonlyArray<string>`, no `Set`/`Map`.
+- `StoryNode` discriminated union confirmed: compile-time enforcement of per-type required fields.
+- Pure progression logic and `StoryViewModel` Application Layer boundary confirmed.
+- `buildMatchOutcome` / `FinalResult` adapter, persistence, UI shell, and production content deferred to M7+.
+
+---
+
+## 3.7. Milestone 7 Proposed PRs — Minimal Story Runtime Integration
+
+Milestone 7 connects the completed match engine to the Story System Application Layer. No full regional/NPC/dialogue content is produced in M7. Engine code is not touched.
+
+See `docs/19_story_system_architecture.md` §12-E for the recommended path rationale.
+
+---
+
+### M7-PR1 — Story Runtime Architecture
+
+**Goal:** Document how `StoryProgress`, the active game session, and match completion connect without breaking the engine boundary. Covers: `buildMatchOutcome` adapter placement, `StorySession` state shape, persistence trigger points, and UI navigation flow.
+
+**Constraints:** Documentation only. No code.
+
+---
+
+### M7-PR2 — MatchOutcome Adapter
+
+**Goal:** Add an Application Layer adapter that converts engine `FinalResult` into `MatchOutcome`, without importing story types into the engine.
+
+| Deliverable | Notes |
+|---|---|
+| `buildMatchOutcome(result: FinalResult): MatchOutcome` | Application Layer only; engine file unchanged |
+| Tests | Correct `humanWon`, `humanFinalScore`, `aiFinalScore` derivation |
+
+**Constraints:** Application Layer only. Engine unchanged. No UI. No story content.
+
+---
+
+### M7-PR3 — StorySession State
+
+**Goal:** Add a minimal `StorySession` state that tracks `StoryProgress` and current `StoryViewModel` within the Application Layer.
+
+| Deliverable | Notes |
+|---|---|
+| `StorySession` type / reducer | Holds `StoryProgress` and current `StoryViewModel`; no UI state |
+| `initStorySession` | Creates initial session from a `StoryDefinition` |
+| Tests | State updates correctly on `advanceStory` call |
+
+**Constraints:** No UI polish. No production content. No persistence unless explicitly approved after runtime flow is proven.
+
+---
+
+### M7-PR4 — Minimal Story UI Shell
+
+**Goal:** Render the current story node and allow basic navigation: dialogue node display, entry to a match, and return from match result to story state.
+
+| Deliverable | Notes |
+|---|---|
+| Story node renderer | Reads `StoryViewModel`; does not interpret raw `StoryDefinition` |
+| Match entry flow | Transitions from `match` node to game session |
+| Post-match return | Calls `advanceStory` with `MatchOutcome`; updates `StoryViewModel` |
+
+**Constraints:** Minimal shell only. No final art. No regional content. No BGM/SFX. No production dialogue.
+
+---
+
+### M7-H1 — Story Runtime Boundary Review
+
+**Goal:** Confirm that the M7 story runtime integration did not leak into engine code and did not affect match fairness.
+
+| Deliverable | Notes |
+|---|---|
+| Boundary verification | Engine import scan; `StoryProgress` serialization check; AI fairness unchanged |
+| `docs/19` or new `docs/20` | Updated with M7 integration findings |
+
+**Constraints:** Review and documentation only, unless a boundary issue is discovered that requires a fix.
 
 ---
 

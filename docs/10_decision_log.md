@@ -6,6 +6,25 @@ Entries are listed in reverse chronological order (newest first).
 
 ---
 
+## 2026-07-02 - M6: Story System Foundation Approved (M6-H1)
+
+**Decision**
+Milestone 6 Story System Foundation is approved. The project now has a data-driven story schema, JSON-serializable `StoryProgress`, pure story progression helpers (`evaluateUnlockCondition`, `advanceStory`, `findStoryNode`, `getCandidateNextNodeIds`, `buildStoryViewModel`), and a `StoryViewModel` Application Layer boundary.
+
+**Reason**
+The project goal is a reusable Matgo engine and expandable IP. Story must be able to react to match outcomes without entering engine logic or affecting match fairness. M6 established that boundary through a clean discriminated-union schema, a pure progression layer, and a ViewModel boundary that shields the future UI from raw story graph traversal.
+
+**Impact**
+- Engine remains story-agnostic: no engine file was modified across any M6 PR.
+- `StoryProgress` remains fully JSON-serializable: `ReadonlyArray<string>` for `visitedNodeIds`, no `Set`/`Map`.
+- `StoryNode` remains a discriminated union: compile-time enforcement of per-type required fields.
+- Pure progression logic must not import `FinalResult` or engine types — `buildMatchOutcome` is deferred to M7-PR2.
+- UI must consume `StoryViewModel` rather than interpret raw `StoryDefinition` traversal — UI shell deferred to M7-PR4.
+- M7 may begin with minimal story runtime integration (see `docs/09_pr_plan.md` §3.7).
+- Full regional/NPC/dialogue content production remains deferred beyond M7.
+
+---
+
 ## 2026-07-01 - M6: Story System Architecture Established (M6-PR1)
 
 **Decision**

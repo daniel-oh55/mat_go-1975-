@@ -351,7 +351,7 @@ type StoryProgress = {
 
 ## 8. Directory Structure
 
-M6 build target (all files created as of M6-PR3B):
+M6 build target (all files created as of M6-H1):
 
 ```
 src/
@@ -438,3 +438,92 @@ Any PR that:
 - Contains production content (NPC names, region text, BGM keys, dialogue)
 
 …must be rejected as a boundary violation.
+
+---
+
+## 12. M6-H1 Story System Foundation Sign-off
+
+### A. Scope Reviewed
+
+The following PRs constitute the M6 Story System Foundation:
+
+| PR | Title | Status |
+|---|---|---|
+| M6-PR1 | Story System Architecture document | Merged to main |
+| M6-PR1A | StoryProgress serialization fix + M6 plan alignment | Merged to main |
+| M6-PR2 | Story types schema + sample story | Merged to main |
+| M6-PR2A | StoryNode discriminated union (side branch) | Closed — base was `milestone6/pr2-story-types-schema`, not `main`; changes did not reach main; superseded by PR2B |
+| M6-PR2B | Discriminated StoryNode schema applied to main + `sample-` prefix cleanup | Merged to main |
+| M6-PR3 | Pure story progression logic (`evaluateUnlockCondition`, `advanceStory`) | Merged to main |
+| M6-PR3A | ViewModel helpers, no-advance state fix, optional unlock condition | Merged to main |
+| M6-PR3B | StoryViewModel shape alignment (`currentNodeId`, `availableNextNodeIds`) | Merged to main |
+
+---
+
+### B. Boundary Verification
+
+| Boundary Check | Status | Evidence | Notes |
+|---|---|---|---|
+| Engine imports from `src/content/` or `src/application/storySession/` | **Pass** | No M6 PR modified any engine file; `src/engine/` import tree is unchanged | Engine remains story-agnostic |
+| `src/content/` or `src/application/storySession/` imports from `src/engine/` | **Pass** | `storyProgression.ts` imports only from `./storyTypes.js`; no engine type referenced | `buildMatchOutcome` (requires `FinalResult`) explicitly deferred |
+| `FinalResult` import in pure story progression | **Pass** | `storyProgression.ts` does not import `FinalResult` or any engine type | `FinalResult → MatchOutcome` adapter is deferred to M7 |
+| `GameState`, `Ruleset`, `RandomProvider` stored in `StoryProgress` | **Pass** | `StoryProgress` contains only `storyId`, `currentNodeId`, `visitedNodeIds`, `matchHistory` | Fully JSON-serializable plain data |
+| `StoryProgress` JSON serialization | **Pass** | `visitedNodeIds: ReadonlyArray<string>` (not `Set`); `matchHistory: ReadonlyArray<MatchOutcome>` — both are plain arrays of primitives/plain objects | Verified by `sampleStory.test.ts` JSON roundtrip test |
+| `StoryNode` discriminated union | **Pass** | `type` field gates required properties per node type — `matchContext` required on `match`, `dialogue` required on `dialogue`, `end` has no `next` | Compile-time enforcement; §9 rejection criterion documented |
+| Sample story production-content risk | **Pass** | `sampleStory.ts` uses `sample-` prefix node IDs and placeholder NPC/region strings; no final Korean dialogue or regional art | Validation fixture only |
+| UI interprets raw `StoryDefinition` directly | **Deferred** | No UI shell implemented in M6; `StoryViewModel` boundary is in place for when UI is built | M7-PR4 will consume `StoryViewModel`, not raw definition |
+| `StoryProgress` persistence | **Deferred** | No `StorageService` calls from story session layer in M6 | Deferred to after M7 runtime flow is proven |
+| Engine rule variation driven by story state | **Not Applicable / Forbidden** | No such mechanism exists or is planned; §3 and §9 explicitly prohibit it | Match fairness is non-negotiable |
+
+---
+
+### C. Final M6 Decision
+
+**M6 Story System Foundation is approved** as a data-driven Application/Content layer foundation.
+
+- The engine remains reusable and story-agnostic. No engine file was modified across any M6 PR.
+- Story progression can react to match outcomes (`MatchOutcome`) but cannot affect match fairness, shuffle, deal, scoring, AI strategy, or final result.
+- `StoryProgress` is a plain JSON-serializable snapshot — no `Set`, `Map`, class instances, or functions.
+- `StoryNode` is a discriminated union enforcing per-type required fields at compile time.
+- The `StoryViewModel` Application Layer boundary is in place so that future UI will not need to interpret raw `StoryDefinition` traversal data.
+
+Full story content production, visual presentation, persistence integration, and match-to-story runtime wiring remain deferred to M7+.
+
+---
+
+### D. Remaining Deferred Work
+
+The following items are explicitly out of scope for M6 and remain deferred:
+
+| Item | Target Milestone |
+|---|---|
+| `buildMatchOutcome` — `FinalResult` → `MatchOutcome` adapter | M7-PR2 |
+| `StoryProgress` persistence via `StorageService` | M7-PR3 or later |
+| Minimal Story UI shell (render current node, navigate to match) | M7-PR4 |
+| Region / NPC / dialogue production content | M7+ (content milestone) |
+| 1970s regional presentation layer (art, atmosphere) | M7+ |
+| BGM / SFX / background artwork | Post-M7 |
+| Reward / unlock animation | Post-M7 |
+| Fortune / saju / seasonal event integration | Post-M7 |
+| Monetization / ads integration | Release preparation (M9) |
+| Online multiplayer | Post-M9 |
+
+---
+
+### E. Recommended Next Milestone
+
+**Recommended: M7 — Minimal Story Runtime Integration**
+
+| Purpose | Detail |
+|---|---|
+| Connect match outcome to story progression | `buildMatchOutcome` adapter: engine `FinalResult` → Application Layer `MatchOutcome` → `advanceStory` |
+| Add minimal `StorySession` shell | Tracks `StoryProgress` and current `StoryViewModel`; no full UI polish |
+| Minimal Story UI (navigation only) | Render current story node; allow dialogue → match node → result → story state navigation |
+| `StoryProgress` persistence | Only after the runtime flow is proven stable |
+| Constraint | No regional/NPC/dialogue production content in M7; full content is a separate content milestone |
+
+**Alternative: M7A — Game Board Visual Shell**
+
+Use only if board readability or presentation becomes more urgent than story runtime integration before any content work can begin.
+
+The recommended path is M7 — Minimal Story Runtime Integration.
