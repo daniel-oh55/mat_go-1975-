@@ -174,67 +174,106 @@ A single line of text displayed in a dialogue node. Contains the speaker identif
 
 Adding a new region, NPC, or story arc must not require modifying engine code. All content variation is expressed through data that the Application Layer reads and interprets.
 
-The following TypeScript-like schema defines the shape of content data. These are type definitions for documentation and schema design — implementation files are created in subsequent PRs.
+The following TypeScript-like schema defines the shape of content data (implemented in M6-PR2 / M6-PR2A). `StoryNode` is a discriminated union: each node type enforces its own required fields at compile time. A `match` node cannot accidentally omit `matchContext`; an `end` node cannot accidentally add a `next` array.
 
 ```ts
-type StoryDefinition = {
-  storyId: string;
-  startNodeId: string;
-  nodes: StoryNode[];
-};
+// ─── Opaque string ID types ───────────────────────────────────────────────
+type StoryId     = string;
+type StoryNodeId = string;
+type RegionId    = string;
+type NpcId       = string;
 
-type StoryNode = {
-  nodeId: string;
-  type: 'dialogue' | 'match' | 'choice' | 'end';
-  regionId?: RegionId;
-  npcId?: NpcId;
-  dialogue?: DialogueLine[];
-  matchContext?: MatchContext;
-  unlockCondition?: UnlockCondition;
-  next?: string[];           // one entry for linear; multiple for branching choice nodes
-};
-
+// ─── Sub-types ────────────────────────────────────────────────────────────
 type DialogueLine = {
-  speakerId: string;         // NpcId or 'player' or 'narrator'
+  speakerId: string;    // NpcId | 'player' | 'narrator'
   text: string;
-  emotionTag?: string;       // future: 'neutral' | 'happy' | 'wary' | 'proud' etc.
+  emotionTag?: string;  // future portrait animation hint
 };
 
 type MatchContext = {
   npcId: NpcId;
   regionId: RegionId;
-  presentationHints?: Record<string, string>;   // future: BGM key, bg image key
+  presentationHints?: Record<string, string>;  // future: BGM key, bg image key
 };
 
+type UnlockCondition =
+  | { type: 'humanWon' }
+  | { type: 'visitedNode'; nodeId: StoryNodeId }
+  | { type: 'matchesPlayed'; minimum: number }
+  | { type: 'always' };
+
+type StoryChoice = {
+  choiceId: string;
+  label: string;
+  nextNodeId: StoryNodeId;
+  unlockCondition?: UnlockCondition;
+};
+
+// ─── Discriminated StoryNode union ────────────────────────────────────────
+type BaseStoryNode = {
+  nodeId: StoryNodeId;
+  regionId?: RegionId;
+  npcId?: NpcId;
+  unlockCondition?: UnlockCondition;
+};
+
+type DialogueStoryNode = BaseStoryNode & {
+  type: 'dialogue';
+  dialogue: DialogueLine[];   // required
+  next: StoryNodeId[];        // required
+};
+
+type MatchStoryNode = BaseStoryNode & {
+  type: 'match';
+  matchContext: MatchContext;  // required
+  next: StoryNodeId[];        // required — candidate next nodes; progression selects one
+};
+
+type ChoiceStoryNode = BaseStoryNode & {
+  type: 'choice';
+  choices: StoryChoice[];     // required; no top-level next
+};
+
+type EndStoryNode = BaseStoryNode & {
+  type: 'end';
+  // no next — terminal
+};
+
+type StoryNode =
+  | DialogueStoryNode
+  | MatchStoryNode
+  | ChoiceStoryNode
+  | EndStoryNode;
+
+// ─── Top-level story ──────────────────────────────────────────────────────
+type StoryDefinition = {
+  storyId: StoryId;
+  startNodeId: StoryNodeId;
+  nodes: StoryNode[];
+};
+
+// ─── Runtime progression types (Application Layer) ────────────────────────
 type MatchOutcome = {
   humanWon: boolean;
   humanFinalScore: number;
   aiFinalScore: number;
 };
 
-type UnlockCondition =
-  | { type: 'humanWon' }
-  | { type: 'visitedNode'; nodeId: string }
-  | { type: 'matchesPlayed'; minimum: number }
-  | { type: 'always' };
-
 type StoryProgress = {
   storyId: string;
   currentNodeId: string;
-  visitedNodeIds: ReadonlyArray<string>;   // array, not Set — JSON-serializable
-  matchHistory: ReadonlyArray<MatchOutcome>;
+  visitedNodeIds: string[];   // array, not Set — must be JSON-serializable
+  matchHistory: MatchOutcome[];
 };
-
-type RegionId = string;
-type NpcId = string;
 ```
 
 **Key invariants this schema enforces:**
 
-1. `StoryNode.next` lists node IDs as strings — the story graph is data, not code pointers.
-2. `MatchContext` carries only content identifiers, never engine state.
-3. `StoryProgress` is a fully JSON-serializable plain-data snapshot. `visitedNodeIds` is an array — `advanceStory()` is responsible for ensuring no duplicate node IDs are appended.
-4. `UnlockCondition` is a discriminated union — all condition types are evaluatable from `StoryProgress` and `MatchOutcome` alone, with no engine access needed.
+1. `StoryNode` is a discriminated union on `type` — TypeScript enforces required fields per node type. `matchContext` is guaranteed on `match` nodes; `dialogue[]` is guaranteed on `dialogue` nodes; `end` nodes have no `next` property.
+2. `ChoiceStoryNode` uses `choices: StoryChoice[]` (not `next`) — branching carries the label and target in the same object.
+3. `MatchContext` carries only content identifiers, never engine state.
+4. `StoryProgress` is a fully JSON-serializable plain-data snapshot. `visitedNodeIds` is an array — `advanceStory()` is responsible for ensuring no duplicate node IDs are appended.
+5. `UnlockCondition` is a discriminated union — all condition types are evaluatable from `StoryProgress` and `MatchOutcome` alone, with no engine access needed.
 
 ---
 

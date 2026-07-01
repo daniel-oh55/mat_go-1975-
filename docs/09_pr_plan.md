@@ -375,6 +375,32 @@ See `docs/19_story_system_architecture.md` for the full architecture.
 
 **Constraints:** Types and sample data only. No progression logic. No engine imports. No UI changes.
 
+**Result:**
+- `src/content/schemas/storySchema.ts` — Content Layer schema types (single-interface StoryNode, optional fields)
+- `src/application/storySession/storyTypes.ts` — Application Layer re-exports + MatchOutcome, StoryProgress
+- `src/application/storySession/index.ts` — Public boundary
+- `src/content/stories/sample/sampleStory.ts` — 4-node sample; `src/content/stories/sample/sampleStory.test.ts` — 8 schema tests
+- 24 test files, 501 tests pass. No type errors.
+- M6-PR2A followed immediately with discriminated union schema improvements.
+
+---
+
+### M6-PR2A — Discriminated StoryNode Schema
+
+**Goal:** Strengthen the StoryNode schema from a single permissive interface to a discriminated union. Each node type (`dialogue`, `match`, `choice`, `end`) now enforces its own required fields at compile time.
+
+| Deliverable | Notes |
+|---|---|
+| `src/content/schemas/storySchema.ts` | `StoryId`, `StoryNodeId` opaque types added; `BaseStoryNode` + 4 concrete node interfaces; `StoryChoice` interface; `StoryNode` as discriminated union |
+| `src/application/storySession/storyTypes.ts` | Updated exports: `StoryId`, `StoryNodeId`, `BaseStoryNode`, `DialogueStoryNode`, `MatchStoryNode`, `StoryChoice`, `ChoiceStoryNode`, `EndStoryNode` |
+| `src/application/storySession/index.ts` | Same export additions |
+| `src/content/stories/sample/sampleStory.ts` | Nodes now declared as explicit typed constants (`DialogueStoryNode`, `MatchStoryNode`, `EndStoryNode`) |
+| `src/content/stories/sample/sampleStory.test.ts` | Tests updated for discriminated union narrowing; JSON roundtrip test added (9 tests total) |
+| `docs/09_pr_plan.md` | M6-PR2 Result block; M6-PR2A entry added |
+| `docs/19_story_system_architecture.md` | §5 schema updated to discriminated union design |
+
+**Constraints:** Schema and sample data only. No progression logic. No engine imports. No UI changes. No storage changes.
+
 ---
 
 ### M6-PR3 — Story Progression Logic + Tests
