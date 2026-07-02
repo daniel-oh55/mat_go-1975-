@@ -159,7 +159,17 @@ src/application/storySession/matchOutcomeAdapter.ts
 
 이 파일은 `buildMatchOutcome(result: FinalResult): MatchOutcome` 하나의 함수만을 목적으로 한다. 이 파일이 `src/application/storySession/` 내에서 engine 타입을 import하는 유일한 파일이 되어야 한다 — `storyProgression.ts`, `storyTypes.ts`는 계속 engine import 없이 유지된다.
 
-**주의:** 이번 PR(M7-PR1)에서는 이 파일을 만들지 않는다. 문서에만 위치와 책임을 제안한다.
+**주의:** M7-PR1에서는 이 파일을 만들지 않았다. 문서에만 위치와 책임을 제안했다.
+
+### M7-PR2 Implementation Result
+
+- `buildMatchOutcome`이 제안된 위치 그대로 `src/application/storySession/matchOutcomeAdapter.ts`에 구현되었다.
+- `storyProgression.ts`는 여전히 engine-free로 유지된다 — engine import가 추가되지 않았다.
+- 엔진은 여전히 `MatchOutcome`을 모른다 — 엔진 파일은 수정되지 않았다.
+- Adapter는 `finalResult`를 mutate하지 않는다 — 값을 읽어 새 `MatchOutcome` 객체를 반환할 뿐이다.
+- `StorySession` 통합은 여전히 M7-PR3으로 남아 있다.
+- UI shell은 여전히 M7-PR4로 남아 있다.
+- Persistence는 여전히 deferred 상태다.
 
 ---
 

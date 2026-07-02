@@ -33,3 +33,5 @@ export {
   buildStoryViewModel,
   advanceStory,
 } from './storyProgression.js';
+
+export { buildMatchOutcome } from './matchOutcomeAdapter.js';
