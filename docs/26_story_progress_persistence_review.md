@@ -214,3 +214,5 @@ Deferred:
 - story match mid-game persistence
 - cloud/account sync
 - save migration beyond v1
+
+**Next: M11 — MVP Content Authoring Boundary.** See `docs/27_mvp_content_authoring_boundary.md` — before any production content is written, the content authoring rules (allowed schema surface, `storyId`/`nodeId` stability, complexity budget, AI workflow, handoff format, validation checklist) need to be locked, given how directly `storyId`/`nodeId` now interact with the persistence boundary approved in this document.
