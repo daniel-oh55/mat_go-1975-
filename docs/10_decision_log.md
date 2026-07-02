@@ -6,6 +6,24 @@ Entries are listed in reverse chronological order (newest first).
 
 ---
 
+## 2026-07-02 - M9: Content Loader Boundary Signed Off (M9-H1)
+
+**Decision**
+The Content Loader Boundary built across M9-PR1–PR3 is approved for MVP continuation. See `docs/24_content_loader_boundary_review.md` for the full checklist and sign-off. No blocker was found.
+
+**Reason**
+Before production story content begins, the project needed a documented review confirming: `StoryRuntimeScreen` no longer hardcodes `sampleStory`, `App.tsx` is the correct parent boundary for default story resolution, the registry stays local/synchronous/sample-only, and the engine remains story-agnostic. All 17 checklist items resolved as PASS or an intentionally-DEFERRED item, with no blocking issue.
+
+**Impact**
+- Approved: local synchronous story registry, sample-only registry, App-level default story resolution, `StoryRuntimeScreen` definition injection, engine story-agnosticism.
+- Deferred: M9-PR4 (story selection stub) — `sampleStory` is still the only entry, so a selector adds a screen with no real choice; revisit once a second story exists.
+- Deferred: production story content — no `StoryProgress` persistence, content pipeline, or selection UX exists yet.
+- Deferred: `StoryProgress` persistence — save timing, reset/restart behavior, and story replay semantics need their own milestone.
+- Recommended next milestone: **M10 — Story Progress Persistence Planning**, beginning with a documentation/design PR, not implementation.
+- Documentation/review-only PR — no `src` changes.
+
+---
+
 ## 2026-07-02 - M9: StoryRuntimeScreen Definition Injection (M9-PR3)
 
 **Decision**
