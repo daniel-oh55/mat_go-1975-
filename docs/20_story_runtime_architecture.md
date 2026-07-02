@@ -497,3 +497,7 @@ See `docs/21_runtime_shell_app_flow_decision.md` for the full options comparison
 ### M10-PR3 Note
 
 - `StoryProgress` persistence is now live: `StoryRuntimeScreen` loads saved progress on mount and saves after each stable transition — see `docs/25_story_progress_persistence_plan.md` §13 for the full implementation note. The runtime flow in §5 is otherwise unchanged; `App.tsx` still only resolves `storyDefinition`, unaware of persistence.
+
+### M10-H1 Note
+
+- Story Progress Persistence signed off — see `docs/26_story_progress_persistence_review.md`. No blocker found; the runtime flow above holds unchanged. Recommended next milestone: M11 — MVP Content Authoring Boundary.

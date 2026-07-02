@@ -895,6 +895,14 @@ See `docs/25_story_progress_persistence_plan.md` for the full plan.
 
 **Goal:** Sign off the save/load boundary, following the same format as `docs/24_content_loader_boundary_review.md`, before further Story Mode feature work begins.
 
+**Result:**
+- `docs/26_story_progress_persistence_review.md` added — a 32-item boundary checklist across M10-PR1–PR3 (29 PASS, 3 intentionally-DEFERRED), verification basis per file, current runtime flow, findings, and sign-off. No blocker found.
+- **StoryProgress persistence is approved for MVP continuation**: the versioned single-slot save document, stable-state-only save policy (`story`/`completed` only), restart-overwrite behavior, corrupt/invalid-save fallback, and separation from `ActiveGame` persistence (`matgo.v1.storyProgress` vs `matgo.v1.activeGame`) all hold as designed.
+- Confirmed by direct grep: the engine has zero references to any Story System type, persistence or otherwise.
+- Production story content and story selection UI remain deferred, along with multi-story save slots, Story Match mid-game persistence, cloud/account sync, and save migration beyond v1.
+- Recommended next milestone: **M11 — MVP Content Authoring Boundary** (documentation/planning first, no production content in M11-PR1).
+- No `src` changes in this PR. `npx vitest run` (631 tests), `npx tsc --noEmit`, and `npm run build` all pass.
+
 ---
 
 ## 4. Milestone 2 Proposed PRs

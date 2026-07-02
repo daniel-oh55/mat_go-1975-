@@ -197,3 +197,12 @@ Do not begin M10-PR2 implementation until this plan is reviewed and agreed. The 
 - The §6/§7 "load once at the Story Mode entry boundary" design point is satisfied by `StoryRuntimeScreen` itself, per the M10-PR3 instruction's boundary decision — `App.tsx` remains unchanged and still only resolves `storyDefinition` via the registry; it does not know about `StoryProgress` at all.
 - All six scenarios from §10's "Deferred to M10-PR3" list were verified manually with Playwright against a running dev server: fresh start (no save → intro), continue-then-reenter (persists mid-dialogue position), match-result-then-reenter (persists the completed end node and `matchHistory`), restart-overwrite (storage reset to a fresh intro document), Free Match standalone (unaffected, own `matgo.v1.activeGame` key), and Story Match (writes only `matgo.v1.storyProgress`, never `matgo.v1.activeGame`, confirming `enableActiveGamePersistence={false}` still holds). No console errors in any scenario.
 - Next: **M10-H1 — Story Progress Persistence Review**, to sign off the save/load boundary now that it is live, before any further Story Mode feature work (selection UI, production content) begins.
+
+---
+
+## 14. M10-H1 Review Note
+
+- Full sign-off is documented in `docs/26_story_progress_persistence_review.md` — a 32-item boundary checklist covering M10-PR1–PR3, with no blocker found.
+- **M10 Story Progress Persistence is approved for MVP continuation**: the storage key, versioned single-slot document, save-trigger policy, restart-overwrite behavior, and corrupt/invalid-save fallback all hold exactly as designed in §4–§8 of this document.
+- Production story content and story selection UI remain deferred (unchanged from §9/§12 of this document).
+- Recommended next milestone: **M11 — MVP Content Authoring Boundary**, starting with a documentation/planning PR before any production content is written.
