@@ -103,6 +103,12 @@ export function ResultPanel({
           </button>
         )}
       </div>
+
+      {onContinue !== undefined && (
+        <p style={{ margin: '10px 0 0', fontSize: 12, color: '#888' }}>
+          결과를 이야기 진행에 반영하려면 이야기로 돌아가세요.
+        </p>
+      )}
     </section>
   );
 }

@@ -67,7 +67,8 @@ export function StoryRuntimeScreen({ storageService }: StoryRuntimeScreenProps) 
   if (storySession.status === 'matchRequested') {
     return (
       <div style={styles.container}>
-        <div style={styles.label}>샘플 스토리 런타임 — 맞고 매치</div>
+        <div style={styles.label}>스토리 모드 · 맞고 대결</div>
+        <p style={styles.helperLine}>이 한 판의 결과가 이야기 진행에 반영됩니다.</p>
         <GameSessionScreen
           storageService={storageService}
           mode="storyMatch"
@@ -82,21 +83,24 @@ export function StoryRuntimeScreen({ storageService }: StoryRuntimeScreenProps) 
 
   return (
     <div style={styles.container}>
-      <div style={styles.label}>샘플 스토리 런타임</div>
+      <div style={styles.label}>스토리 모드 · 샘플 런타임</div>
       {storySession.viewModel !== null ? (
-        <StoryNodePanel
-          viewModel={storySession.viewModel}
-          status={storySession.status}
-          pendingMatchContext={storySession.pendingMatchContext}
-          error={storySession.error}
-          onContinue={handleContinue}
-          onRequestMatch={handleRequestMatch}
-          onSelectChoice={handleSelectChoice}
-          onRestartStory={handleRestartStory}
-        />
+        <>
+          <p style={styles.helperLine}>현재는 런타임 검증용 샘플 이야기입니다.</p>
+          <StoryNodePanel
+            viewModel={storySession.viewModel}
+            status={storySession.status}
+            pendingMatchContext={storySession.pendingMatchContext}
+            error={storySession.error}
+            onContinue={handleContinue}
+            onRequestMatch={handleRequestMatch}
+            onSelectChoice={handleSelectChoice}
+            onRestartStory={handleRestartStory}
+          />
+        </>
       ) : (
         <div style={styles.errorBox}>
-          <p>스토리 상태 오류: {storySession.error ?? '알 수 없는 오류'}</p>
+          <p>스토리 상태 오류: {storySession.error ?? '알 수 없는 오류'} — 진행할 수 없는 상태입니다.</p>
           <button onClick={handleRestartStory} style={styles.primaryButton}>
             샘플 이야기 다시 시작
           </button>
@@ -123,7 +127,13 @@ const styles = {
     color: '#888',
     textTransform: 'uppercase' as const,
     letterSpacing: '0.06em',
-    marginBottom: 10,
+    marginBottom: 4,
+  } as React.CSSProperties,
+
+  helperLine: {
+    margin: '0 0 10px',
+    fontSize: 12,
+    color: '#888',
   } as React.CSSProperties,
 
   errorBox: {
