@@ -6,6 +6,22 @@ Entries are listed in reverse chronological order (newest first).
 
 ---
 
+## 2026-07-03 - M11: Story Schema Judged Sufficient for Small MVP Story, Automated Validation Deferred (M11-PR2)
+
+**Decision**
+The current `StoryDefinition` schema is sufficient for a very small MVP story, but not for production-scale regional/NPC content — and that gap is not filled now. `docs/27` §11's content validation checklist is reclassified across four independent layers (graph integrity, registry integrity, boundary/import integrity, authoring policy integrity); no automated validator is implemented in this PR. Minimal Layer 1 graph validation (`validateStoryDefinition`) is proposed as a strong candidate for M11-PR3, to land before the first production content PR rather than after a broken graph ships.
+
+**Reason**
+Building a validator before there's a second content file to validate against would add structure ahead of need, contradicting `docs/27`'s own principle. But graph-integrity errors (dangling `next`/`nodeId` references, no reachable `end` node) are exactly the class of bug that's silent until a player reaches the broken branch, and directly threatens the "안정감/신뢰감" player experience `docs/27` and this document both protect — so unlike other checklist items, this layer is flagged as worth building soon rather than left purely manual indefinitely.
+
+**Impact**
+- No schema change, no validator code, no production content in this PR.
+- Future content PRs should be reviewed against `docs/28` §4's classification: graph-link checks (soon-automatable) get more scrutiny today since nothing enforces them yet; PR-scope/metadata-approval/persistence-impact-note items remain review-process judgment calls, not things a script can check.
+- `docs/28` §8 documents in detail which content changes are persistence-safe (text edits, adding new nodes) versus persistence-risky (renaming/deleting a `nodeId`, removing a `next` entry, deleting a referenced `end` node) — this is now the reference for any future content-PR review needing to judge save impact.
+- Next PR: **M11-PR3 — First MVP Story Strategy Decision**, which will also decide whether/when to build the Layer 1 validator candidate relative to that strategy.
+
+---
+
 ## 2026-07-03 - M11: MVP Content Authoring Boundary Defined (M11-PR1)
 
 **Decision**

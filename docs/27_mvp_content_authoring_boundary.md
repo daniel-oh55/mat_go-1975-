@@ -236,3 +236,12 @@ This PR does not:
 - The first production story strategy is decided in a separate, later PR (§10, §12).
 - Region/NPC/art/BGM/reward metadata are not added yet.
 - The next risk to this project is not "not enough content" — it is **adding content too quickly and blurring a structure that M9 and M10 just spent four PRs and two review sign-offs stabilizing.**
+
+---
+
+## 15. M11-PR2 Review Note
+
+- `docs/28_story_schema_content_validation_review.md` reviewed the current schema against §3's content surface and this document's own rules — confirmed sufficient for a very small MVP story, insufficient for production-scale content, and **not expanded** in that PR.
+- §11's content validation checklist was reclassified into four layers (graph integrity, registry integrity, boundary/import integrity, authoring policy integrity) with per-item manual-vs-automation recommendations — see `docs/28` §4–§5.
+- No automated validator was implemented. `docs/28` §6 recommends a minimal Layer 1 graph-validation test (`validateStoryDefinition`) as a strong candidate for **M11-PR3**, to land before the first production content PR.
+- Next: **M11-PR3 — First MVP Story Strategy Decision**, which will decide both the `sampleStory` strategy (§10's Option A/B/C) and whether/when Layer 1 validation is built relative to that strategy.

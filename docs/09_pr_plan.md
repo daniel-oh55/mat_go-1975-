@@ -920,6 +920,18 @@ See `docs/27_mvp_content_authoring_boundary.md` for the full plan.
 - No `src` changes in this PR. `npx vitest run` (631 tests, unchanged), `npx tsc --noEmit`, and `npm run build` all pass (baseline unaffected).
 - Proposed next PRs: **M11-PR2 — Story Schema / Content Validation Review**, **M11-PR3 — First MVP Story Strategy Decision**, **M11-H1 — Content Authoring Boundary Review**. Production content does not necessarily start in M11 — it begins in M12 only if the boundary is judged safe at M11-H1.
 
+### M11-PR2 — Story Schema / Content Validation Review
+
+**Goal:** Review whether the current `StoryDefinition` schema is sufficient for authoring the first MVP story, and judge which parts of `docs/27` §11's content validation checklist should stay manual versus become automated, without implementing any validator yet.
+
+**Constraints:** Documentation/check-only. No schema changes. No automated validator implementation. No production content.
+
+**Result:**
+- `docs/28_story_schema_content_validation_review.md` added — confirms the current schema is sufficient for a very small MVP story (demonstrated by `sampleStory`'s own 4-node, 1-match, 2-ending shape) but not for production-scale regional/NPC content; reclassifies every `docs/27` §11 checklist item as Manual-for-now / Automate-soon / Automate-later / Not-applicable-yet; proposes four independent validation layers (graph integrity, registry integrity, boundary/import integrity, authoring policy integrity) with per-layer automation recommendations; documents a pseudo-design for a future `validateStoryDefinition`/`validateStoryRegistry` validator (no file created); reviews `storyId`/`nodeId`/`next`-graph persistence risk in detail; documents schema gaps (no Region/NPC data model, no chapter metadata, no localization, etc.) without expanding the schema.
+- **Recommendation: Option B** (docs-only validation design now, implement later) — no validator is implemented in this PR. A concrete candidate is proposed for M11-PR3: add minimal Layer 1 graph validation before the first production content PR, decided alongside (not instead of) the `sampleStory` strategy choice.
+- No `src` changes in this PR. `npx vitest run` (631 tests, unchanged), `npx tsc --noEmit`, and `npm run build` all pass (baseline unaffected).
+- Next PR: **M11-PR3 — First MVP Story Strategy Decision**, which will also decide when (if at all, before this PR's Layer 1 candidate is built) minimal graph validation lands relative to that strategy.
+
 ---
 
 ## 4. Milestone 2 Proposed PRs
