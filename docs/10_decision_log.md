@@ -6,6 +6,22 @@ Entries are listed in reverse chronological order (newest first).
 
 ---
 
+## 2026-07-02 - M10: Story Progress Persistence Plan (M10-PR1)
+
+**Decision**
+`StoryProgress` persistence policy is documented in `docs/25_story_progress_persistence_plan.md` before any implementation. Key decisions: storage key `matgo.v1.storyProgress` (single-slot, versioned `StoryProgressSaveDocumentV1`); save only on transitions landing in `story`/`completed` status (skip `matchRequested` and `invalid`); load once at the Story Mode entry boundary, falling back to a fresh session on any validation failure or `storyId` mismatch; explicit restart overwrites the saved document rather than deleting-then-lazily-recreating.
+
+**Reason**
+`StoryProgress` persistence directly affects what a player experiences as "my progress" — getting the save/load/reset boundary wrong after real players have saves would be far more costly to fix than getting the policy wrong in a document. This follows the same MVP-continuation discipline as M9-H1: lock the design before writing persistence code that touches player data.
+
+**Impact**
+- No `src` changes in this PR — `StorageService`, `StoryRuntimeScreen`, `App.tsx`, and `storyRegistry` are all unchanged.
+- M10-PR2 (implementation) and M10-H1 (review) are the next two PRs in sequence; M10-PR2 should implement exactly the policy in `docs/25` rather than re-deciding it mid-implementation.
+- The single-slot storage-key model is explicitly called out as valid only while `sampleStory` remains the sole registered story — multi-slot keying is deferred until story selection (M9-PR4) is implemented.
+- Production story content remains deferred until persistence exists and is reviewed.
+
+---
+
 ## 2026-07-02 - M9: Content Loader Boundary Signed Off (M9-H1)
 
 **Decision**
