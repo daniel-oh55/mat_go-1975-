@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   createStorySession,
   continueStorySession,
@@ -6,7 +6,10 @@ import {
   completeStoryMatch,
   selectStoryChoice,
   buildMatchOutcome,
+  loadStoryProgress,
+  saveStoryProgress,
 } from '../../application/storySession/index.js';
+import type { StorySessionState } from '../../application/storySession/index.js';
 import type { GameViewModel } from '../../application/gameSession/index.js';
 import type { StorageService } from '../../application/storage/StorageService.js';
 import type { StoryDefinition } from '../../content/schemas/storySchema.js';
@@ -24,8 +27,12 @@ import { StoryNodePanel } from './StoryNodePanel.js';
  * the caller is responsible for selecting a StoryDefinition (see
  * docs/23_content_loader_architecture.md §8).
  *
- * No StoryProgress persistence here — that is deferred until this runtime
- * flow is proven (see docs/20_story_runtime_architecture.md §8).
+ * StoryProgress persistence (docs/25_story_progress_persistence_plan.md) is
+ * orchestrated here: on mount, a saved progress is loaded and restored if
+ * valid; after every transition that reaches a stable 'story'/'completed'
+ * status, the resulting progress is saved. This component only calls the
+ * Application Layer's loadStoryProgress/saveStoryProgress — it does not
+ * import the content registry or any concrete story file.
  */
 interface StoryRuntimeScreenProps {
   readonly storageService: StorageService;
@@ -33,26 +40,71 @@ interface StoryRuntimeScreenProps {
 }
 
 export function StoryRuntimeScreen({ storageService, storyDefinition }: StoryRuntimeScreenProps) {
-  const [storySession, setStorySession] = useState(() => createStorySession(storyDefinition));
+  const [storySession, setStorySession] = useState<StorySessionState | null>(null);
+  const [isRestoringStoryProgress, setIsRestoringStoryProgress] = useState(true);
 
-  function handleContinue() {
-    setStorySession((prev) => continueStorySession(prev, storyDefinition));
+  useEffect(() => {
+    let cancelled = false;
+
+    async function restoreProgress() {
+      setIsRestoringStoryProgress(true);
+
+      let restored: StorySessionState | null;
+      try {
+        restored = await loadStoryProgress(storageService, storyDefinition);
+      } catch (err) {
+        console.error('[StoryRuntimeScreen] unexpected error while restoring story progress:', err);
+        restored = null;
+      }
+
+      if (cancelled) return;
+
+      setStorySession(restored ?? createStorySession(storyDefinition));
+      setIsRestoringStoryProgress(false);
+    }
+
+    void restoreProgress();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [storageService, storyDefinition]);
+
+  // Applies a new session and persists it (saveStoryProgress itself is a
+  // no-op unless status is 'story' or 'completed' — see docs/25 §5).
+  function commitStorySession(nextSession: StorySessionState) {
+    setStorySession(nextSession);
+    void saveStoryProgress(storageService, nextSession);
   }
 
+  function handleContinue() {
+    if (storySession === null) return;
+    commitStorySession(continueStorySession(storySession, storyDefinition));
+  }
+
+  // Intentionally does not call commitStorySession/saveStoryProgress:
+  // 'matchRequested' is a transient status that docs/25 §5 excludes from
+  // persistence entirely.
   function handleRequestMatch() {
-    setStorySession((prev) => requestStoryMatch(prev));
+    if (storySession === null) return;
+    setStorySession(requestStoryMatch(storySession));
   }
 
   function handleSelectChoice(choiceId: string) {
-    setStorySession((prev) => selectStoryChoice(prev, storyDefinition, choiceId));
+    if (storySession === null) return;
+    commitStorySession(selectStoryChoice(storySession, storyDefinition, choiceId));
   }
 
+  // Player intent to start over — overwrites any saved progress with a fresh
+  // one, per docs/25 §7 (restart is the one exception to "don't save on
+  // initial/fresh session creation").
   function handleRestartStory() {
-    setStorySession(createStorySession(storyDefinition));
+    commitStorySession(createStorySession(storyDefinition));
   }
 
   function handleMatchComplete(finalResult: NonNullable<GameViewModel['finalResult']>) {
-    setStorySession((prev) => completeStoryMatch(prev, storyDefinition, buildMatchOutcome(finalResult)));
+    if (storySession === null) return;
+    commitStorySession(completeStoryMatch(storySession, storyDefinition, buildMatchOutcome(finalResult)));
   }
 
   // No dedicated "cancel match request" helper exists in storySessionState.ts
@@ -60,10 +112,17 @@ export function StoryRuntimeScreen({ storageService, storyDefinition }: StoryRun
   // reset on the already-public StorySessionState shape, not a traversal of
   // StoryDefinition or an UnlockCondition evaluation.
   function handleCancelStoryMatch() {
-    setStorySession((prev) =>
-      prev.status === 'matchRequested'
-        ? { ...prev, status: 'story', pendingMatchContext: null, error: null }
-        : prev,
+    if (storySession === null) return;
+    if (storySession.status !== 'matchRequested') return;
+    commitStorySession({ ...storySession, status: 'story', pendingMatchContext: null, error: null });
+  }
+
+  if (storySession === null || isRestoringStoryProgress) {
+    return (
+      <div style={styles.container}>
+        <div style={styles.label}>스토리 모드</div>
+        <p style={styles.helperLine}>이야기 진행을 불러오는 중입니다...</p>
+      </div>
     );
   }
 

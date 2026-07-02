@@ -186,3 +186,14 @@ Sign-off review, following the same format as `docs/24_content_loader_boundary_r
 ## 12. Recommendation
 
 Do not begin M10-PR2 implementation until this plan is reviewed and agreed. The policy decisions in §5–§8 (especially: which transitions save, what counts as a corrupt/mismatched document, and the single-slot assumption in §7) are exactly the kind of judgment calls that are cheap to get right in a document and expensive to get wrong in shipped persistence code that real players' saves depend on.
+
+---
+
+## 13. M10-PR3 Implementation Note
+
+- `StoryRuntimeScreen` implements the §6 load-timing policy exactly: on mount, a `useEffect` calls `loadStoryProgress(storageService, storyDefinition)`, restores the result if non-null, and otherwise falls back to `createStorySession(storyDefinition)` — with a minimal loading state shown while restoring, and a `cancelled` guard against a post-unmount `setState`.
+- The §5 save-trigger table is implemented via a `commitStorySession` helper (`setStorySession` + `void saveStoryProgress(...)`) called from every transition that can land on `story`/`completed` (`handleContinue`, `handleSelectChoice`, `handleMatchComplete`, `handleCancelStoryMatch`) plus the explicit restart handler. `handleRequestMatch` deliberately skips `commitStorySession` entirely — matching this document's "선택 B" recommendation of not calling save at all for `matchRequested`, rather than relying solely on `saveStoryProgress`'s internal no-op.
+- The §7 restart policy is implemented literally: `handleRestartStory` calls `commitStorySession(createStorySession(storyDefinition))`, so the fresh progress overwrites storage in the same call, never via a separate delete.
+- The §6/§7 "load once at the Story Mode entry boundary" design point is satisfied by `StoryRuntimeScreen` itself, per the M10-PR3 instruction's boundary decision — `App.tsx` remains unchanged and still only resolves `storyDefinition` via the registry; it does not know about `StoryProgress` at all.
+- All six scenarios from §10's "Deferred to M10-PR3" list were verified manually with Playwright against a running dev server: fresh start (no save → intro), continue-then-reenter (persists mid-dialogue position), match-result-then-reenter (persists the completed end node and `matchHistory`), restart-overwrite (storage reset to a fresh intro document), Free Match standalone (unaffected, own `matgo.v1.activeGame` key), and Story Match (writes only `matgo.v1.storyProgress`, never `matgo.v1.activeGame`, confirming `enableActiveGamePersistence={false}` still holds). No console errors in any scenario.
+- Next: **M10-H1 — Story Progress Persistence Review**, to sign off the save/load boundary now that it is live, before any further Story Mode feature work (selection UI, production content) begins.

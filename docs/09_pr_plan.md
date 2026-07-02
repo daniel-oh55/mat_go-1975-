@@ -881,6 +881,16 @@ See `docs/25_story_progress_persistence_plan.md` for the full plan.
 
 **Constraints:** No production content. No story selection UI. Reuses the M10-PR2 helpers as-is.
 
+**Result:**
+- `StoryRuntimeScreen` now owns persistence orchestration: on mount it calls `loadStoryProgress(storageService, storyDefinition)` in a `useEffect`, restoring the saved `StorySessionState` when valid and falling back to a fresh `createStorySession(storyDefinition)` otherwise. A minimal "이야기 진행을 불러오는 중입니다..." loading state is shown while restoring (`storySession === null || isRestoringStoryProgress`), and an unmount `cancelled` guard prevents a stale `setState`.
+- A `commitStorySession` helper applies `setStorySession` and fires `void saveStoryProgress(storageService, nextSession)` together; it is called from `handleContinue`, `handleSelectChoice`, `handleMatchComplete`, `handleCancelStoryMatch`, and `handleRestartStory`. `saveStoryProgress` itself is the only place that decides whether a write actually happens (status `story`/`completed` only), so these call sites don't need to duplicate that check.
+- `handleRequestMatch` intentionally calls `setStorySession` directly, not `commitStorySession` — `matchRequested` is never saved (docs/25 §5, "선택 B").
+- `handleRestartStory` overwrites any saved progress with a fresh one via `commitStorySession(createStorySession(storyDefinition))`, matching the explicit-overwrite restart policy in docs/25 §7. The initial mount's fresh-session fallback does not save, since nothing has happened yet.
+- `StoryRuntimeScreen` still does not import `sampleStory` or `storyRegistry` — it only imports `loadStoryProgress`/`saveStoryProgress` from the `storySession` Application Layer boundary. `App.tsx` is unchanged.
+- `GameSessionScreen`'s `enableActiveGamePersistence={false}` for `storyMatch` mode is unchanged — verified manually that Story Match never writes `matgo.v1.activeGame`, and Free Match's own `matgo.v1.activeGame` save is unaffected by `matgo.v1.storyProgress` existing.
+- Manual browser verification (Playwright) confirmed all six scenarios from docs/25's test plan: fresh start, continue-then-reenter persists the match node, match-result-then-reenter persists the completed end node with `matchHistory` recorded, restart overwrites storage back to the intro, Free Match standalone is unaffected, and Story Match writes only `matgo.v1.storyProgress` (never `matgo.v1.activeGame`). No console errors observed.
+- `npx vitest run` (631 tests, unchanged), `npx tsc --noEmit`, and `npm run build` all pass. Bundle size increased slightly (252.36 kB → 254.77 kB) — expected, since `storyProgressSave.ts` is now actually imported by UI code.
+
 ### M10-H1 — Story Progress Persistence Review
 
 **Goal:** Sign off the save/load boundary, following the same format as `docs/24_content_loader_boundary_review.md`, before further Story Mode feature work begins.
