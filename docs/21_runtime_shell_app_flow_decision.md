@@ -207,3 +207,15 @@ App
 M8-PR2 should implement the Minimal Home Shell.
 
 This is the smallest app-shell improvement that makes the current validation runtime understandable without committing to final UX, final art, or production content.
+
+---
+
+## 12. M8-PR2 Implementation Result
+
+- Option B implemented as decided in §5.
+- `MinimalHomeScreen` added (`src/components/shell/MinimalHomeScreen.tsx`, `src/components/shell/index.ts`) — two buttons (스토리 모드 / 자유 대전) with short descriptions and a note that Story Mode is a runtime-validation sample. No engine, `storySession`, `gameSession`, `sampleStory`, or `StorageService` import.
+- `App.tsx` now matches the decided structure: `App → MinimalHomeScreen → (Story Mode → StoryRuntimeScreen) / (Free Match → GameSessionScreen standalone)`. App-level state is `mode: 'home' | 'story' | 'freeMatch'` only.
+- Back to home behavior: implemented. `App` renders a small "← 홈으로" button above `StoryRuntimeScreen` / `GameSessionScreen` without modifying either component; clicking it sets `mode` back to `'home'`.
+- **Current limitation:** Story Mode state is not persisted. Returning home and re-entering Story Mode restarts `sampleStory` from the intro dialogue (a fresh `createStorySession` call on remount). This is acceptable until `StoryProgress` persistence is approved in a later milestone.
+- Free Match is unaffected by this limitation: `GameSessionScreen` standalone mode keeps its own active-game save/resume, verified to survive a home round-trip (leaving and re-entering Free Match shows "게임 이어하기").
+- No production content. No full navigation/router. No settings/save-slot/story-selection screens.
