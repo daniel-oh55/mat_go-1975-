@@ -6,6 +6,24 @@ Entries are listed in reverse chronological order (newest first).
 
 ---
 
+## 2026-07-02 - M9: Content Loader Foundation Begins
+
+**Decision**
+Milestone 9 begins with Content Loader and Story Selection Foundation. Before production story content is written, the project will define a local content registry/loader boundary so StoryRuntimeScreen no longer hardcodes a concrete story file.
+
+**Reason**
+M8 stabilized the MVP shell, but StoryRuntimeScreen still imports sampleStory directly. This is acceptable for validation but unsafe for production content scale. A registry/loader boundary is needed before adding regional/NPC/dialogue content.
+
+**Impact**
+- M9-PR1 documents the architecture first.
+- M9-PR2 should implement a minimal registry with sampleStory only.
+- M9-PR3 should inject StoryDefinition into StoryRuntimeScreen instead of importing sampleStory directly.
+- Production story content remains deferred.
+- StoryProgress persistence remains deferred.
+- Engine remains story-agnostic.
+
+---
+
 ## 2026-07-02 - M8: MVP Shell Stabilization Approved
 
 **Decision**

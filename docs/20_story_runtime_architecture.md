@@ -474,3 +474,11 @@ See `docs/21_runtime_shell_app_flow_decision.md` for the full options comparison
 - `StoryRuntimeScreen` still imports `sampleStory` directly, as validation-only (§F).
 - Next recommended step is a content loader/story selection foundation (M9), so the UI stops hardcoding `sampleStory`.
 - `StoryProgress` persistence and production content remain deferred.
+
+### M9-PR1 Note
+
+- M9 starts the content loader/story selection foundation — see `docs/23_content_loader_architecture.md` for the full design.
+- The purpose is to remove validation-only hardcoding of `sampleStory` from `StoryRuntimeScreen`.
+- `StoryRuntimeScreen` should eventually receive a `StoryDefinition` via props (`storyDefinition` injection), or a parent/Content-Layer boundary — not via a direct concrete story import.
+- Engine remains unchanged.
+- Production content and `StoryProgress` persistence remain deferred.
