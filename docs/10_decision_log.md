@@ -6,6 +6,22 @@ Entries are listed in reverse chronological order (newest first).
 
 ---
 
+## 2026-07-02 - M10: Story Progress Persistence Helpers Implemented, UI Wiring Deferred (M10-PR2)
+
+**Decision**
+`src/application/storySession/storyProgressSave.ts` implements the full `docs/25` persistence policy (serialize/validate/save/load/delete, plus a `restoreStorySession` session constructor) as pure/async Application Layer helpers. None of it is wired into `StoryRuntimeScreen` or `App.tsx` in this PR — that is split out to M10-PR3.
+
+**Reason**
+The helper surface itself (storage key, versioned document, five-plus corruption-handling branches, save-trigger gating by session status) is large enough to review on its own. Bundling UI wiring into the same PR would make regressions in either half harder to isolate, and would work against the small-PR discipline this project has followed since M9.
+
+**Impact**
+- `StoryProgress` persistence is fully implemented and unit-tested (40 new tests, 631 total) but has zero runtime effect yet — confirmed by an unchanged production bundle size, since no UI code imports `storyProgressSave.ts`.
+- `restoreStorySession` is now part of the public `storySession` boundary (`index.ts`), available for M10-PR3 to call from the Story Mode entry point.
+- Production code in `storyProgressSave.ts` imports no concrete story file or the registry — `sampleStory` only appears in the test file, as a fixture.
+- M10-PR3 (UI wiring) and M10-H1 (persistence review) remain the next two PRs. Production story content and story selection UI remain deferred.
+
+---
+
 ## 2026-07-02 - M10: Story Progress Persistence Plan (M10-PR1)
 
 **Decision**

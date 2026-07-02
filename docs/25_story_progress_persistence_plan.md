@@ -147,6 +147,8 @@ Mirrors `validateActiveGameDoc` / `loadActiveGame` in `activeGameSave.ts`:
 
 Following the `activeGameSave.test.ts` model (38 tests for Category A), the M10-PR2 implementation should include tests for:
 
+**Implemented in M10-PR2** (`src/application/storySession/storyProgressSave.test.ts`, 40 tests):
+
 - `serializeStoryProgress` produces a `StoryProgressSaveDocumentV1` with the current `saveVersion` and an ISO `savedAt`.
 - `saveStoryProgress` writes to `matgo.v1.storyProgress` only when status is `story` or `completed` (§5); is a no-op for `matchRequested` and `invalid`.
 - `saveStoryProgress` catches and logs a rejected `storage.write` without throwing.
@@ -157,7 +159,10 @@ Following the `activeGameSave.test.ts` model (38 tests for Category A), the M10-
 - `loadStoryProgress` returns `null` and deletes the key when `progress.currentNodeId` does not resolve against the current `StoryDefinition`.
 - `loadStoryProgress` returns a working `StorySessionState` (via the new restore helper) for a valid, matching document.
 - `loadStoryProgress` returns `null` when `storage.read` rejects.
-- Restart writes a fresh document that overwrites any previously saved one (integration-level test using `InMemoryStorageService`).
+- `restoreStorySession` restores `story`, `completed`, and `invalid` statuses correctly from a given `StoryProgress`.
+
+**Deferred to M10-PR3** (require UI wiring to exercise):
+- Restart writes a fresh document that overwrites any previously saved one — this is a `StoryRuntimeScreen` behavior (§7), not a helper-level unit test; the helpers themselves (`saveStoryProgress` with a fresh `StoryProgress`) are already covered above.
 - Manual/E2E scenario (Playwright, matching the pattern used in M9-PR3 verification): play into the story, leave to Home, re-enter Story Mode, confirm the same node/history is shown instead of the intro.
 
 ---
@@ -167,8 +172,11 @@ Following the `activeGameSave.test.ts` model (38 tests for Category A), the M10-
 ### M10-PR1 — Story Progress Persistence Plan
 Documentation only. This PR.
 
-### M10-PR2 — Story Progress Persistence Implementation
-Implement `serializeStoryProgress` / `saveStoryProgress` / `validateStoryProgressDoc` / `loadStoryProgress` / a `restoreStorySession` helper, following §4–§8 exactly. Wire save calls into `StoryRuntimeScreen`'s transition handlers per §5, and load into the Story Mode entry boundary per §6. Add the full test suite from §10.
+### M10-PR2 — Story Progress Persistence Helpers
+Implement `serializeStoryProgress` / `validateStoryProgressSaveDocument` / `saveStoryProgress` / `loadStoryProgress` / `deleteStoryProgress` / a `restoreStorySession` helper, following §4–§8 exactly, with the "Implemented in M10-PR2" test list from §10. **No UI wiring** — `StoryRuntimeScreen` and `App.tsx` are untouched, so the helpers are reviewable purely as an Application Layer surface before any runtime behavior changes.
+
+### M10-PR3 — StoryRuntimeScreen Persistence Wiring
+Wire `loadStoryProgress` into the Story Mode entry boundary (in place of always calling `createStorySession`) and `saveStoryProgress` into `StoryRuntimeScreen`'s transition handlers, per §5–§6. Wire the explicit-overwrite restart behavior from §7. Add the "Deferred to M10-PR3" scenarios from §10 (manual/Playwright verification that leaving and re-entering Story Mode preserves progress). No production content, no story selection UI.
 
 ### M10-H1 — Story Progress Persistence Review
 Sign-off review, following the same format as `docs/24_content_loader_boundary_review.md`, before any further Story Mode feature work (selection UI, production content) begins.

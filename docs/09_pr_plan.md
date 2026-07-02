@@ -860,7 +860,30 @@ See `docs/25_story_progress_persistence_plan.md` for the full plan.
 **Result:**
 - `docs/25_story_progress_persistence_plan.md` added — storage key (`matgo.v1.storyProgress`, `STORY_PROGRESS_SAVE_VERSION = 1`), single-slot document shape, a per-transition save-trigger table (save on `story`/`completed`, skip on `matchRequested`/`invalid`), load timing at the Story Mode entry boundary, explicit-overwrite restart behavior, full validation/corruption-handling rules mirroring `activeGameSave.ts`, and a test plan for the M10-PR2 implementation.
 - No `src` changes in this PR. `npx vitest run` (591 tests), `npx tsc --noEmit`, and `npm run build` all pass (baseline unaffected).
-- Next PR: **M10-PR2 — Story Progress Persistence Implementation**, followed by **M10-H1 — Story Progress Persistence Review**.
+- Next PR: **M10-PR2 — Story Progress Persistence Helpers** (Application Layer only, no UI wiring), followed by **M10-PR3 — StoryRuntimeScreen Persistence Wiring**, then **M10-H1 — Story Progress Persistence Review**.
+
+### M10-PR2 — Story Progress Persistence Helpers
+
+**Goal:** Implement the Application Layer helpers for `StoryProgress` persistence — serialize, validate, save, load, delete, and a `restoreStorySession` constructor — with no UI wiring.
+
+**Constraints:** No `App.tsx` changes. No `StoryRuntimeScreen` changes. No UI wiring. No `storyRegistry`/`sampleStory` changes. Production code must not import a concrete story file.
+
+**Result:**
+- `src/application/storySession/storyProgressSave.ts` added — `STORY_PROGRESS_STORAGE_KEY` (`matgo.v1.storyProgress`), `STORY_PROGRESS_SAVE_VERSION` (`1`), `StoryProgressSaveDocumentV1`, `serializeStoryProgress`, `validateStoryProgressSaveDocument`, `saveStoryProgress`, `deleteStoryProgress`, `loadStoryProgress`, `shouldSaveStoryProgress` — implementing `docs/25` §4–§8 exactly.
+- `restoreStorySession(definition, progress)` added to `storySessionState.ts` — a public constructor reusing the existing private `buildStateFromProgress`, used by `loadStoryProgress` and exported from the `storySession` boundary for `M10-PR3`.
+- `src/application/storySession/storyProgressSave.test.ts` added — 40 tests covering serialize, all 19 validation-reject cases from `docs/25` §8, `restoreStorySession` (story/completed/invalid), save-trigger gating (`story`/`completed` save, `matchRequested`/`invalid` no-op), delete, and load (missing key, malformed JSON, invalid shape, `storyId` mismatch, missing `currentNodeId`, rejected read/write).
+- No UI wiring: `App.tsx` and `StoryRuntimeScreen` are unchanged. `npm run build` bundle size is unchanged, confirming the new module is not yet imported by any UI code.
+- `npx vitest run` (631 tests, +40), `npx tsc --noEmit`, and `npm run build` all pass.
+
+### M10-PR3 — StoryRuntimeScreen Persistence Wiring
+
+**Goal:** Wire `loadStoryProgress` / `saveStoryProgress` into the Story Mode entry boundary and `StoryRuntimeScreen`'s transition handlers, so leaving and re-entering Story Mode preserves progress.
+
+**Constraints:** No production content. No story selection UI. Reuses the M10-PR2 helpers as-is.
+
+### M10-H1 — Story Progress Persistence Review
+
+**Goal:** Sign off the save/load boundary, following the same format as `docs/24_content_loader_boundary_review.md`, before further Story Mode feature work begins.
 
 ---
 
