@@ -253,6 +253,20 @@ M7-PR1~PR4에서는 persistence를 바로 구현하지 않는다. `StoryProgress
 - 1970년대 production dialogue
 - 보상/해금 애니메이션
 
+### M7-PR4 Implementation Result
+
+- `StoryRuntimeScreen`(`src/components/story/StoryRuntimeScreen.tsx`)이 구현되었다 — `sampleStory`에 대한 `StorySessionState`를 `useState`로 소유하고, `createStorySession` / `continueStorySession` / `requestStoryMatch` / `completeStoryMatch` / `selectStoryChoice` / `buildMatchOutcome`만으로 상태를 전이시킨다.
+- `StoryNodePanel`(`src/components/story/StoryNodePanel.tsx`)이 구현되었다 — `StoryViewModel.currentNode`를 `type`으로만 분기해 렌더링한다. `StoryDefinition.nodes`를 직접 순회하지 않으며 `UnlockCondition`을 평가하지 않는다.
+- `sampleStory`는 M6-PR2에서 만든 검증용 fixture 그대로 사용되었다 — production content로 확장되지 않았다.
+- Story UI는 오직 `StoryViewModel`만 소비한다 — `App.tsx`가 이제 `StoryRuntimeScreen`을 렌더링하지만, 이는 M7 runtime 검증 흐름이며 production content가 아니다.
+- `GameSessionScreen`은 여전히 story-agnostic하다 — `storySession`이나 content를 import하지 않고, `finalResult`만 `onMatchComplete` 콜백으로 상위에 전달한다. `mode`/`enableResume`/`enableActiveGamePersistence` 기본값이 모두 기존 standalone 동작과 동일하므로 기존 로컬 AI match loop는 그대로 유지된다.
+- `buildMatchOutcome`은 여전히 Application Layer adapter(`matchOutcomeAdapter.ts`)로 분리되어 있다 — `GameSessionScreen`이 아니라 `StoryRuntimeScreen`이 이를 호출한다.
+- `completeStoryMatch`는 이미 만들어진 `MatchOutcome`만 받는다 — `FinalResult`나 engine import는 `StoryRuntimeScreen`에도, `storySessionState.ts`에도 추가되지 않았다.
+- `StoryProgress` persistence는 여전히 구현되지 않았다 — `StoryRuntimeScreen`은 `StorageService`에 story 상태를 저장하지 않는다.
+- Production content, 지역/NPC/대사, BGM/SFX/artwork는 추가되지 않았다.
+- 엔진 파일은 이번 PR에서 전혀 수정되지 않았다.
+- 실제 브라우저(Playwright + Vite dev server)에서 dialogue → match node → storyMatch idle 화면(resume 프롬프트 없음, 취소 버튼 존재, 취소 시 match node로 정상 복귀) → 맞고 한 판 완주 → `ResultPanel`에 "다시 하기"와 "이야기로 돌아가기" 동시 표시 → "이야기로 돌아가기" 클릭 시 end node("샘플 이야기 완료")로 복귀 → "샘플 이야기 다시 시작"으로 intro dialogue부터 재시작까지 전체 흐름을 검증했다. 콘솔 에러는 발견되지 않았다.
+
 ---
 
 ## 10. Risk Review

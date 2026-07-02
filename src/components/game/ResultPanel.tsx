@@ -8,6 +8,10 @@ interface ResultPanelProps {
   humanScoreBreakdown: PlayerScoreBreakdown;
   aiScoreBreakdown: PlayerScoreBreakdown;
   onRestart: () => void;
+  /** Optional secondary action — e.g. returning to a Story Runtime shell after a match. */
+  onContinue?: () => void;
+  /** Label for the onContinue button. Defaults to "이야기로 돌아가기" when onContinue is set. */
+  continueLabel?: string;
 }
 
 type OutcomeKey = 'win' | 'lose' | 'draw';
@@ -37,6 +41,8 @@ export function ResultPanel({
   humanScoreBreakdown,
   aiScoreBreakdown,
   onRestart,
+  onContinue,
+  continueLabel,
 }: ResultPanelProps) {
   const outcomeKey: OutcomeKey =
     winner === null ? 'draw' : winner === humanPlayerId ? 'win' : 'lose';
@@ -62,21 +68,41 @@ export function ResultPanel({
         <ScoreBreakdown label="AI 점수" score={aiScoreBreakdown} />
       </div>
 
-      <button
-        onClick={onRestart}
-        style={{
-          padding: '10px 24px',
-          fontSize: 15,
-          background: '#2255aa',
-          color: '#fff',
-          border: 'none',
-          borderRadius: 6,
-          cursor: 'pointer',
-          minHeight: 44,
-        }}
-      >
-        다시 하기
-      </button>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        <button
+          onClick={onRestart}
+          style={{
+            padding: '10px 24px',
+            fontSize: 15,
+            background: '#2255aa',
+            color: '#fff',
+            border: 'none',
+            borderRadius: 6,
+            cursor: 'pointer',
+            minHeight: 44,
+          }}
+        >
+          다시 하기
+        </button>
+
+        {onContinue !== undefined && (
+          <button
+            onClick={onContinue}
+            style={{
+              padding: '10px 24px',
+              fontSize: 15,
+              background: '#fff',
+              color: '#2255aa',
+              border: '1px solid #2255aa',
+              borderRadius: 6,
+              cursor: 'pointer',
+              minHeight: 44,
+            }}
+          >
+            {continueLabel ?? '이야기로 돌아가기'}
+          </button>
+        )}
+      </div>
     </section>
   );
 }
