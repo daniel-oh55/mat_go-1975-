@@ -932,6 +932,19 @@ See `docs/27_mvp_content_authoring_boundary.md` for the full plan.
 - No `src` changes in this PR. `npx vitest run` (631 tests, unchanged), `npx tsc --noEmit`, and `npm run build` all pass (baseline unaffected).
 - Next PR: **M11-PR3 — First MVP Story Strategy Decision**, which will also decide when (if at all, before this PR's Layer 1 candidate is built) minimal graph validation lands relative to that strategy.
 
+### M11-PR3 — First MVP Story Strategy Decision
+
+**Goal:** Decide which of `docs/27` §10's three options (keep `sampleStory` as fixture + add a production story; grow `sampleStory` into production content; do neither yet) the project follows for M11, and whether Layer 1 graph validation should land before production content.
+
+**Constraints:** Documentation/decision only. No schema/registry/`sampleStory` changes. No production content. No validator implementation.
+
+**Result:**
+- `docs/29_first_mvp_story_strategy_decision.md` added — re-evaluates Option A/B/C with `docs/28`'s validation findings folded in. **Option C is selected for M11**: no production content, no `sampleStory` expansion, registry stays sample-only. Option A (separate production story, `sampleStory` preserved) remains the preferred long-term direction, but only after nine explicit prerequisites are met (Layer 1 validation, an explicit default-story rule, a reviewed single-slot-save decision, an approved production scope, etc.). Option B is rejected — it durably mixes a test fixture with production narrative content.
+- Layer 1 graph validation is decided to land **before** production content, not after — proposed as **M11-PR4 — Minimal Story Graph Validation**.
+- Documents two structural risks that must be resolved before a second story is registered: `App.tsx`'s "first catalog entry" default-story logic (safe only while one story exists) and the single-slot `matgo.v1.storyProgress` save key (a `storyId` mismatch silently discards whichever story's save is stale).
+- PR sequence adjusted: **M11-PR4 — Minimal Story Graph Validation** now lands before **M11-H1 — Content Authoring Boundary Review** (previously H1 was to follow PR3 directly), so the boundary review can evaluate the validation safety net rather than its absence.
+- No `src` changes in this PR. `npx vitest run` (631 tests, unchanged), `npx tsc --noEmit`, and `npm run build` all pass (baseline unaffected).
+
 ---
 
 ## 4. Milestone 2 Proposed PRs

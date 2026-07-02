@@ -192,3 +192,10 @@ This PR does not:
 - The manual checklist is sufficient for most items; graph integrity (Layer 1) is the strongest automation candidate.
 - Production content is not started in this PR.
 - The next PR proceeds as First MVP Story Strategy Decision, deciding Layer 1's timing alongside it.
+
+---
+
+## 14. M11-PR3 Decision Note
+
+- `docs/29_first_mvp_story_strategy_decision.md` confirmed this document's §6 recommendation: Layer 1 graph validation lands **before** production content, not after.
+- Next PR is now fixed as **M11-PR4 — Minimal Story Graph Validation** (implementing this document's §7 pseudo-design), inserted ahead of M11-H1.
