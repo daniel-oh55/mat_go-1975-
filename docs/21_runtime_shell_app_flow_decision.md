@@ -230,3 +230,14 @@ This is the smallest app-shell improvement that makes the current validation run
 - No production content.
 - No full navigation/router.
 - No persistence changes.
+
+---
+
+## 14. M8-PR4 Note
+
+- After the Minimal Home Shell and Story Runtime UX labels, board readability was improved for both Free Match and Story Match: clearer section labels ("상대", "바닥패"), labelled stat chips in `GameStatusBar`, a colored outcome badge in `ResultPanel`, larger card tap targets, and tinted captured-card groups.
+- Free Match remains standalone — verified its save/resume behavior survives a home round-trip after this pass, same as before.
+- Story Mode remains a validation sample — `sampleStory` was not modified and no production dialogue/region/NPC content was added.
+- No production content.
+- No full navigation/router.
+- No persistence changes.

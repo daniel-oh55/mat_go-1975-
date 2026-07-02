@@ -457,3 +457,12 @@ See `docs/21_runtime_shell_app_flow_decision.md` for the full options comparison
 - `StoryProgress` persistence remains deferred.
 - `sampleStory` remains a validation fixture — unmodified.
 - Engine unchanged.
+
+### M8-PR4 Implementation Note
+
+- Board readability improved after the Story Runtime UX polish — `GameSessionScreen`, `CardButton`, `CardRow`, `GameStatusBar`, `ActionHint`, `GoStopPanel`, `ResultPanel`, and `CapturedCardGroups` all received presentation-only changes (labels, stat chips, tap-target sizing, spacing).
+- Story Match still uses `GameSessionScreen`'s `storyMatch` mode exactly as established in M8-PR2/M8-PR3 — only the mode label under the title changed (constant "맞고" title + "스토리 대결"/"자유 대전" subtitle, instead of swapping the `h1` text itself).
+- `GameSessionScreen` remains story-agnostic — no new import of `storySession`, `content`, or `sampleStory` was added; the readability changes only touch presentational markup and copy.
+- Engine unchanged. `src/application/` unchanged.
+- `StoryProgress` persistence remains deferred.
+- Hidden information invariant preserved: the opponent/AI area still renders only a hand-size count and face-down placeholders — no opponent card content is ever shown. Verified in a real browser for both standalone Free Match and Story Match.

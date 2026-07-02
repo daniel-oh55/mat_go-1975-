@@ -185,8 +185,9 @@ export function GameSessionScreen({
     if (action !== undefined) handlePlayCard(action);
   }
 
-  // storyMatch mode wording only — standalone keeps its original copy.
-  const title = mode === 'storyMatch' ? '스토리 대결' : '맞고';
+  // "맞고" stays the constant game title in both modes; the mode label under
+  // it is what tells the player which context they're in.
+  const modeLabel = mode === 'storyMatch' ? '스토리 대결' : '자유 대전';
   const startButtonLabel = mode === 'storyMatch' ? '스토리 대결 시작' : '새 게임 시작';
 
   // ── Idle screen ──────────────────────────────────────────────────────────
@@ -194,7 +195,8 @@ export function GameSessionScreen({
   if (session.phase === 'idle') {
     return (
       <div style={styles.container}>
-        <h1 style={styles.title}>{title}</h1>
+        <h1 style={styles.title}>맞고</h1>
+        <div style={styles.modeLabel}>{modeLabel}</div>
         {!isCheckingResume && resumeSession !== null && (
           <button onClick={handleResumeGame} style={styles.primaryButton} disabled={isStartingGame}>
             게임 이어하기
@@ -237,7 +239,8 @@ export function GameSessionScreen({
     <div style={styles.container}>
 
       {/* ── 1. Header ─────────────────────────────────────────────────── */}
-      <h1 style={styles.title}>{title}</h1>
+      <h1 style={styles.title}>맞고</h1>
+      <div style={styles.modeLabel}>{modeLabel}</div>
       <GameStatusBar
         humanScore={vm.humanScore}
         aiScore={vm.aiScore}
@@ -254,7 +257,7 @@ export function GameSessionScreen({
 
       {/* ── 2. AI Area ────────────────────────────────────────────────── */}
       <div style={styles.aiArea}>
-        <div style={styles.areaLabel}>AI</div>
+        <div style={styles.areaLabel}>상대</div>
         <div style={styles.aiHandPlaceholder}>
           {Array.from({ length: vm.aiHandCount }, (_, i) => (
             <div key={i} style={styles.faceDownCard} />
@@ -264,7 +267,7 @@ export function GameSessionScreen({
 
       {/* ── 3. Field Area ─────────────────────────────────────────────── */}
       <div style={styles.fieldArea}>
-        <CardRow label="바닥" cardCount={vm.fieldCards.length}>
+        <CardRow label="바닥패" cardCount={vm.fieldCards.length}>
           {vm.fieldCards.map((card) => {
             if (targetFieldCardIds.has(card.id)) {
               return (
@@ -343,10 +346,10 @@ export function GameSessionScreen({
 
       {/* Captured cards (collapsible, grouped by 광/열/띠/피) */}
       <details style={{ marginTop: 12 }}>
-        <summary style={{ cursor: 'pointer', color: '#555', fontSize: 13 }}>획득 카드 보기</summary>
+        <summary style={styles.capturedSummary}>획득 카드 보기</summary>
         <div style={{ marginTop: 8 }}>
-          <CapturedCardGroups label="내 획득" cards={vm.humanCaptured} />
-          <CapturedCardGroups label="AI 획득" cards={vm.aiCaptured} />
+          <CapturedCardGroups label="내 획득 카드" cards={vm.humanCaptured} />
+          <CapturedCardGroups label="상대 획득 카드" cards={vm.aiCaptured} />
         </div>
       </details>
 
@@ -366,9 +369,25 @@ const styles = {
   } as React.CSSProperties,
 
   title: {
-    margin: '0 0 10px',
+    margin: 0,
     fontSize: 22,
     fontWeight: 'bold',
+  } as React.CSSProperties,
+
+  modeLabel: {
+    margin: '2px 0 10px',
+    fontSize: 11,
+    fontWeight: 'bold',
+    color: '#888',
+    textTransform: 'uppercase' as const,
+    letterSpacing: '0.06em',
+  } as React.CSSProperties,
+
+  capturedSummary: {
+    cursor: 'pointer',
+    color: '#555',
+    fontSize: 13,
+    padding: '4px 0',
   } as React.CSSProperties,
 
   aiArea: {

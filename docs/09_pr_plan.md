@@ -713,6 +713,19 @@ See `docs/20_story_runtime_architecture.md` §13-G for the recommended path rati
 
 **Constraints:** No rule changes. No engine changes. No final art requirement.
 
+**Result:**
+- `GameSessionScreen`: the game title ("맞고") is now constant across modes; a small mode label ("자유 대전" / "스토리 대결") is shown underneath instead of swapping the `h1` text — clearer than the mode-dependent title introduced in M8-PR3. AI area label renamed "AI" → "상대"; field `CardRow` label renamed "바닥" → "바닥패"; captured-card section labels renamed "내 획득"/"AI 획득" → "내 획득 카드"/"상대 획득 카드".
+- `GameStatusBar`: totals/deck info now render as four labelled stat chips ("내 점수", "상대 점수", "더미", "상대 패") instead of a single inline row of abbreviated spans; the current-turn status label is now its own highlighted row above the chips, using a tinted background derived from the existing status color.
+- `ActionHint`: hint copy clarified ("AI가 생각 중입니다…" → "상대가 카드를 내는 중입니다…", etc.), sentence punctuation added, text weight/size increased for legibility.
+- `GoStopPanel`: heading rewritten to a neutral prompt ("{점수}점을 달성했습니다 — 계속 진행하시겠습니까?") without hardcoding the score threshold; Go/Stop buttons widened to `flex: 1` with a taller 48px tap target.
+- `ResultPanel`: outcome text (승리/패배/무승부) now renders as a colored pill badge instead of a plain "결과: ..." line; "AI 점수" label renamed "상대 점수". `onContinue`/`continueLabel` optional-prop contract from M8-PR3 unchanged.
+- `CapturedCardGroups`: each of the four scoring groups (광/열/띠/피) gets a light background tint when non-empty, making them easier to visually separate as captured piles grow; empty-group-always-visible behavior (M5.5-PR3A) unchanged.
+- `CardButton`: `minWidth`/`minHeight` increased (52→56 / 44→46) and font size bumped (13→14) for easier mobile tapping and reading; `selected`/`target` highlights gained a subtle matching box-shadow so the active card is distinguishable from a short distance, not just by border color.
+- `CardRow`: label font size increased (12→13); card container gained a small `gap` and `WebkitOverflowScrolling: touch` for smoother horizontal scroll on mobile. Card order and children are untouched.
+- Hidden information invariant preserved: the AI/opponent area still renders only a card count and face-down placeholder divs — no card content is ever shown for the opponent's hand. Verified in a real browser.
+- No engine changes. No `src/application/` changes. No `src/content/` or `src/components/story/`/`src/components/shell/` changes. No rule/scoring/AI/save changes. No `StoryProgress` persistence. No production content, card images, or final art.
+- Verified end-to-end in a real browser (Playwright): Free Match idle → board (stat chips, renamed labels) → full match → result badge → captured card groups (both non-empty, tinted) → home → re-enter Free Match (post-end state correctly shows no resume prompt, matching the existing delete-on-end persistence behavior) → Story Mode → match node → storyMatch board (mode label "스토리 대결", same readability improvements) → full match → "이야기로 돌아가기" → story end node. No console errors.
+
 ---
 
 ### M8-H1 — MVP Shell Stabilization Review

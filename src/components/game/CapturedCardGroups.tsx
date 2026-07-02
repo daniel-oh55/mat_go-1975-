@@ -26,7 +26,14 @@ export function CapturedCardGroups({ label, cards }: CapturedCardGroupsProps) {
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         {groups.map((group) => (
-          <div key={group.category}>
+          <div
+            key={group.category}
+            style={{
+              padding: '4px 6px',
+              background: group.cards.length > 0 ? '#fafafa' : 'transparent',
+              borderRadius: 4,
+            }}
+          >
             <div style={{
               fontSize: 11,
               fontWeight: 'bold',

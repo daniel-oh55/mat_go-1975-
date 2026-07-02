@@ -13,8 +13,8 @@ export function GoStopPanel({ humanScore, onGo, onStop }: GoStopPanelProps) {
       border: '2px solid #e8a000',
       borderRadius: 8,
     }}>
-      <div style={{ fontWeight: 'bold', fontSize: 15, marginBottom: 4 }}>
-        {humanScore}점 달성 — 고 또는 스톱을 선택하세요
+      <div style={{ fontWeight: 'bold', fontSize: 16, marginBottom: 4 }}>
+        {humanScore}점을 달성했습니다 — 계속 진행하시겠습니까?
       </div>
       <div style={{ fontSize: 12, color: '#666', marginBottom: 12, lineHeight: '1.5' }}>
         <span style={{ display: 'block' }}>고: 계속 플레이해서 더 많은 점수를 노립니다.</span>
@@ -25,14 +25,15 @@ export function GoStopPanel({ humanScore, onGo, onStop }: GoStopPanelProps) {
           onClick={onGo}
           aria-label="고 — 계속 플레이"
           style={{
-            padding: '8px 20px',
+            flex: 1,
+            padding: '10px 20px',
             background: '#2a7',
             color: '#fff',
             border: 'none',
-            borderRadius: 4,
+            borderRadius: 6,
             cursor: 'pointer',
-            fontSize: 14,
-            minHeight: 44,
+            fontSize: 15,
+            minHeight: 48,
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
@@ -46,14 +47,15 @@ export function GoStopPanel({ humanScore, onGo, onStop }: GoStopPanelProps) {
           onClick={onStop}
           aria-label="스톱 — 게임 종료"
           style={{
-            padding: '8px 20px',
+            flex: 1,
+            padding: '10px 20px',
             background: '#c33',
             color: '#fff',
             border: 'none',
-            borderRadius: 4,
+            borderRadius: 6,
             cursor: 'pointer',
-            fontSize: 14,
-            minHeight: 44,
+            fontSize: 15,
+            minHeight: 48,
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',

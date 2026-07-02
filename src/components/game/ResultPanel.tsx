@@ -55,8 +55,20 @@ export function ResultPanel({
     >
       <h2 style={{ margin: '0 0 10px', fontSize: 18 }}>게임 종료</h2>
 
-      <div style={{ marginBottom: 6, fontSize: 15, fontWeight: 'bold', color }}>
-        결과: {OUTCOME_TEXT[outcomeKey]}
+      <div style={{ marginBottom: 8 }}>
+        <span
+          style={{
+            display: 'inline-block',
+            padding: '4px 12px',
+            borderRadius: 999,
+            background: color,
+            color: '#fff',
+            fontSize: 15,
+            fontWeight: 'bold',
+          }}
+        >
+          {OUTCOME_TEXT[outcomeKey]}
+        </span>
       </div>
 
       <div style={{ marginBottom: 12, fontSize: 13, color: '#555' }}>
@@ -65,7 +77,7 @@ export function ResultPanel({
 
       <div style={{ marginBottom: 14 }}>
         <ScoreBreakdown label="내 점수" score={humanScoreBreakdown} />
-        <ScoreBreakdown label="AI 점수" score={aiScoreBreakdown} />
+        <ScoreBreakdown label="상대 점수" score={aiScoreBreakdown} />
       </div>
 
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
