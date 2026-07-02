@@ -575,6 +575,17 @@ See `docs/19_story_system_architecture.md` §12-E for the recommended path ratio
 
 **Constraints:** No UI polish. No production content. No persistence unless explicitly approved after runtime flow is proven.
 
+**Result:**
+- `StorySessionState` added in the Application Layer (`src/application/storySession/storySessionState.ts`) — `storyId`, `progress`, `viewModel`, `status` (`'story' | 'matchRequested' | 'completed' | 'invalid'`), `pendingMatchContext`, `error`.
+- `createInitialStoryProgress(definition)` / `createStorySession(definition)` added — build the initial `StoryProgress` and derive the first `StorySessionState`.
+- `continueStorySession` / `requestStoryMatch` / `completeStoryMatch` / `selectStoryChoice` added — pure state-transition helpers, one per node type (`dialogue`, `match` request, `match` completion, `choice`).
+- `StorySessionState` holds only `StoryProgress` and `StoryViewModel` (plus transition bookkeeping) — no `StoryDefinition`, no `GameState`, no `RandomProvider`, no `Ruleset`, no UI animation state.
+- `completeStoryMatch` accepts an already-built `MatchOutcome` — it does not call `buildMatchOutcome` and does not import `FinalResult` or any engine module.
+- `requestStoryMatch` exposes `MatchContext` as `pendingMatchContext` only — it does not create engine state or start a `GameSession`.
+- No UI. No persistence. No production content. Engine unchanged.
+- `src/application/storySession/storySessionState.test.ts` added — 30 tests covering all six functions, the error policy (wrong status / wrong node type → `error` message; unresolvable node → `status: 'invalid'`), and no-mutation of inputs.
+- All exported from `src/application/storySession/index.ts`.
+
 ---
 
 ### M7-PR4 — Minimal Story UI Shell
