@@ -6,6 +6,23 @@ Entries are listed in reverse chronological order (newest first).
 
 ---
 
+## 2026-07-02 - M9: Story Content Registry Implemented (M9-PR2)
+
+**Decision**
+`src/content/stories/storyRegistry.ts` is added as the single source of truth for which `StoryDefinition`s exist, with `sampleStory` as the only registered entry. `StoryRuntimeScreen` is not yet refactored to use it.
+
+**Reason**
+M9-PR1 proposed a minimal, synchronous, local registry so future callers stop hardcoding concrete story files. M9-PR2 implements that registry in isolation before anything is wired to it, so the registry's shape and duplicate-id guard can be validated independently of UI changes.
+
+**Impact**
+- `getStoryCatalog()` / `getStoryDefinition(storyId)` are available for M9-PR3 to consume.
+- `StoryRuntimeScreen` still imports `sampleStory` directly — no behavior change yet.
+- No engine or Application Layer file was touched.
+- No production content added; `sampleStory` remains the only registered story.
+- `StoryProgress` persistence remains deferred.
+
+---
+
 ## 2026-07-02 - M9: Content Loader Foundation Begins
 
 **Decision**
