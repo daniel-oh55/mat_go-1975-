@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { buildMatchOutcome } from './matchOutcomeAdapter.js';
-import { HUMAN_PLAYER_ID, AI_PLAYER_ID } from '../gameSession/index.js';
+import { HUMAN_PLAYER_ID, AI_PLAYER_ID } from '../shared/playerIds.js';
 import type { FinalResult, PlayerScoreState } from '../../engine/types/index.js';
 
 function score(total: number): PlayerScoreState {
