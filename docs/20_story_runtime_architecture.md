@@ -447,3 +447,13 @@ See `docs/21_runtime_shell_app_flow_decision.md` for the full options comparison
 - `StoryProgress` persistence remains deferred.
 - `sampleStory` remains a validation fixture.
 - Engine unchanged.
+
+### M8-PR3 Implementation Note
+
+- Story runtime UX polish added after the Minimal Home Shell — clearer labels and short helper captions in `StoryRuntimeScreen` and `StoryNodePanel`, and `storyMatch`-only wording changes in `GameSessionScreen`.
+- Story UI still consumes `StoryViewModel` only — the new node-state label in `StoryNodePanel` is keyed off `currentNode.type`, not a raw `StoryDefinition` traversal; no `UnlockCondition` evaluation was added.
+- `GameSessionScreen` remains story-agnostic — the wording branches only on the existing `mode` prop; no new story/content import was added.
+- `storyMatch` wording ("스토리 대결", "스토리 대결 시작", "대결 취소") was improved without changing standalone behavior — verified in a real browser that standalone Free Match still shows "맞고" / "새 게임 시작" unchanged.
+- `StoryProgress` persistence remains deferred.
+- `sampleStory` remains a validation fixture — unmodified.
+- Engine unchanged.

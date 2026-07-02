@@ -696,6 +696,15 @@ See `docs/20_story_runtime_architecture.md` §13-G for the recommended path rati
 
 **Constraints:** No production story content. No BGM/SFX. No persistence.
 
+**Result:**
+- `StoryRuntimeScreen` labels clarified: "스토리 모드 · 샘플 런타임" (story screen) / "스토리 모드 · 맞고 대결" (matchRequested screen), each with a one-line helper caption ("현재는 런타임 검증용 샘플 이야기입니다." / "이 한 판의 결과가 이야기 진행에 반영됩니다."). Invalid-state error text expanded to note the session cannot proceed; "샘플 이야기 다시 시작" restart button unchanged.
+- `StoryNodePanel` node-state labels added (`이야기` / `맞고 대결` / `선택` / `완료`), derived only from `currentNode.type` — no raw `StoryDefinition` access, no `UnlockCondition` evaluation. Copy updated: dialogue button "다음으로", match node adds a guidance line and "스토리 대결 시작" button, choice node adds "다음 행동을 선택하세요.", end node text becomes "샘플 이야기 흐름이 완료되었습니다.".
+- `GameSessionScreen` gains `storyMatch`-only wording: title "스토리 대결" (vs. standalone "맞고"), idle start button "스토리 대결 시작" (vs. "새 게임 시작"), idle cancel button "대결 취소" (vs. no such button in standalone). Standalone mode's title, button copy, and behavior are byte-for-byte unchanged — verified in a real browser.
+- `ResultPanel` gains an optional one-line caption ("결과를 이야기 진행에 반영하려면 이야기로 돌아가세요.") shown only when `onContinue` is set; standalone `ResultPanel` usage (no `onContinue`) is unaffected.
+- `App.tsx` left unmodified — the "← 홈으로" back-button copy from M8-PR2 was already clear.
+- No engine changes. No `src/application/` changes. No `sampleStory` changes. No `StoryProgress` persistence. No production content.
+- Verified end-to-end in a real browser (Playwright): Home → Story Mode → dialogue ("다음으로") → match node (guidance text, "스토리 대결 시작") → storyMatch idle ("스토리 대결" title, "대결 취소" cancels back to the match node) → full match → `ResultPanel` shows the new caption → "이야기로 돌아가기" returns to the end node ("완료" / "샘플 이야기 흐름이 완료되었습니다.") → Home → Free Match shows the unchanged standalone title ("맞고") and button ("새 게임 시작"). No console errors.
+
 ---
 
 ### M8-PR4 — Board Readability Pass

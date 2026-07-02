@@ -219,3 +219,14 @@ This is the smallest app-shell improvement that makes the current validation run
 - **Current limitation:** Story Mode state is not persisted. Returning home and re-entering Story Mode restarts `sampleStory` from the intro dialogue (a fresh `createStorySession` call on remount). This is acceptable until `StoryProgress` persistence is approved in a later milestone.
 - Free Match is unaffected by this limitation: `GameSessionScreen` standalone mode keeps its own active-game save/resume, verified to survive a home round-trip (leaving and re-entering Free Match shows "게임 이어하기").
 - No production content. No full navigation/router. No settings/save-slot/story-selection screens.
+
+---
+
+## 13. M8-PR3 Note
+
+- After the Minimal Home Shell (M8-PR2), Story Mode UX labels were clarified in `StoryRuntimeScreen` and `StoryNodePanel` (node-state labels, short helper captions, updated button copy), and `storyMatch`-only wording was added to `GameSessionScreen` ("스토리 대결" title, "스토리 대결 시작", "대결 취소").
+- Story Mode remains a validation sample — no production dialogue, region, or NPC content was added; `sampleStory` was not modified.
+- Free Match remains standalone — its title, button copy, and resume/persistence behavior are unchanged, verified in a real browser.
+- No production content.
+- No full navigation/router.
+- No persistence changes.

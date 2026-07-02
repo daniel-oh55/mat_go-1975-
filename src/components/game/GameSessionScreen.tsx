@@ -185,12 +185,16 @@ export function GameSessionScreen({
     if (action !== undefined) handlePlayCard(action);
   }
 
+  // storyMatch mode wording only — standalone keeps its original copy.
+  const title = mode === 'storyMatch' ? '스토리 대결' : '맞고';
+  const startButtonLabel = mode === 'storyMatch' ? '스토리 대결 시작' : '새 게임 시작';
+
   // ── Idle screen ──────────────────────────────────────────────────────────
 
   if (session.phase === 'idle') {
     return (
       <div style={styles.container}>
-        <h1 style={styles.title}>맞고</h1>
+        <h1 style={styles.title}>{title}</h1>
         {!isCheckingResume && resumeSession !== null && (
           <button onClick={handleResumeGame} style={styles.primaryButton} disabled={isStartingGame}>
             게임 이어하기
@@ -201,11 +205,11 @@ export function GameSessionScreen({
           style={styles.primaryButton}
           disabled={isCheckingResume || isStartingGame}
         >
-          새 게임 시작
+          {startButtonLabel}
         </button>
         {mode === 'storyMatch' && onCancelStoryMatch !== undefined && (
           <button onClick={onCancelStoryMatch} style={styles.cancelButton} disabled={isStartingGame}>
-            취소
+            대결 취소
           </button>
         )}
       </div>
@@ -233,7 +237,7 @@ export function GameSessionScreen({
     <div style={styles.container}>
 
       {/* ── 1. Header ─────────────────────────────────────────────────── */}
-      <h1 style={styles.title}>맞고</h1>
+      <h1 style={styles.title}>{title}</h1>
       <GameStatusBar
         humanScore={vm.humanScore}
         aiScore={vm.aiScore}
