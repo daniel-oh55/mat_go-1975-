@@ -427,3 +427,12 @@ M7 이후 바로 production content 제작으로 가지 않는다. 다음 단계
 Use if board readability and play comfort are more urgent than app navigation/runtime polish.
 
 Full regional/NPC/dialogue production content is **not** recommended as the immediate next step.
+
+### M8-PR1 Decision Note
+
+- M8-PR1 evaluates the app entry flow after M7.
+- The recommended path is a Minimal Home Shell with Story Mode and Free Match.
+- This keeps M7 validation flow available while restoring a clear Free Match entry.
+- Full content production remains deferred.
+
+See `docs/21_runtime_shell_app_flow_decision.md` for the full options comparison and M8-PR2 acceptance criteria.

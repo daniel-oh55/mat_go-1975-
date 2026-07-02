@@ -649,15 +649,34 @@ See `docs/20_story_runtime_architecture.md` §13-G for the recommended path rati
 
 **Goal:** Decide whether the app should start directly in `StoryRuntimeScreen`, show a minimal home/menu first, or provide separate buttons for Story Mode and Free Match.
 
-**Constraints:** Documentation only. No code unless explicitly approved.
+| Deliverable | Notes |
+|---|---|
+| `docs/21_runtime_shell_app_flow_decision.md` | App flow options comparison |
+| Final decision for M8-PR2 | Documented in `docs/21` §5 |
+| Acceptance criteria for Minimal Home Shell | Documented in `docs/21` §10 |
+
+**Constraints:** Documentation only. No code.
+
+**Result:**
+- `docs/21_runtime_shell_app_flow_decision.md` added — compares three app-entry options (keep `StoryRuntimeScreen` as entry, Minimal Home Shell, full navigation system).
+- Decision: Option B (Minimal Home Shell with Story Mode / Free Match entry points) recommended for M8-PR2. Option A rejected for MVP shell. Option C deferred.
+- `docs/21` §10 defines M8-PR2 acceptance criteria.
+- Production content, StoryProgress persistence, and full navigation remain deferred.
 
 ---
 
 ### M8-PR2 — Minimal Home Shell
 
-**Goal:** Add a simple home screen with Story Mode and Free Match entry points if M8-PR1 approves it.
+**Goal:** Add a simple home screen with Story Mode and Free Match entry points.
 
-**Constraints:** Minimal navigation only. No final art. No production content.
+| Deliverable | Notes |
+|---|---|
+| `MinimalHomeScreen` | Two-button minimal shell — Story Mode / Free Match; no engine or storySession import |
+| App mode state: `home` / `story` / `freeMatch` | App-level state tracks only the selected mode, not `GameState` or `StorySessionState` |
+| Story Mode opens `StoryRuntimeScreen` | Unchanged — sample validation flow |
+| Free Match opens `GameSessionScreen` standalone | Uses existing default standalone props (resume, active-game persistence unchanged) |
+
+**Constraints:** Minimal navigation only. No final art. No production content. No persistence changes.
 
 ---
 
