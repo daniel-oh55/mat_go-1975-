@@ -209,6 +209,17 @@ type StorySessionState = {
 - Active Game save와 StoryProgress save는 분리된 저장 대상으로 남는다 (`docs/16_save_progress_architecture.md`의 카테고리 분리 원칙과 동일한 방향).
 - `StorySessionState`는 UI state(예: 애니메이션 진행, 로컬 트랜지션 플래그)와 engine state를 섞지 않는다 — 둘 다 이 타입 밖에 존재해야 한다.
 
+### M7-PR3 Implementation Result
+
+- `StorySessionState`가 `src/application/storySession/storySessionState.ts`에 구현되었다. 실제 shape는 제안된 형태에 `pendingMatchContext: MatchContext | null`, `error: string | null`, 그리고 `status`에 `'invalid'`가 추가되었다.
+- `StorySessionState`는 `StoryDefinition`을 저장하지 않는다 — `StoryDefinition`이 필요한 모든 helper(`createStorySession`, `continueStorySession`, `completeStoryMatch`, `selectStoryChoice`)는 매 호출마다 `definition`을 인자로 받는다.
+- `StorySessionState`는 `GameState`를 저장하지 않는다 — 파일 전체가 engine import 없이 작성되었다 (`FinalResult` import 없음).
+- `StorySessionState`는 스스로를 persist하지 않는다 — persistence는 여전히 §8의 결정에 따라 deferred 상태다.
+- `createInitialStoryProgress(definition)` / `createStorySession(definition)`이 초기 `StoryProgress`와 `StorySessionState`를 생성한다.
+- `continueStorySession` / `selectStoryChoice`가 각각 `dialogue` / `choice` 노드를 진행시키고, `requestStoryMatch`가 `match` 노드에서 `pendingMatchContext`를 노출하며, `completeStoryMatch`가 이미 만들어진 `MatchOutcome`을 받아 진행시킨다.
+- `requestStoryMatch`는 `MatchContext`만 노출할 뿐 엔진을 시작하지 않는다 — `GameState`나 `RandomProvider`를 만들지 않는다. 실제 match 시작 연결은 M7-PR4 이후로 남아 있다.
+- `completeStoryMatch`는 `MatchOutcome`만 인자로 받는다 — `buildMatchOutcome`을 호출하지 않으며, `FinalResult`를 import하지 않는다. `buildMatchOutcome`은 여전히 `matchOutcomeAdapter.ts`에 분리된 adapter로 남아 있다.
+
 ---
 
 ## 8. Persistence Decision

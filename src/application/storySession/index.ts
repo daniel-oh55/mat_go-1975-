@@ -35,3 +35,13 @@ export {
 } from './storyProgression.js';
 
 export { buildMatchOutcome } from './matchOutcomeAdapter.js';
+
+export type { StorySessionStatus, StorySessionState } from './storySessionState.js';
+export {
+  createInitialStoryProgress,
+  createStorySession,
+  continueStorySession,
+  requestStoryMatch,
+  completeStoryMatch,
+  selectStoryChoice,
+} from './storySessionState.js';
