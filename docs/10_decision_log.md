@@ -6,6 +6,23 @@ Entries are listed in reverse chronological order (newest first).
 
 ---
 
+## 2026-07-02 - M10: Story Progress Persistence Wired into Runtime (M10-PR3)
+
+**Decision**
+`StoryRuntimeScreen` now loads saved `StoryProgress` on mount (falling back to a fresh session when none exists or it's invalid) and saves after every transition that reaches `story`/`completed` status. `App.tsx` is unchanged — persistence orchestration lives entirely in `StoryRuntimeScreen`, which already owns `StorySessionState` and the transition handlers.
+
+**Reason**
+`StoryRuntimeScreen` was the natural place to wire this: it already receives `storageService` and `storyDefinition` as props and owns every transition call site, so no new prop threading or `App.tsx` complexity was needed. Keeping `matchRequested` unsaved (docs/25 §5) was implemented by simply not calling the save helper from `handleRequestMatch`, rather than adding another branch inside the save policy itself — the policy stays entirely inside `saveStoryProgress` (M10-PR2), and the UI layer just chooses when to call it.
+
+**Impact**
+- Home → Story Mode → progress → Home → Story Mode now resumes where the player left off, verified manually for dialogue continuation, match-result reflection, and explicit restart (which overwrites the saved document with a fresh one).
+- `matchRequested` and `invalid` states are never saved — confirmed manually that leaving Story Mode mid-match-request or restarting does not resurrect a stale save.
+- Story Match continues to run with `enableActiveGamePersistence={false}`; `matgo.v1.storyProgress` and `matgo.v1.activeGame` were confirmed to never collide (Story Match writes only the former, Free Match only the latter).
+- `StoryRuntimeScreen` still imports no concrete story file or the registry — only `loadStoryProgress`/`saveStoryProgress` from the `storySession` boundary.
+- Production story content and story selection UI remain deferred. Next: **M10-H1 — Story Progress Persistence Review**, sign-off before any further Story Mode feature work.
+
+---
+
 ## 2026-07-02 - M10: Story Progress Persistence Helpers Implemented, UI Wiring Deferred (M10-PR2)
 
 **Decision**

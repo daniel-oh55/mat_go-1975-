@@ -493,3 +493,7 @@ See `docs/21_runtime_shell_app_flow_decision.md` for the full options comparison
 ### M9-H1 Note
 
 - Content Loader Boundary signed off — see `docs/24_content_loader_boundary_review.md`. No blocker found; the runtime flow in §5 holds unchanged. Recommended next milestone: M10 — Story Progress Persistence Planning.
+
+### M10-PR3 Note
+
+- `StoryProgress` persistence is now live: `StoryRuntimeScreen` loads saved progress on mount and saves after each stable transition — see `docs/25_story_progress_persistence_plan.md` §13 for the full implementation note. The runtime flow in §5 is otherwise unchanged; `App.tsx` still only resolves `storyDefinition`, unaware of persistence.
