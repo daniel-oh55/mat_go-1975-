@@ -825,6 +825,8 @@ See `docs/22_mvp_shell_stabilization_review.md` §9 for the recommended path rat
 
 **Constraints:** No production content. No final art.
 
+**Status:** Deferred by M9-H1 (`docs/24_content_loader_boundary_review.md` §6) — `sampleStory` remains the only registered story, so a selector adds a screen with no real player choice. Revisit once at least two story entries exist or production content requires selection.
+
 ---
 
 ### M9-H1 — Content Loader Boundary Review
@@ -832,6 +834,16 @@ See `docs/22_mvp_shell_stabilization_review.md` §9 for the recommended path rat
 **Goal:** Confirm the UI no longer hardcodes `sampleStory`, the engine remains story-agnostic, and content loading is data-driven.
 
 **Constraints:** Review/documentation PR unless a blocker is found.
+
+**Result:**
+- `docs/24_content_loader_boundary_review.md` added — full boundary checklist (17 items, all PASS/DEFERRED as expected, no blocker found), architecture summary, findings, and sign-off.
+- Confirmed: `StoryRuntimeScreen` no longer imports `sampleStory`; it consumes an injected `StoryDefinition` prop for every session transition and does not import the registry loader.
+- Confirmed: `App.tsx` is the current parent boundary resolving the default story via `getStoryCatalog()` / `getStoryDefinition()`, and does not import `sampleStory`.
+- Confirmed: Engine imports no content/story files (grep found only boundary-enforcing comments).
+- **M9 Content Loader Boundary is approved for MVP continuation.**
+- M9-PR4 (story selection stub) deferred. Production story content deferred. `StoryProgress` persistence deferred.
+- Recommended next milestone: **M10 — Story Progress Persistence Planning**, starting with a documentation/design PR before any implementation.
+- No `src` changes in this PR. `npx vitest run` (591 tests), `npx tsc --noEmit`, and `npm run build` all pass.
 
 ---
 

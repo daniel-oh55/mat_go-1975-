@@ -489,3 +489,7 @@ See `docs/21_runtime_shell_app_flow_decision.md` for the full options comparison
 - `App.tsx` resolves the default story via `getStoryCatalog()` / `getStoryDefinition()` (from `src/content/stories/storyRegistry.ts`) and passes it down, keyed on `storyDefinition.storyId`.
 - The runtime flow itself (§5) is unchanged — verified manually end-to-end in a real browser: dialogue → match → result → story end, plus standalone Free Match unaffected.
 - Engine remains unchanged. No story selection UI. Production content and `StoryProgress` persistence remain deferred.
+
+### M9-H1 Note
+
+- Content Loader Boundary signed off — see `docs/24_content_loader_boundary_review.md`. No blocker found; the runtime flow in §5 holds unchanged. Recommended next milestone: M10 — Story Progress Persistence Planning.

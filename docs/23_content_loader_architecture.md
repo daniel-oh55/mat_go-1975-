@@ -325,3 +325,14 @@ The project should not begin production story writing until the UI no longer har
 - `StoryRuntimeScreen` is keyed on `storyDefinition.storyId` in `App.tsx` so a future story-definition change (e.g. M9-PR4 selection) safely resets runtime state instead of reusing stale `StorySessionState`.
 - Manual end-to-end verification (dialogue → match → result → story end, and standalone Free Match) passed with no console errors.
 - No story selection UI, no production content, no `StoryProgress` persistence, no engine or Application Layer runtime logic changes.
+
+---
+
+## 19. M9-H1 Review Note
+
+- Full boundary sign-off is documented in `docs/24_content_loader_boundary_review.md` — a 17-item checklist covering M9-PR1–PR3, with no blocker found.
+- **M9 Content Loader Boundary is approved for MVP continuation**: the local synchronous sample-only registry, `App.tsx`-level default story resolution, and `StoryRuntimeScreen` definition injection all hold as designed in §5–§9 of this document.
+- M9-PR4 (minimal story selection stub) is deferred — revisit once a second story entry exists.
+- Production story content remains deferred (§12 unchanged).
+- `StoryProgress` persistence remains deferred (§11 unchanged).
+- Recommended next milestone: **M10 — Story Progress Persistence Planning**, starting with a documentation/design PR before implementation.
