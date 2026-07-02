@@ -175,3 +175,12 @@ If needed, add a minimal Story Mode entry screen or selector that lists only the
 ### M9-H1 — Content Loader Boundary Review
 
 Confirm the UI no longer hardcodes `sampleStory`, the engine remains story-agnostic, and content loading is data-driven.
+
+---
+
+## 11. M9-PR1 Note
+
+- M8-H1 (§9 of this document) recommended M9 because `sampleStory` is still hardcoded in `StoryRuntimeScreen`.
+- M9-PR1 defines the architecture for the content registry/loader in `docs/23_content_loader_architecture.md` — layer boundary, proposed registry shape, proposed loader API, and the `StoryRuntimeScreen` definition-injection direction.
+- No production content begins yet.
+- M9 should first make content loading data-driven (registry + injection) before any region/NPC/dialogue content is written.

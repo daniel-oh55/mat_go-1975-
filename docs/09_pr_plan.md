@@ -759,7 +759,21 @@ See `docs/22_mvp_shell_stabilization_review.md` §9 for the recommended path rat
 
 **Goal:** Define how story definitions are registered, selected, and passed to `StoryRuntimeScreen` without hardcoding a specific story file in UI.
 
-**Constraints:** Documentation only. No code.
+| Deliverable | Notes |
+|---|---|
+| `docs/23_content_loader_architecture.md` | Content registry boundary |
+| Proposed `StoryCatalogEntry` / `RegisteredStory` shape | Minimal metadata only — no region/npc/art/bgm fields yet |
+| Proposed `getStoryCatalog` / `getStoryDefinition` loader API | Local, synchronous — no async/network/storage |
+| `StoryRuntimeScreen` definition-injection direction | `storyDefinition` prop injection recommended over `storyId` |
+| M9-PR2 acceptance criteria | Documented in `docs/23` §15 |
+
+**Constraints:** Documentation only. No code. No production content.
+
+**Result:**
+- `docs/23_content_loader_architecture.md` added — documents the current problem (`StoryRuntimeScreen` hardcoding `sampleStory`), design goals, non-goals, a five-layer boundary table, a proposed `StoryCatalogEntry`/`RegisteredStory` registry shape, a proposed synchronous `getStoryCatalog`/`getStoryDefinition` loader API, and the M9-PR3 `StoryRuntimeScreen` refactor direction.
+- Decision: `storyDefinition` prop injection recommended over a `storyId` prop, so `StoryRuntimeScreen` never has to call the loader itself and stays focused on runtime UI/state rather than content discovery.
+- `StoryProgress` persistence and production content both explicitly deferred, with rationale tied to loader/identity stability.
+- M9-PR2 acceptance criteria documented, including required tests (registration, catalog lookup, definition lookup by id, unknown-id `null`, no duplicate `storyId`).
 
 ---
 
@@ -767,7 +781,16 @@ See `docs/22_mvp_shell_stabilization_review.md` §9 for the recommended path rat
 
 **Goal:** Add a minimal Content Layer registry for available `StoryDefinition` entries. Use `sampleStory` as the only registered story.
 
-**Constraints:** No production content.
+| Deliverable | Notes |
+|---|---|
+| Content registry file | `StoryCatalogEntry`, `RegisteredStory`, `storyRegistry` — `sampleStory` only |
+| Story catalog metadata | `storyId`, `title`, `description`, `status` — no region/npc/art/bgm fields |
+| `getStoryCatalog` | Returns catalog metadata for all registered stories |
+| `getStoryDefinition` | Returns a `StoryDefinition` by `storyId`, or `null` if unknown |
+| Duplicate `storyId` guard/test | Registry must not allow two entries with the same `storyId` |
+| Tests | Registration, catalog lookup, definition lookup, unknown-id `null`, no duplicates |
+
+**Constraints:** No production content. No UI changes. No engine changes.
 
 ---
 
