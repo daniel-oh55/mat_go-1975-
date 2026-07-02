@@ -301,3 +301,15 @@ Sign-off the boundary before any production story content.
 M9 should begin with a local synchronous content registry using `sampleStory` only.
 
 The project should not begin production story writing until the UI no longer hardcodes concrete story files and the loader boundary is reviewed.
+
+---
+
+## 17. M9-PR2 Implementation Note
+
+- `src/content/stories/storyRegistry.ts` implemented exactly as proposed in §6/§7 — `StoryCatalogEntry`, `RegisteredStory`, `storyRegistry` (`sampleStory` only), `getStoryCatalog()`, `getStoryDefinition(storyId)`.
+- `hasDuplicateStoryId()` added and unit-tested independently of the real registry, plus a module-load-time guard call against `storyRegistry` itself (§10's duplicate-`storyId` check).
+- `getStoryCatalog()` returns catalog metadata only — never the `StoryDefinition` — matching the read-only, content-discovery-safe boundary described in §5.
+- No engine import in `storyRegistry.ts`.
+- `StoryRuntimeScreen` is unchanged and still imports `sampleStory` directly — the §8 refactor (injecting `storyDefinition` as a prop) is still M9-PR3, not this PR.
+- No production content added; `sampleStory` remains the only registered story.
+- `StoryProgress` persistence remains deferred.

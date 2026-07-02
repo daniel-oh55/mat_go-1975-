@@ -792,6 +792,15 @@ See `docs/22_mvp_shell_stabilization_review.md` §9 for the recommended path rat
 
 **Constraints:** No production content. No UI changes. No engine changes.
 
+**Result:**
+- `src/content/stories/storyRegistry.ts` added — `StoryCatalogEntry`, `RegisteredStory`, `storyRegistry` (containing `sampleStory` only), `hasDuplicateStoryId`, `getStoryCatalog`, `getStoryDefinition`. No engine import.
+- `getStoryCatalog()` returns catalog metadata only (`storyId`, `title`, `description`, `status`) — never the underlying `StoryDefinition`.
+- `getStoryDefinition(storyId)` returns the matching `StoryDefinition`, or `null` for an unknown `storyId`.
+- A module-load-time duplicate-`storyId` guard throws if `storyRegistry` ever contains two entries with the same `storyId`; `hasDuplicateStoryId` is also exported and independently unit-tested.
+- `src/content/stories/storyRegistry.test.ts` added — 10 tests covering registration, catalog shape, duplicate detection (including on the real registry), and lookup by id (found and unknown).
+- No UI changes: `StoryRuntimeScreen` still imports `sampleStory` directly — wiring the registry into the UI is M9-PR3.
+- No engine changes. No Application Layer changes. No production content.
+
 ---
 
 ### M9-PR3 — StoryRuntimeScreen Definition Injection
