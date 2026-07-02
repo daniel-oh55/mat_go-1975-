@@ -29,36 +29,60 @@ export function GameStatusBar({
   aiScoreBreakdown,
 }: GameStatusBarProps) {
   const showBreakdown = humanScoreBreakdown.total > 0 || aiScoreBreakdown.total > 0;
+  const statusColor = STATUS_COLOR[statusDisplay.kind];
 
   return (
     <div style={{
-      padding: '6px 0',
+      padding: '8px 0',
       marginBottom: 10,
       borderBottom: '1px solid #ddd',
       fontSize: 13,
     }}>
-      {/* Primary row: totals + deck info + turn indicator */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' as const }}>
-        <span>나: <strong>{humanScore}</strong>점</span>
-        <span>AI: <strong>{aiScore}</strong>점</span>
-        <span style={{ color: '#999' }}>덱 {drawPileCount}장</span>
-        <span style={{ color: '#999' }}>AI 패 {aiHandCount}장</span>
-        <span style={{
-          marginLeft: 'auto',
-          fontWeight: 'bold',
-          color: STATUS_COLOR[statusDisplay.kind],
-        }}>
-          {statusDisplay.label}
-        </span>
+      {/* Status row: always visible, drawn first so the current turn is the most prominent line */}
+      <div style={{
+        marginBottom: 6,
+        padding: '4px 8px',
+        borderRadius: 4,
+        background: `${statusColor}1a`,
+        fontWeight: 'bold',
+        fontSize: 14,
+        color: statusColor,
+      }}>
+        {statusDisplay.label}
+      </div>
+
+      {/* Stat chips: totals + deck info, each in its own labelled chip for scannability */}
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' as const }}>
+        <StatChip label="내 점수" value={`${humanScore}점`} />
+        <StatChip label="상대 점수" value={`${aiScore}점`} />
+        <StatChip label="더미" value={`${drawPileCount}장`} />
+        <StatChip label="상대 패" value={`${aiHandCount}장`} />
       </div>
 
       {/* Secondary row: category breakdown — only shown when either player has scored */}
       {showBreakdown && (
-        <div style={{ marginTop: 3, display: 'flex', gap: 16 }}>
+        <div style={{ marginTop: 6, display: 'flex', gap: 16 }}>
           <ScoreBreakdown label="나" score={humanScoreBreakdown} compact />
-          <ScoreBreakdown label="AI" score={aiScoreBreakdown} compact />
+          <ScoreBreakdown label="상대" score={aiScoreBreakdown} compact />
         </div>
       )}
     </div>
+  );
+}
+
+function StatChip({ label, value }: { label: string; value: string }) {
+  return (
+    <span style={{
+      display: 'inline-flex',
+      alignItems: 'baseline',
+      gap: 4,
+      padding: '3px 8px',
+      borderRadius: 4,
+      background: '#f5f5f5',
+      border: '1px solid #e5e5e5',
+    }}>
+      <span style={{ fontSize: 11, color: '#888' }}>{label}</span>
+      <strong style={{ fontSize: 13 }}>{value}</strong>
+    </span>
   );
 }

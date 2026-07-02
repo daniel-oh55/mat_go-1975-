@@ -24,11 +24,13 @@ export function cardInteractionLabel(highlight: CardHighlight): string {
 
 // All states use 2px border so card size never shifts when highlight changes.
 // none uses opacity:1 to override the browser's default disabled-button dimming.
+// selected/target add a matching box-shadow so the active card also stands out
+// from a distance, not just by border color (helps on small mobile screens).
 const HIGHLIGHT_STYLES: Record<CardHighlight, React.CSSProperties> = {
   none:     { border: '2px solid #ddd',    background: '#f5f5f5', color: '#bbb', cursor: 'default',  opacity: 1 },
   legal:    { border: '2px solid #e8a000', background: '#fff8e0', color: '#333', cursor: 'pointer' },
-  selected: { border: '2px solid #2255aa', background: '#dceeff', color: '#111', cursor: 'pointer' },
-  target:   { border: '2px solid #c00',    background: '#ffe8e8', color: '#333', cursor: 'pointer' },
+  selected: { border: '2px solid #2255aa', background: '#dceeff', color: '#111', cursor: 'pointer', boxShadow: '0 0 0 2px #2255aa33' },
+  target:   { border: '2px solid #c00',    background: '#ffe8e8', color: '#333', cursor: 'pointer', boxShadow: '0 0 0 2px #cc000033' },
 };
 
 interface CardButtonProps {
@@ -53,9 +55,9 @@ export function CardButton({ card, highlight = 'none', onClick }: CardButtonProp
         padding: '6px 10px',
         margin: '3px',
         borderRadius: 4,
-        fontSize: 13,
-        minHeight: 44,
-        minWidth: 52,
+        fontSize: 14,
+        minHeight: 46,
+        minWidth: 56,
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
