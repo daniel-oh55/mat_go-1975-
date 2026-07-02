@@ -160,3 +160,5 @@ Deferred:
 - StoryProgress persistence
 - async/remote/CMS loader
 - multi-story UX
+
+**Update (M11-PR1):** production content authoring rules are now documented in `docs/27_mvp_content_authoring_boundary.md`, including `storyId`/`nodeId` stability implications for this loader boundary. Production content still has not started.

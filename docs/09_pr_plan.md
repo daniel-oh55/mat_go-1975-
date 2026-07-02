@@ -905,6 +905,23 @@ See `docs/25_story_progress_persistence_plan.md` for the full plan.
 
 ---
 
+## 3b. Milestone 11 Proposed PRs — MVP Content Authoring Boundary
+
+See `docs/27_mvp_content_authoring_boundary.md` for the full plan.
+
+### M11-PR1 — MVP Content Authoring Boundary
+
+**Goal:** Define the content authoring boundary — current content surface, MVP content rules, `storyId`/`nodeId` stability rules, a content complexity budget, the AI collaboration workflow, a content handoff format, production-content start criteria, and a content validation checklist — before any production story content is written.
+
+**Constraints:** Documentation/planning only. No `src` changes. No schema/registry/`sampleStory` changes. No production content.
+
+**Result:**
+- `docs/27_mvp_content_authoring_boundary.md` added — content surface documented directly from `storySchema.ts`/`storyRegistry.ts` (four `StoryNode` types, four `UnlockCondition` variants, `StoryCatalogEntry` metadata shape); MVP content rules (allowed vs. forbidden, e.g. no region/NPC data models, no reward system, no zodiac-fortune-affects-match-result); `storyId`/`nodeId` stability rules tied to `docs/25`'s persistence validation; a content complexity budget (5–12 nodes, 1–3 match nodes, 0–2 choice nodes per story); a four-role AI content workflow (ChatGPT plans, Claude drafts prose only, Claude Code implements, Codex reviews); a content handoff format; production-content start criteria; three `sampleStory` strategy options (A: second registry entry, B: grow `sampleStory` itself, C: do neither yet) with **Option C recommended as the default**; and a manual content validation checklist.
+- No `src` changes in this PR. `npx vitest run` (631 tests, unchanged), `npx tsc --noEmit`, and `npm run build` all pass (baseline unaffected).
+- Proposed next PRs: **M11-PR2 — Story Schema / Content Validation Review**, **M11-PR3 — First MVP Story Strategy Decision**, **M11-H1 — Content Authoring Boundary Review**. Production content does not necessarily start in M11 — it begins in M12 only if the boundary is judged safe at M11-H1.
+
+---
+
 ## 4. Milestone 2 Proposed PRs
 
 ### M2-PR1 — Engine Types and Card Model

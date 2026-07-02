@@ -6,6 +6,22 @@ Entries are listed in reverse chronological order (newest first).
 
 ---
 
+## 2026-07-03 - M11: MVP Content Authoring Boundary Defined (M11-PR1)
+
+**Decision**
+`docs/27_mvp_content_authoring_boundary.md` locks the rules for writing story content before any production content is written: the exact allowed content surface (only the schema fields that exist today — no region/NPC data models, no reward system, no zodiac-fortune-affects-match-result), `storyId`/`nodeId` stability rules tied to `StoryProgress` persistence, a content complexity budget, a four-role AI content workflow, a content handoff format, and a manual content validation checklist.
+
+**Reason**
+M9 locked the content *loading* boundary and M10 locked the *persistence* boundary; the next risk is not "not enough content" but adding content quickly enough to blur those two boundaries again — especially since `storyId`/`nodeId` are now save-data keys, not just authoring conveniences. Locking the authoring rules first (as a docs-only PR, following the same discipline as M9-PR1/M10-PR1) avoids re-deciding these judgment calls mid-content-PR.
+
+**Impact**
+- Production story content and story selection UI remain deferred — this PR does not start writing content, and does not decide `sampleStory`'s fate (three strategy options — keep as fixture + add a second story, grow `sampleStory` into production content, or do neither yet — are documented but not chosen; **Option C, do neither yet, is the current default**).
+- Any future content PR should be checked against `docs/27` §11's validation checklist and §6's complexity budget.
+- `storyId`/`nodeId` changes are now explicitly flagged as save-breaking and must be called out in any PR that makes them.
+- Next PRs: **M11-PR2 — Story Schema / Content Validation Review**, **M11-PR3 — First MVP Story Strategy Decision**, **M11-H1 — Content Authoring Boundary Review**. Production content begins in M12 at the earliest, and only if M11-H1 finds the boundary safe.
+
+---
+
 ## 2026-07-03 - M10: Story Progress Persistence Signed Off (M10-H1)
 
 **Decision**
