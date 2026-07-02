@@ -6,6 +6,22 @@ Entries are listed in reverse chronological order (newest first).
 
 ---
 
+## 2026-07-03 - M11: First MVP Story Strategy Decided — Option C Selected, Production Content Still Deferred (M11-PR3)
+
+**Decision**
+`sampleStory` remains a runtime validation fixture and is not expanded into production content; no production story is added in M11 (`docs/27` §10's Option C). Option A (a separate production story alongside a preserved `sampleStory`) remains the preferred long-term direction, but only after nine prerequisites are met — most notably Layer 1 graph validation, an explicit default-story selection rule, and a reviewed single-slot-save decision. Option B (growing `sampleStory` itself) is rejected. Layer 1 graph validation is decided to land before production content, inserted as a new PR (M11-PR4) ahead of M11-H1.
+
+**Reason**
+Once `storyRegistry` would hold two stories, two currently-safe-only-by-accident mechanisms stop being safe: `App.tsx`'s "first catalog entry" default-story logic (an artifact of array order, not a deliberate rule) and the single-slot `matgo.v1.storyProgress` save key (a `storyId` mismatch silently discards whichever story's save is stale — not a crash, but a trust risk for whoever's progress gets reset). Neither has an explicit fix yet, and building one is exactly the kind of judgment call this project has consistently made in a planning PR before it becomes a live production-content risk.
+
+**Impact**
+- No production content, no `sampleStory` change, no registry change in this PR.
+- Next PR is **M11-PR4 — Minimal Story Graph Validation** (Layer 1, per `docs/28` §5/§7), inserted ahead of the originally-planned **M11-H1 — Content Authoring Boundary Review** so that review can evaluate the validation safety net in place, not its absence.
+- Any future Option A execution PR must satisfy `docs/29` §6's nine prerequisites before adding a second `storyRegistry` entry.
+- Story selection UI and multi-story save remain deferred, unchanged from M9/M10.
+
+---
+
 ## 2026-07-03 - M11: Story Schema Judged Sufficient for Small MVP Story, Automated Validation Deferred (M11-PR2)
 
 **Decision**

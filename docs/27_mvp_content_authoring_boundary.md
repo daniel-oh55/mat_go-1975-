@@ -245,3 +245,10 @@ This PR does not:
 - §11's content validation checklist was reclassified into four layers (graph integrity, registry integrity, boundary/import integrity, authoring policy integrity) with per-item manual-vs-automation recommendations — see `docs/28` §4–§5.
 - No automated validator was implemented. `docs/28` §6 recommends a minimal Layer 1 graph-validation test (`validateStoryDefinition`) as a strong candidate for **M11-PR3**, to land before the first production content PR.
 - Next: **M11-PR3 — First MVP Story Strategy Decision**, which will decide both the `sampleStory` strategy (§10's Option A/B/C) and whether/when Layer 1 validation is built relative to that strategy.
+
+---
+
+## 16. M11-PR3 Decision Note
+
+- `docs/29_first_mvp_story_strategy_decision.md` decided §10's options: **Option C selected for M11** (no production content, `sampleStory` unchanged); Option A confirmed as the preferred long-term direction, gated on explicit prerequisites (Layer 1 validation, a default-story rule, a single-slot-save review, among others); Option B rejected.
+- Layer 1 graph validation is decided to land before production content, as a new **M11-PR4 — Minimal Story Graph Validation**, ahead of M11-H1.
