@@ -528,6 +528,16 @@ See `docs/19_story_system_architecture.md` §12-E for the recommended path ratio
 
 **Constraints:** Application Layer only. Engine unchanged. No UI. No story content.
 
+**Result:**
+- `src/application/storySession/matchOutcomeAdapter.ts` added — `buildMatchOutcome(finalResult: FinalResult): MatchOutcome`.
+- `matchOutcomeAdapter.ts` is the only file under `src/application/storySession/` that imports an engine type (`FinalResult`, type-only, from `src/engine/types/index.ts`). `storyProgression.ts` and `storyTypes.ts` remain engine-free.
+- `humanWon` is derived from `finalResult.winner === HUMAN_PLAYER_ID` — the engine's authoritative winner field — not from score comparison. Draw (`winner: null`) and AI win both map to `humanWon: false`.
+- `humanFinalScore` / `aiFinalScore` map from `finalResult.scores[HUMAN_PLAYER_ID].total` / `finalResult.scores[AI_PLAYER_ID].total`.
+- `HUMAN_PLAYER_ID` / `AI_PLAYER_ID` imported from the existing `src/application/gameSession/index.ts` boundary (Application Layer to Application Layer import — not an engine import).
+- `src/application/storySession/matchOutcomeAdapter.test.ts` added — 7 tests: human win, AI win, draw, `humanFinalScore` mapping, `aiFinalScore` mapping, exhausted-reason win, no-mutation of input `FinalResult`.
+- `buildMatchOutcome` exported from `src/application/storySession/index.ts`. `FinalResult` is not re-exported from the public boundary.
+- No engine file modified. No `StorySession` state. No UI. No persistence. No production content.
+
 ---
 
 ### M7-PR3 — StorySession State
