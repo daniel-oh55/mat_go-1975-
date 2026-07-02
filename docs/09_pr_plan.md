@@ -847,6 +847,23 @@ See `docs/22_mvp_shell_stabilization_review.md` §9 for the recommended path rat
 
 ---
 
+## 3a. Milestone 10 Proposed PRs — Story Progress Persistence
+
+See `docs/25_story_progress_persistence_plan.md` for the full plan.
+
+### M10-PR1 — Story Progress Persistence Plan
+
+**Goal:** Document the storage key, save timing, reset/restart behavior, migration/versioning policy, failure handling, and test scope for `StoryProgress` persistence, before any implementation begins.
+
+**Constraints:** Documentation/planning only. No `src` changes. No `StorageService` changes. No production content.
+
+**Result:**
+- `docs/25_story_progress_persistence_plan.md` added — storage key (`matgo.v1.storyProgress`, `STORY_PROGRESS_SAVE_VERSION = 1`), single-slot document shape, a per-transition save-trigger table (save on `story`/`completed`, skip on `matchRequested`/`invalid`), load timing at the Story Mode entry boundary, explicit-overwrite restart behavior, full validation/corruption-handling rules mirroring `activeGameSave.ts`, and a test plan for the M10-PR2 implementation.
+- No `src` changes in this PR. `npx vitest run` (591 tests), `npx tsc --noEmit`, and `npm run build` all pass (baseline unaffected).
+- Next PR: **M10-PR2 — Story Progress Persistence Implementation**, followed by **M10-H1 — Story Progress Persistence Review**.
+
+---
+
 ## 4. Milestone 2 Proposed PRs
 
 ### M2-PR1 — Engine Types and Card Model
