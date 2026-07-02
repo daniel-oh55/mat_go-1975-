@@ -678,6 +678,16 @@ See `docs/20_story_runtime_architecture.md` §13-G for the recommended path rati
 
 **Constraints:** Minimal navigation only. No final art. No production content. No persistence changes.
 
+**Result:**
+- `src/components/shell/MinimalHomeScreen.tsx` added — presentational; two buttons (스토리 모드 / 자유 대전) with short descriptions and a validation-sample note. No engine, `storySession`, `gameSession`, `sampleStory`, or `StorageService` import.
+- `src/components/shell/index.ts` added — exports `MinimalHomeScreen`.
+- `App.tsx` now starts at `MinimalHomeScreen` (`mode: 'home'` initial state) instead of rendering `StoryRuntimeScreen` directly.
+- App-level `mode: 'home' | 'story' | 'freeMatch'` state added via `useState` — `App` stores only the selected mode; no `GameState`, `StorySessionState`, or `StoryDefinition` field exists on `App`.
+- Story Mode (`mode === 'story'`) renders `StoryRuntimeScreen` unchanged; Free Match (`mode === 'freeMatch'`) renders `GameSessionScreen` with no overridden props — standalone mode, resume, and active-game persistence all keep their existing defaults.
+- A minimal "← 홈으로" back button is rendered by `App` above both `StoryRuntimeScreen` and `GameSessionScreen` — neither child component was modified to add it.
+- Verified end-to-end in a real browser (Playwright): home → Story Mode → back → Free Match → start a standalone game → back to home mid-game → re-enter Free Match shows "게임 이어하기" (confirms the standalone active-game save survived the home round-trip, since `GameSessionScreen` unmounts/remounts with its default persistence props unchanged). No console errors.
+- No router. No settings/save-slot/story-selection screens. No `StoryProgress` persistence. No production content. Engine and `src/application/` unchanged.
+
 ---
 
 ### M8-PR3 — Story Runtime UX Polish

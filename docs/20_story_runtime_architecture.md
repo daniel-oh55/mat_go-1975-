@@ -436,3 +436,14 @@ Full regional/NPC/dialogue production content is **not** recommended as the imme
 - Full content production remains deferred.
 
 See `docs/21_runtime_shell_app_flow_decision.md` for the full options comparison and M8-PR2 acceptance criteria.
+
+### M8-PR2 Implementation Note
+
+- `MinimalHomeScreen` implemented (`src/components/shell/MinimalHomeScreen.tsx`).
+- `App` no longer launches directly into `StoryRuntimeScreen` — it starts at `MinimalHomeScreen` and tracks an app-level `mode: 'home' | 'story' | 'freeMatch'`.
+- `StoryRuntimeScreen` remains available through Story Mode, unmodified.
+- Free Match uses `GameSessionScreen` standalone mode with its existing default props — resume and active-game persistence behavior unchanged.
+- App-level state stores only the selected mode — no `GameState`, `StorySessionState`, or `StoryDefinition`.
+- `StoryProgress` persistence remains deferred.
+- `sampleStory` remains a validation fixture.
+- Engine unchanged.
