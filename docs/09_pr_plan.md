@@ -734,6 +734,65 @@ See `docs/20_story_runtime_architecture.md` §13-G for the recommended path rati
 
 **Constraints:** Review/documentation PR unless a blocker is found.
 
+**Result:**
+- MVP Shell Stabilization reviewed and signed off (`docs/22_mvp_shell_stabilization_review.md`).
+- Minimal Home Shell confirmed: App starts at `MinimalHomeScreen`; App-level state tracks only the selected mode.
+- Story Runtime UX polish confirmed: `StoryRuntimeScreen`/`StoryNodePanel` labels and `storyMatch` wording clarified without changing engine/application logic.
+- Board Readability Pass confirmed: labelled stat chips, larger tap targets, outcome badge, and tinted captured groups — presentation-only, no rule/scoring/AI changes.
+- Engine/application boundary preserved: no `src/engine/` or `src/application/` file modified across M8-PR1 through M8-PR4.
+- Hidden information invariant preserved: opponent hand contents remain hidden in both standalone and storyMatch mode.
+- `StoryProgress` persistence deferred.
+- Production content deferred.
+- M9 — Content Loader and Story Selection Foundation recommended next — see §3.9.
+
+---
+
+## 3.9. Milestone 9 Proposed PRs — Content Loader and Story Selection Foundation
+
+Milestone 9 removes the risk of `StoryRuntimeScreen` hardcoding `sampleStory` directly, by introducing a minimal content registry/loader boundary. It does not begin full regional/NPC/dialogue production content.
+
+See `docs/22_mvp_shell_stabilization_review.md` §9 for the recommended path rationale.
+
+---
+
+### M9-PR1 — Content Loader Architecture
+
+**Goal:** Define how story definitions are registered, selected, and passed to `StoryRuntimeScreen` without hardcoding a specific story file in UI.
+
+**Constraints:** Documentation only. No code.
+
+---
+
+### M9-PR2 — Story Content Registry
+
+**Goal:** Add a minimal Content Layer registry for available `StoryDefinition` entries. Use `sampleStory` as the only registered story.
+
+**Constraints:** No production content.
+
+---
+
+### M9-PR3 — StoryRuntimeScreen Definition Injection
+
+**Goal:** Refactor `StoryRuntimeScreen` to receive a `StoryDefinition` or storyId/loader result from the parent/Application boundary. Remove the direct `sampleStory` import from `StoryRuntimeScreen`.
+
+**Constraints:** Keep behavior identical. No production content.
+
+---
+
+### M9-PR4 — Minimal Story Selection Stub
+
+**Goal:** If needed, add a minimal Story Mode entry screen or selector that lists only the sample story.
+
+**Constraints:** No production content. No final art.
+
+---
+
+### M9-H1 — Content Loader Boundary Review
+
+**Goal:** Confirm the UI no longer hardcodes `sampleStory`, the engine remains story-agnostic, and content loading is data-driven.
+
+**Constraints:** Review/documentation PR unless a blocker is found.
+
 ---
 
 ## 4. Milestone 2 Proposed PRs
