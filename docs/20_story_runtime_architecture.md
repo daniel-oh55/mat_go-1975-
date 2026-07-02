@@ -143,7 +143,7 @@ M7은 아래의 M6 산출물 위에 세워진다 (`docs/19_story_system_architec
 
 ## 6. MatchOutcome Adapter Boundary
 
-`buildMatchOutcome`는 M7-PR2에서 추가될 Application Layer adapter다. 이 adapter만 engine `FinalResult` type을 import할 수 있다.
+`buildMatchOutcome`는 M7-PR2에서 제안되었고 그대로 구현된 Application Layer adapter다. 이 adapter만 engine `FinalResult` type을 import할 수 있다.
 
 **중요:**
 
@@ -186,19 +186,22 @@ M7-PR2에서 `matchOutcomeAdapter.ts`는 `HUMAN_PLAYER_ID` / `AI_PLAYER_ID`를 �
 
 ## 7. Proposed StorySession State Shape
 
-아래는 M7-PR3에서 구현될 `StorySession` 상태의 제안 형태다. 이번 PR에서는 코드로 구현하지 않는다.
+아래는 `StorySession` 상태의 shape다 — M7-PR1에서 제안되었고 M7-PR3에서 그대로 구현되었다. `'invalid'` status와 `pendingMatchContext` / `error` 필드는 M7-PR3 구현 과정에서 확정된 최종 shape에 포함되어 있다 (§7 M7-PR3 Implementation Result 참고).
 
 ```ts
 type StorySessionStatus =
   | 'story'
   | 'matchRequested'
-  | 'completed';
+  | 'completed'
+  | 'invalid';
 
 type StorySessionState = {
   storyId: string;
   progress: StoryProgress;
   viewModel: StoryViewModel | null;
   status: StorySessionStatus;
+  pendingMatchContext: MatchContext | null;
+  error: string | null;
 };
 ```
 
@@ -302,3 +305,125 @@ M7 must connect story progress to match completion through the Application Layer
 Engine code remains unchanged and story-agnostic.
 
 Persistence, production content, visual polish, and monetization remain deferred.
+
+---
+
+## 13. M7-H1 Story Runtime Boundary Review
+
+### A. Scope Reviewed
+
+The following PRs constitute the M7 Minimal Story Runtime Integration:
+
+| PR | Title | Status |
+|---|---|---|
+| M7-PR1 | Story Runtime Architecture | Merged to main |
+| M7-PR2 | MatchOutcome Adapter Boundary | Merged to main |
+| M7-PR2A | Player ID Boundary Refactor | Merged to main |
+| M7-PR3 | StorySession State | Merged to main |
+| M7-PR4 | Minimal Story UI Shell | Merged to main |
+
+---
+
+### B. Boundary Verification
+
+| Check | Status | Evidence | Notes |
+|---|---|---|---|
+| Engine files changed by M7 | **Pass** | No M7 PR modified any file under `src/engine/`; confirmed across PR1–PR4 review notes | Engine tree unchanged since M6-H1 |
+| Engine imports story/content/application storySession | **Pass** | `src/engine/` contains no import of `src/application/storySession/`, `src/content/`, or story types | Engine remains world-agnostic |
+| Story/content imports engine runtime | **Pass** | `storyProgression.ts`, `storyTypes.ts`, `storySessionState.ts`, `storySchema.ts`, `sampleStory.ts` import no engine module | Only `matchOutcomeAdapter.ts` imports an engine type, and only as a type-only import |
+| `FinalResult` import outside `matchOutcomeAdapter.ts` | **Pass** | `matchOutcomeAdapter.ts` is the sole file under `src/application/storySession/` with a `FinalResult` import (type-only, from `src/engine/types/index.ts`) | Verified in M7-PR2 and M7-PR2A review |
+| `storyProgression.ts` engine dependency | **Pass** | Imports only from `./storyTypes.js`; no engine import added across M7 | Unchanged since M6-PR3A |
+| `storySessionState.ts` engine dependency | **Pass** | Imports only from `./storyTypes.js` and `./storyProgression.js`; no `FinalResult` or engine import | Confirmed in M7-PR3 |
+| `StorySessionState` stores `GameState` | **Pass** (does not store it) | `StorySessionState` fields: `storyId`, `progress`, `viewModel`, `status`, `pendingMatchContext`, `error` — no `GameState`, `Ruleset`, or `RandomProvider` field | In-progress match engine state is owned separately by `GameSessionScreen`'s own `GameSessionState` |
+| `StorySessionState` stores `StoryDefinition` | **Pass** (does not store it) | Every helper that needs a definition (`createStorySession`, `continueStorySession`, `completeStoryMatch`, `selectStoryChoice`) receives it as a function argument, never as stored state | Confirmed in M7-PR3 |
+| `StoryProgress` persistence | **Deferred** | No `StorageService` call exists in `storySessionState.ts` or `StoryRuntimeScreen.tsx` | Deferred per §8; to be revisited after this runtime flow is proven stable |
+| `GameSessionScreen` imports story/content | **Pass** (does not import) | `GameSessionScreen.tsx` imports only from `../../application/gameSession/index.js` and sibling UI components; no `storySession` or `content` import | `onMatchComplete` reports `finalResult` upward — `GameSessionScreen` never reads story state |
+| `GameSessionScreen` standalone behavior | **Pass** | `mode`, `enableResume`, `enableActiveGamePersistence` all default to the pre-M7 standalone behavior; verified end-to-end in M7-PR4 browser testing | No regression to the local AI match loop |
+| Story UI reads `StoryDefinition.nodes` directly | **Pass** (does not) | `StoryNodePanel` reads only `StoryViewModel.currentNode`; `StoryRuntimeScreen` never accesses `sampleStory.nodes` | Confirmed by code review of both files |
+| Story UI evaluates `UnlockCondition` | **Pass** (does not) | No `UnlockCondition` type or evaluation logic appears in `src/components/story/` | `evaluateUnlockCondition` is called only inside `storyProgression.ts`, via `advanceStory` |
+| `sampleStory` production-content risk | **Validation-only** | `sampleStory` uses `sample-` prefixed node IDs and placeholder NPC/region strings (`sample-npc-01`, `sample-region-01`); no final Korean dialogue or regional art | Unchanged since M6-PR2B; still a validation fixture, not production content |
+| Story match affects shuffle/deal/scoring/AI | **Not Applicable / Pass** | `matchContext` is mapped to a normal engine setup before `GameSessionScreen` starts a match; the engine receives no `regionId`/`npcId`/story data | No mechanism exists for story state to reach engine randomness, scoring, or AI decisions |
+| ActiveGame save overwritten by story match | **Pass** | `StoryRuntimeScreen` renders `GameSessionScreen` with `enableActiveGamePersistence={false}` for story matches; when disabled, both the save/delete effect and the `deleteActiveGame` call inside `handleStartGame` are skipped | Verified in M7-PR4; a story match cannot delete or overwrite the player's standalone saved game |
+
+---
+
+### C. Runtime Flow Verification
+
+The following flow was implemented in M7-PR2 through M7-PR4 and verified end-to-end in a real browser (Playwright against the Vite dev server) during M7-PR4:
+
+1. `App` renders `StoryRuntimeScreen`.
+2. `StoryRuntimeScreen` creates `StorySessionState` from `sampleStory` via `createStorySession`.
+3. `StoryNodePanel` renders the dialogue node (`sample-intro`).
+4. `continueStorySession` moves the session to the match node (`sample-match-01`).
+5. `requestStoryMatch` moves the session to the `matchRequested` state, exposing `pendingMatchContext`.
+6. `GameSessionScreen` runs a normal local AI match in `storyMatch` mode (no resume prompt, no active-game persistence).
+7. `GameSessionScreen` passes `finalResult` upward via `onMatchComplete` — it does not know about `MatchOutcome` or `StorySession`.
+8. `StoryRuntimeScreen` calls `buildMatchOutcome(finalResult)`.
+9. `StoryRuntimeScreen` calls `completeStoryMatch(storySession, sampleStory, outcome)`.
+10. `StorySession` progresses to the appropriate end node (`sample-end-win` on a human win, `sample-end-default` otherwise).
+11. `StoryNodePanel` renders the end node ("샘플 이야기 완료").
+12. Restart (`createStorySession(sampleStory)` again) returns to the intro dialogue.
+
+Both the win and lose/draw branches were exercised manually; no console errors were observed in either path.
+
+---
+
+### D. Final M7 Decision
+
+M7 Minimal Story Runtime Integration is approved as a validation runtime.
+
+The project now has a complete sample flow from story node to local AI match and back to story progression.
+
+The engine remains story-agnostic and match fairness remains unaffected.
+
+`StoryProgress` persistence, production content, visual presentation, rewards, and monetization remain deferred.
+
+---
+
+### E. Remaining Deferred Work
+
+| Item |
+|---|
+| `StoryProgress` persistence |
+| Production region/NPC/dialogue content |
+| 1970s visual presentation |
+| Character portraits |
+| BGM/SFX/background art |
+| Reward/unlock animation |
+| Fortune/saju integration |
+| Monetization/ads integration |
+| Game Board Visual Shell polish |
+| Runtime content loader / story selection |
+| StoryRuntimeScreen production routing |
+| Online multiplayer |
+
+---
+
+### F. M7 Validation-Only Notes
+
+- `StoryRuntimeScreen` imports `sampleStory` directly, only for M7 validation.
+- This is acceptable for the minimal runtime proof, but production routing should eventually load story definitions through an Application/Content boundary rather than hardcoding `sampleStory` in UI.
+- `sampleStory` remains a validation fixture, not production content.
+- The `App` entry currently uses `StoryRuntimeScreen` for runtime verification. Future milestones may decide whether to keep story-first app entry or restore a menu/home flow.
+
+---
+
+### G. Recommended Next Milestone
+
+M7 이후 바로 production content 제작으로 가지 않는다. 다음 단계는 아래 둘 중 하나로 결정한다.
+
+**Recommended: M8 — MVP Shell Stabilization and Runtime Polish**
+
+| Purpose | Detail |
+|---|---|
+| Stabilize the current story-match-story loop | Confirm the loop holds up under repeated play before adding content on top |
+| Improve board readability enough for test play | Board polish inside both standalone and storyMatch mode |
+| Add minimal app navigation/home shell if needed | Decide whether a home/menu screen belongs before the story shell |
+| Decide where story runtime lives in the app flow | Story-first entry vs. menu-first entry |
+| Constraint | Still avoid full production content until the UX loop is stable |
+
+**Alternative: M8A — Game Board Visual Shell**
+
+Use if board readability and play comfort are more urgent than app navigation/runtime polish.
+
+Full regional/NPC/dialogue production content is **not** recommended as the immediate next step.
