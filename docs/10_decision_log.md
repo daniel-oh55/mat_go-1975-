@@ -6,6 +6,22 @@ Entries are listed in reverse chronological order (newest first).
 
 ---
 
+## 2026-07-03 - M10: Story Progress Persistence Signed Off (M10-H1)
+
+**Decision**
+`StoryProgress` persistence built across M10-PR1–PR3 is approved for MVP continuation. See `docs/26_story_progress_persistence_review.md` for the full 32-item checklist and sign-off. No blocker was found.
+
+**Reason**
+Persistence touches player data, so before any further Story Mode feature work — production content, story selection UI, or multi-story save — the save/load boundary needed an explicit review confirming the implementation matches the `docs/25` policy exactly: single-slot versioned document, stable-state-only save triggers, `matchRequested`/`invalid` excluded from saving, explicit restart-overwrite, and full separation from `ActiveGame` persistence.
+
+**Impact**
+- Approved: versioned `StoryProgress` save document, single-slot MVP key, Application Layer persistence helpers, `StoryRuntimeScreen` load/save wiring, stable-state-only save policy, restart-overwrite policy, corrupt/invalid-save fallback, `ActiveGame`/`StoryProgress` separation.
+- Deferred: production story content, story selection UI, multi-story save slots, Story Match mid-game persistence, cloud/account sync, save migration beyond v1, analytics/telemetry around save failures.
+- Recommended next milestone: **M11 — MVP Content Authoring Boundary**, starting with a documentation/planning PR, not production content — locking which content fields are allowed (region/NPC/art/BGM/reward) before any story writing begins.
+- Documentation/review-only PR — no `src` changes.
+
+---
+
 ## 2026-07-02 - M10: Story Progress Persistence Wired into Runtime (M10-PR3)
 
 **Decision**
