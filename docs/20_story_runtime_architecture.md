@@ -482,3 +482,10 @@ See `docs/21_runtime_shell_app_flow_decision.md` for the full options comparison
 - `StoryRuntimeScreen` should eventually receive a `StoryDefinition` via props (`storyDefinition` injection), or a parent/Content-Layer boundary — not via a direct concrete story import.
 - Engine remains unchanged.
 - Production content and `StoryProgress` persistence remain deferred.
+
+### M9-PR3 Note
+
+- `StoryRuntimeScreen` no longer imports `sampleStory` — the §F hardcoding this section flagged is resolved. It now takes an injected `storyDefinition: StoryDefinition` prop and uses it for every session transition; it does not import the M9-PR2 registry loader.
+- `App.tsx` resolves the default story via `getStoryCatalog()` / `getStoryDefinition()` (from `src/content/stories/storyRegistry.ts`) and passes it down, keyed on `storyDefinition.storyId`.
+- The runtime flow itself (§5) is unchanged — verified manually end-to-end in a real browser: dialogue → match → result → story end, plus standalone Free Match unaffected.
+- Engine remains unchanged. No story selection UI. Production content and `StoryProgress` persistence remain deferred.

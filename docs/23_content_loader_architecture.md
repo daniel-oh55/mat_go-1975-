@@ -313,3 +313,15 @@ The project should not begin production story writing until the UI no longer har
 - `StoryRuntimeScreen` is unchanged and still imports `sampleStory` directly — the §8 refactor (injecting `storyDefinition` as a prop) is still M9-PR3, not this PR.
 - No production content added; `sampleStory` remains the only registered story.
 - `StoryProgress` persistence remains deferred.
+
+---
+
+## 18. M9-PR3 Implementation Note
+
+- `StoryRuntimeScreen` implements the §8 recommended direction exactly: it takes a `storyDefinition: StoryDefinition` prop (type-only import) and no longer imports `sampleStory`. Every session transition (`createStorySession`, `continueStorySession`, `selectStoryChoice`, `completeStoryMatch`, restart) uses the injected `storyDefinition`.
+- `StoryRuntimeScreen` does not import `getStoryCatalog` / `getStoryDefinition` — it stays a pure function of the injected definition plus its own `StorySessionState`, per §3's "Keep `StoryRuntimeScreen` focused on runtime UI/state, not content discovery" goal.
+- `App.tsx` is the Story Mode parent boundary described in §9's "M9-PR3 이후" flow: it calls `getStoryCatalog()`, takes the first catalog entry, calls `getStoryDefinition(storyId)`, and passes the result to `StoryRuntimeScreen`. `App.tsx` does not import `sampleStory`.
+- If the registry has no entries or the lookup fails, `App.tsx` renders a minimal error fallback instead of mounting `StoryRuntimeScreen` — no crash path (§10).
+- `StoryRuntimeScreen` is keyed on `storyDefinition.storyId` in `App.tsx` so a future story-definition change (e.g. M9-PR4 selection) safely resets runtime state instead of reusing stale `StorySessionState`.
+- Manual end-to-end verification (dialogue → match → result → story end, and standalone Free Match) passed with no console errors.
+- No story selection UI, no production content, no `StoryProgress` persistence, no engine or Application Layer runtime logic changes.

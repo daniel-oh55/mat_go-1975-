@@ -3,12 +3,19 @@ import type { StorageService } from './application/storage/StorageService.js';
 import { MinimalHomeScreen } from './components/shell/index.js';
 import { StoryRuntimeScreen } from './components/story/index.js';
 import { GameSessionScreen } from './components/game/index.js';
+import { getStoryCatalog, getStoryDefinition } from './content/stories/storyRegistry.js';
 
 interface AppProps {
   storageService: StorageService;
 }
 
 type AppMode = 'home' | 'story' | 'freeMatch';
+
+/** Content Layer boundary: the only story available until story selection UI exists. */
+function getDefaultStoryDefinition() {
+  const firstStory = getStoryCatalog()[0];
+  return firstStory === undefined ? null : getStoryDefinition(firstStory.storyId);
+}
 
 /**
  * App-level shell. Tracks only which mode the player has selected — never
@@ -20,6 +27,7 @@ type AppMode = 'home' | 'story' | 'freeMatch';
  */
 export function App({ storageService }: AppProps) {
   const [mode, setMode] = useState<AppMode>('home');
+  const defaultStoryDefinition = getDefaultStoryDefinition();
 
   if (mode === 'home') {
     return (
@@ -37,7 +45,16 @@ export function App({ storageService }: AppProps) {
           ← 홈으로
         </button>
       </div>
-      {mode === 'story' && <StoryRuntimeScreen storageService={storageService} />}
+      {mode === 'story' &&
+        (defaultStoryDefinition !== null ? (
+          <StoryRuntimeScreen
+            key={defaultStoryDefinition.storyId}
+            storageService={storageService}
+            storyDefinition={defaultStoryDefinition}
+          />
+        ) : (
+          <div style={styles.errorBox}>스토리를 불러올 수 없습니다.</div>
+        ))}
       {mode === 'freeMatch' && <GameSessionScreen storageService={storageService} />}
     </div>
   );
@@ -59,5 +76,15 @@ const styles = {
     border: '1px solid #ccc',
     borderRadius: 6,
     cursor: 'pointer',
+  } as React.CSSProperties,
+
+  errorBox: {
+    maxWidth: 560,
+    margin: '12px auto 0',
+    padding: '10px 14px',
+    fontFamily: 'system-ui, sans-serif',
+    fontSize: 14,
+    color: '#c33',
+    boxSizing: 'border-box' as const,
   } as React.CSSProperties,
 } as const;

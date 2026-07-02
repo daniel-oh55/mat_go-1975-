@@ -809,6 +809,14 @@ See `docs/22_mvp_shell_stabilization_review.md` §9 for the recommended path rat
 
 **Constraints:** Keep behavior identical. No production content.
 
+**Result:**
+- `StoryRuntimeScreen` no longer imports `sampleStory`. It takes a `storyDefinition: StoryDefinition` prop (type-only import from `content/schemas/storySchema.js`) and uses it for every session transition (`createStorySession`, `continueStorySession`, `selectStoryChoice`, `completeStoryMatch`, restart).
+- `StoryRuntimeScreen` does not import the registry loader and does not accept a `storyId` — it only consumes the injected `StoryDefinition`, matching the `docs/23` §8 recommendation.
+- `App.tsx` calls `getStoryCatalog()` / `getStoryDefinition()` from `src/content/stories/storyRegistry.js` to resolve the first catalog entry as the default story, and passes it to `StoryRuntimeScreen` as `storyDefinition`, keyed on `storyDefinition.storyId`. `App.tsx` no longer imports `sampleStory`.
+- If the registry returns no story, `App.tsx` renders a minimal "스토리를 불러올 수 없습니다" fallback instead of mounting `StoryRuntimeScreen`.
+- Player-visible behavior is unchanged: dialogue → match → result → story end flow verified manually end-to-end (Playwright), Free Match standalone flow verified unaffected. No console errors observed.
+- No engine changes. No Application Layer runtime logic changes (only the type-only `StoryDefinition` import and prop wiring). No production content, no story selection UI, no `StoryProgress` persistence.
+
 ---
 
 ### M9-PR4 — Minimal Story Selection Stub
