@@ -625,6 +625,64 @@ See `docs/19_story_system_architecture.md` §12-E for the recommended path ratio
 
 **Constraints:** Review and documentation only, unless a boundary issue is discovered that requires a fix.
 
+**Result:**
+- Story Runtime Boundary reviewed and signed off (`docs/20_story_runtime_architecture.md` §13).
+- Engine/story boundary confirmed: no `src/engine/` file modified by any M7 PR; no engine import of story/content/storySession; no story/content import of engine runtime.
+- `MatchOutcome` adapter boundary confirmed: `FinalResult` import remains confined to `matchOutcomeAdapter.ts`.
+- `StorySessionState` boundary confirmed: does not store `GameState`, `Ruleset`, `RandomProvider`, or `StoryDefinition`.
+- Minimal Story UI shell confirmed: `StoryNodePanel`/`StoryRuntimeScreen` consume `StoryViewModel` only; `GameSessionScreen` remains story-agnostic and standalone behavior is preserved by default props.
+- `StoryProgress` persistence deferred.
+- Production content deferred.
+- M8 (MVP Shell Stabilization and Runtime Polish) recommended next — see §3.8.
+
+---
+
+## 3.8. Milestone 8 Proposed PRs — MVP Shell Stabilization and Runtime Polish
+
+Milestone 8 stabilizes the app shell and the story-match-story loop introduced in M7, and improves board readability enough for test play. It does not begin full regional/NPC/dialogue production content.
+
+See `docs/20_story_runtime_architecture.md` §13-G for the recommended path rationale.
+
+---
+
+### M8-PR1 — Runtime Shell Review and App Flow Decision
+
+**Goal:** Decide whether the app should start directly in `StoryRuntimeScreen`, show a minimal home/menu first, or provide separate buttons for Story Mode and Free Match.
+
+**Constraints:** Documentation only. No code unless explicitly approved.
+
+---
+
+### M8-PR2 — Minimal Home Shell
+
+**Goal:** Add a simple home screen with Story Mode and Free Match entry points if M8-PR1 approves it.
+
+**Constraints:** Minimal navigation only. No final art. No production content.
+
+---
+
+### M8-PR3 — Story Runtime UX Polish
+
+**Goal:** Improve the sample story runtime usability: clearer labels, clearer match start/return affordance, basic error visibility.
+
+**Constraints:** No production story content. No BGM/SFX. No persistence.
+
+---
+
+### M8-PR4 — Board Readability Pass
+
+**Goal:** Improve the match board readability inside both standalone and storyMatch mode.
+
+**Constraints:** No rule changes. No engine changes. No final art requirement.
+
+---
+
+### M8-H1 — MVP Shell Stabilization Review
+
+**Goal:** Confirm the app shell, story runtime, and board readability are stable enough before production content work begins.
+
+**Constraints:** Review/documentation PR unless a blocker is found.
+
 ---
 
 ## 4. Milestone 2 Proposed PRs

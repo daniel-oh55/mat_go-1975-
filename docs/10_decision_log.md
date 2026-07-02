@@ -6,6 +6,25 @@ Entries are listed in reverse chronological order (newest first).
 
 ---
 
+## 2026-07-02 - M7: Minimal Story Runtime Integration Approved
+
+**Decision**
+Milestone 7 Minimal Story Runtime Integration is approved. The project now has a complete validation flow from sample story node to local AI match and back to story progression.
+
+**Reason**
+The project goal is not just a Matgo match, but a story-driven Matgo experience. M7 proves that match results can advance story state without leaking story logic into the engine or affecting fairness.
+
+**Impact**
+- Engine remains story-agnostic.
+- FinalResult to MatchOutcome conversion remains isolated in the Application Layer adapter.
+- StorySessionState manages story runtime state without storing GameState or StoryDefinition.
+- GameSessionScreen can run in storyMatch mode while remaining story-agnostic.
+- StoryProgress persistence remains deferred.
+- Production content remains deferred.
+- M8 should stabilize app shell and runtime UX before full content production.
+
+---
+
 ## 2026-07-02 - M7: Minimal Story Runtime Integration Begins
 
 **Decision**
