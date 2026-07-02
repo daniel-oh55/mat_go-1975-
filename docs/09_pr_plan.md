@@ -600,6 +600,18 @@ See `docs/19_story_system_architecture.md` §12-E for the recommended path ratio
 
 **Constraints:** Minimal shell only. No final art. No regional content. No BGM/SFX. No production dialogue.
 
+**Result:**
+- `src/components/story/StoryRuntimeScreen.tsx` added — owns `StorySessionState` for `sampleStory` via `useState`; drives it exclusively through `createStorySession` / `continueStorySession` / `requestStoryMatch` / `completeStoryMatch` / `selectStoryChoice` / `buildMatchOutcome`.
+- `src/components/story/StoryNodePanel.tsx` added — presentational; renders `StoryViewModel.currentNode` by discriminated `type` (`dialogue` / `match` / `choice` / `end`); never reads `StoryDefinition.nodes` directly and never evaluates `UnlockCondition`.
+- `src/App.tsx` now renders `StoryRuntimeScreen` instead of `GameSessionScreen` directly — the app's entry point is the sample story runtime validation flow, not the game board.
+- `GameSessionScreen` extended with optional props: `mode` (`'standalone' | 'storyMatch'`, default `'standalone'`), `onMatchComplete`, `onCancelStoryMatch`, `enableResume` (default `true`), `enableActiveGamePersistence` (default `true`). With all defaults, standalone behavior is byte-for-byte the same as before this PR. `GameSessionScreen` still imports nothing from `storySession` or content — it only reports `finalResult` upward via `onMatchComplete`.
+- When `enableActiveGamePersistence` is `false`, both the save/delete effect and the `deleteActiveGame` call inside `handleStartGame` are skipped, so a story match never touches (or deletes) the player's standalone saved game.
+- `ResultPanel` extended with optional `onContinue` / `continueLabel` props (defaulting the label to "이야기로 돌아가기"); the existing `onRestart` ("다시 하기") is unchanged and always rendered.
+- Match completion flow: `GameSessionScreen` (storyMatch mode) → `onMatchComplete(finalResult)` → `StoryRuntimeScreen` calls `buildMatchOutcome(finalResult)` then `completeStoryMatch(storySession, sampleStory, outcome)` → `setStorySession(next)`.
+- No `StoryProgress` persistence. No production story content — `sampleStory` used strictly as the M6/M7 validation fixture. Engine unchanged; no engine file touched.
+- Verified end-to-end in a real browser (Playwright against the Vite dev server): dialogue → match node → storyMatch idle screen (no resume prompt, cancel button present, cancel returns to the match node without error) → full match played to completion → `ResultPanel` shows both "다시 하기" and "이야기로 돌아가기" → clicking "이야기로 돌아가기" returns to the story shell on the `end` node ("샘플 이야기 완료") → "샘플 이야기 다시 시작" restarts from the intro dialogue. No console errors observed in any step.
+- No new test infrastructure added (no React rendering test library exists in this project and `package.json` is off-limits for this PR); existing 581 tests all pass unchanged.
+
 ---
 
 ### M7-H1 — Story Runtime Boundary Review

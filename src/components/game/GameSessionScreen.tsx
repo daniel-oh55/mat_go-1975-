@@ -7,7 +7,7 @@ import {
   deleteActiveGame,
   loadActiveGame,
 } from '../../application/gameSession/index.js';
-import type { GameSessionState } from '../../application/gameSession/index.js';
+import type { GameSessionState, GameViewModel } from '../../application/gameSession/index.js';
 import type { StorageService } from '../../application/storage/StorageService.js';
 import { MathRandomProvider } from '../../application/mathRandomProvider.js';
 import type { LegalPlayAction } from '../../application/gameSession/index.js';
@@ -24,6 +24,19 @@ import { CapturedCardGroups } from './CapturedCardGroups.js';
 
 interface GameSessionScreenProps {
   storageService: StorageService;
+  /**
+   * 'standalone' (default): the existing title-screen game, with resume and
+   * active-game persistence. 'storyMatch': embedded inside the Story Runtime
+   * shell — GameSessionScreen never imports story types or sampleStory; it
+   * only reports finalResult upward via onMatchComplete.
+   */
+  mode?: 'standalone' | 'storyMatch';
+  /** storyMatch mode only: called with the engine's finalResult when the match ends. */
+  onMatchComplete?: (finalResult: NonNullable<GameViewModel['finalResult']>) => void;
+  /** storyMatch mode only: called from the idle screen to back out without starting a match. */
+  onCancelStoryMatch?: () => void;
+  enableResume?: boolean;
+  enableActiveGamePersistence?: boolean;
 }
 
 /**
@@ -34,10 +47,22 @@ interface GameSessionScreenProps {
  * - Manages session state via gameSessionReducer.
  * - Dispatches human actions through the Application Layer.
  * - Auto-advances AI turns via useEffect.
- * - Persists active game state via saveActiveGame / deleteActiveGame after each session change.
+ * - Persists active game state via saveActiveGame / deleteActiveGame after each session change
+ *   (when enableActiveGamePersistence is true).
  * - Passes derived view data down to child components.
+ *
+ * This component has no knowledge of the Story System: it never imports
+ * story types, storySession, or content. mode/onMatchComplete/onCancelStoryMatch
+ * only change standalone-vs-embedded chrome and report finalResult upward.
  */
-export function GameSessionScreen({ storageService }: GameSessionScreenProps) {
+export function GameSessionScreen({
+  storageService,
+  mode = 'standalone',
+  onMatchComplete,
+  onCancelStoryMatch,
+  enableResume = true,
+  enableActiveGamePersistence = true,
+}: GameSessionScreenProps) {
   const randomProvider = useRef(new MathRandomProvider()).current;
   const [session, dispatch] = useReducer(gameSessionReducer, undefined, createIdleSession);
   // Tracks which hand card is awaiting field-target selection (OD-2 multi-match flow)
@@ -52,7 +77,12 @@ export function GameSessionScreen({ storageService }: GameSessionScreenProps) {
   // On mount: check for a saved active game. Never restores automatically.
   // cancelled flag prevents stale setState calls if storageService changes or component unmounts
   // before the async load resolves (guards against React StrictMode double-invoke as well).
+  // Skipped entirely when enableResume is false (e.g. storyMatch mode).
   useEffect(() => {
+    if (!enableResume) {
+      setIsCheckingResume(false);
+      return;
+    }
     let cancelled = false;
     void loadActiveGame(storageService).then((saved) => {
       if (cancelled) return;
@@ -62,7 +92,7 @@ export function GameSessionScreen({ storageService }: GameSessionScreenProps) {
     return () => {
       cancelled = true;
     };
-  }, [storageService]);
+  }, [storageService, enableResume]);
 
   // Clear target selection whenever the session changes (after any dispatch)
   useEffect(() => {
@@ -72,13 +102,16 @@ export function GameSessionScreen({ storageService }: GameSessionScreenProps) {
   // Save trigger: fires after every session state change.
   // playing/pendingGoStop → save; ended → delete; idle → no-op.
   // saveActiveGame and deleteActiveGame are fire-and-forget (never throw).
+  // Skipped entirely when enableActiveGamePersistence is false (e.g. storyMatch
+  // mode) so a story match never overwrites the standalone saved game.
   useEffect(() => {
+    if (!enableActiveGamePersistence) return;
     if (session.phase === 'playing' || session.phase === 'pendingGoStop') {
       void saveActiveGame(storageService, session);
     } else if (session.phase === 'ended') {
       void deleteActiveGame(storageService);
     }
-  }, [session, storageService]);
+  }, [session, storageService, enableActiveGamePersistence]);
 
   // Auto-advance AI turns (and AI pendingGoStop decisions)
   useEffect(() => {
@@ -110,8 +143,11 @@ export function GameSessionScreen({ storageService }: GameSessionScreenProps) {
     setResumeSession(null);
     setPendingCardId(null);
     // Await delete so the new game's first save (triggered by START_GAME) cannot race
-    // against this delete on async storage adapters (e.g. Capacitor).
-    await deleteActiveGame(storageService);
+    // against this delete on async storage adapters (e.g. Capacitor). Skipped when
+    // persistence is disabled so a story match never deletes the standalone saved game.
+    if (enableActiveGamePersistence) {
+      await deleteActiveGame(storageService);
+    }
     dispatch({ type: 'START_GAME', randomProvider });
     // Reset guard so the ended→playing path can call handleStartGame again on the next game.
     setIsStartingGame(false);
@@ -167,6 +203,11 @@ export function GameSessionScreen({ storageService }: GameSessionScreenProps) {
         >
           새 게임 시작
         </button>
+        {mode === 'storyMatch' && onCancelStoryMatch !== undefined && (
+          <button onClick={onCancelStoryMatch} style={styles.cancelButton} disabled={isStartingGame}>
+            취소
+          </button>
+        )}
       </div>
     );
   }
@@ -174,6 +215,7 @@ export function GameSessionScreen({ storageService }: GameSessionScreenProps) {
   if (session.viewModel === null) return null;
   // Re-bind after null guard so TypeScript narrows the type in all closures.
   const vm = session.viewModel;
+  const finalResult = session.phase === 'ended' ? vm.finalResult : null;
 
   // Field card IDs that are valid targets for the currently pending hand card
   const targetFieldCardIds: ReadonlySet<string> =
@@ -245,14 +287,17 @@ export function GameSessionScreen({ storageService }: GameSessionScreenProps) {
         />
       )}
 
-      {session.phase === 'ended' && vm.finalResult !== null && (
+      {session.phase === 'ended' && finalResult !== null && (
         <ResultPanel
-          winner={vm.finalResult.winner}
-          reason={vm.finalResult.reason}
+          winner={finalResult.winner}
+          reason={finalResult.reason}
           humanPlayerId={HUMAN_PLAYER_ID}
           humanScoreBreakdown={vm.humanScoreBreakdown}
           aiScoreBreakdown={vm.aiScoreBreakdown}
           onRestart={handleStartGame}
+          {...(mode === 'storyMatch' && onMatchComplete !== undefined
+            ? { onContinue: () => onMatchComplete(finalResult), continueLabel: '이야기로 돌아가기' }
+            : {})}
         />
       )}
 
