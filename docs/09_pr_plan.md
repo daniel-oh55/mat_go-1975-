@@ -499,9 +499,21 @@ See `docs/19_story_system_architecture.md` §12-E for the recommended path ratio
 
 ### M7-PR1 — Story Runtime Architecture
 
-**Goal:** Document how `StoryProgress`, the active game session, and match completion connect without breaking the engine boundary. Covers: `buildMatchOutcome` adapter placement, `StorySession` state shape, persistence trigger points, and UI navigation flow.
+**Goal:** Document the runtime flow connecting `StoryProgress`, `StoryViewModel`, `GameSession` completion, and the `MatchOutcome` adapter while preserving the engine boundary.
+
+| Deliverable | Notes |
+|---|---|
+| `docs/20_story_runtime_architecture.md` | Runtime flow (story start, dialogue, match, choice, end nodes), `MatchOutcome` adapter placement decision, `StorySession` state proposal, persistence deferral decision, M7 risk review |
+| `docs/09_pr_plan.md` | This entry |
+| `docs/10_decision_log.md` | M7 start decision |
 
 **Constraints:** Documentation only. No code.
+
+**Result:**
+- `docs/20_story_runtime_architecture.md` added.
+- `buildMatchOutcome` adapter location proposed: `src/application/storySession/matchOutcomeAdapter.ts` (M7-PR2, not created in this PR).
+- `StorySessionState` shape proposed — does not include `GameState`.
+- Persistence and production content confirmed deferred.
 
 ---
 

@@ -6,6 +6,24 @@ Entries are listed in reverse chronological order (newest first).
 
 ---
 
+## 2026-07-02 - M7: Minimal Story Runtime Integration Begins
+
+**Decision**
+Milestone 7 begins as Minimal Story Runtime Integration. The first PR documents the runtime architecture before code is written.
+
+**Reason**
+M6 established a data-driven story foundation, but story is not yet connected to match completion. A runtime architecture document is required before implementation to prevent story logic from leaking into the engine or persistence being added too early.
+
+**Impact**
+- M7 starts with documentation only.
+- Engine remains unchanged.
+- `FinalResult` to `MatchOutcome` conversion will be isolated in an Application Layer adapter.
+- `StoryProgress` persistence remains deferred.
+- Production content remains deferred.
+- Minimal Story UI shell comes only after adapter and state boundaries are documented.
+
+---
+
 ## 2026-07-02 - M6: Story System Foundation Approved (M6-H1)
 
 **Decision**
