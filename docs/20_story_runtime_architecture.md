@@ -466,3 +466,11 @@ See `docs/21_runtime_shell_app_flow_decision.md` for the full options comparison
 - Engine unchanged. `src/application/` unchanged.
 - `StoryProgress` persistence remains deferred.
 - Hidden information invariant preserved: the opponent/AI area still renders only a hand-size count and face-down placeholders — no opponent card content is ever shown. Verified in a real browser for both standalone Free Match and Story Match.
+
+### M8-H1 Note
+
+- M8 shell stabilization approved — see `docs/22_mvp_shell_stabilization_review.md` for the full review.
+- Story runtime remains valid after the Minimal Home Shell and Board Readability Pass — the runtime flow documented in §5 and verified in M7-PR4 still holds unchanged.
+- `StoryRuntimeScreen` still imports `sampleStory` directly, as validation-only (§F).
+- Next recommended step is a content loader/story selection foundation (M9), so the UI stops hardcoding `sampleStory`.
+- `StoryProgress` persistence and production content remain deferred.

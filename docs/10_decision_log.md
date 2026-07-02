@@ -6,6 +6,26 @@ Entries are listed in reverse chronological order (newest first).
 
 ---
 
+## 2026-07-02 - M8: MVP Shell Stabilization Approved
+
+**Decision**
+Milestone 8 MVP Shell Stabilization is approved. The app now starts from a Minimal Home Shell with Story Mode and Free Match entry points, Story Mode UX labels are clearer, and board readability has improved for both modes.
+
+**Reason**
+M7 proved the story-match-story runtime flow, but the app needed a clearer shell before production content. M8 makes the MVP flow understandable without introducing full navigation, persistence, or production content.
+
+**Impact**
+- App-level state tracks only selected mode.
+- Free Match remains standalone and keeps active-game save/resume.
+- Story Mode remains a validation sample flow.
+- GameSessionScreen remains story-agnostic.
+- Engine and Application logic remain unchanged.
+- StoryProgress persistence remains deferred.
+- Production content remains deferred.
+- M9 should address content loading and story selection before full content production.
+
+---
+
 ## 2026-07-02 - M8: Minimal Home Shell Recommended Before Content Production
 
 **Decision**

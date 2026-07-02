@@ -241,3 +241,13 @@ This is the smallest app-shell improvement that makes the current validation run
 - No production content.
 - No full navigation/router.
 - No persistence changes.
+
+---
+
+## 15. M8-H1 Note
+
+- Minimal Home Shell decision implemented and reviewed — see `docs/22_mvp_shell_stabilization_review.md` for the full sign-off.
+- App flow is stable enough for MVP continuation: Home → Story Mode / Free Match, with the "← 홈으로" back button working from both.
+- Board readability improved for both modes (M8-PR4), without changing rule/scoring/AI/save logic.
+- No full navigation/router added.
+- Next issue: `sampleStory` is still hardcoded in `StoryRuntimeScreen`, so content loader/story selection (M9) should come before production content.
