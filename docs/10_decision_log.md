@@ -6,6 +6,23 @@ Entries are listed in reverse chronological order (newest first).
 
 ---
 
+## 2026-07-02 - M8: Minimal Home Shell Recommended Before Content Production
+
+**Decision**
+M8 should proceed with a Minimal Home Shell before production story content. The app should offer separate Story Mode and Free Match entry points instead of launching directly into StoryRuntimeScreen.
+
+**Reason**
+M7 proved the story-match-story runtime loop, but the current app entry is still a validation flow. A minimal shell is needed so players and testers understand the available modes before content production begins.
+
+**Impact**
+- M8-PR2 should implement MinimalHomeScreen.
+- App-level state should only track selected mode, not GameState or StorySessionState.
+- StoryRuntimeScreen remains the Story Mode validation flow for now.
+- GameSessionScreen standalone mode becomes the Free Match entry point.
+- Production story content, final art, BGM/SFX, and StoryProgress persistence remain deferred.
+
+---
+
 ## 2026-07-02 - M7: Minimal Story Runtime Integration Approved
 
 **Decision**
