@@ -40,8 +40,21 @@ export type { StorySessionStatus, StorySessionState } from './storySessionState.
 export {
   createInitialStoryProgress,
   createStorySession,
+  restoreStorySession,
   continueStorySession,
   requestStoryMatch,
   completeStoryMatch,
   selectStoryChoice,
 } from './storySessionState.js';
+
+export {
+  STORY_PROGRESS_STORAGE_KEY,
+  STORY_PROGRESS_SAVE_VERSION,
+  serializeStoryProgress,
+  validateStoryProgressSaveDocument,
+  saveStoryProgress,
+  loadStoryProgress,
+  deleteStoryProgress,
+  shouldSaveStoryProgress,
+} from './storyProgressSave.js';
+export type { StoryProgressSaveDocumentV1 } from './storyProgressSave.js';

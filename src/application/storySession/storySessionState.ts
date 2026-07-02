@@ -121,6 +121,26 @@ export function createStorySession(definition: StoryDefinition): StorySessionSta
 }
 
 /**
+ * Restores a StorySessionState from a previously-saved StoryProgress (e.g. from
+ * persistence), instead of starting a fresh playthrough. Unlike createStorySession,
+ * this does not call createInitialStoryProgress — `progress` is used as-is to
+ * derive the StoryViewModel.
+ *
+ * Returns an 'invalid' state (via buildStateFromProgress) if `progress.currentNodeId`
+ * is not found in `definition` — the caller is responsible for treating that as a
+ * failed restore and falling back to a fresh session.
+ *
+ * Pure function: does not know about storage, the content registry, or any
+ * concrete story file.
+ */
+export function restoreStorySession(
+  definition: StoryDefinition,
+  progress: StoryProgress,
+): StorySessionState {
+  return buildStateFromProgress(definition, progress);
+}
+
+/**
  * Advances a 'dialogue' node to its next node. No-op-with-error for any other
  * node type or session status — see the error policy above.
  */
