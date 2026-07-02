@@ -7,10 +7,13 @@
  *
  * Dependency rule: may import FinalResult (type-only) from src/engine/types/.
  * Must not import any other engine module. Must not mutate FinalResult.
+ * Player IDs come from src/application/shared/playerIds.ts, not from
+ * gameSession/index.ts, so this file never pulls in gameSession's
+ * createGameSession → engine runtime import chain.
  */
 
 import type { FinalResult } from '../../engine/types/index.js';
-import { HUMAN_PLAYER_ID, AI_PLAYER_ID } from '../gameSession/index.js';
+import { HUMAN_PLAYER_ID, AI_PLAYER_ID } from '../shared/playerIds.js';
 import type { MatchOutcome } from './storyTypes.js';
 
 /**

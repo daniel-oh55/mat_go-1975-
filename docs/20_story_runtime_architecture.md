@@ -171,6 +171,17 @@ src/application/storySession/matchOutcomeAdapter.ts
 - UI shell은 여전히 M7-PR4로 남아 있다.
 - Persistence는 여전히 deferred 상태다.
 
+### M7-PR2A Boundary Refactor Result
+
+M7-PR2에서 `matchOutcomeAdapter.ts`는 `HUMAN_PLAYER_ID` / `AI_PLAYER_ID`를 가져오기 위해 `src/application/gameSession/index.ts`를 import했다. 문제는 `gameSession/index.ts`가 `createGameSession`도 함께 re-export하고, `createGameSession.ts`는 engine runtime module(`newGame`, `RandomProvider`)을 import한다는 점이다. 그 결과 `storySession → gameSession/index → createGameSession → engine runtime`으로 이어지는 간접 의존이 생길 수 있었다. M7-PR2A는 이 경로를 끊는다.
+
+- `HUMAN_PLAYER_ID` / `AI_PLAYER_ID`는 이제 `src/application/shared/playerIds.ts`에 정의된다 — engine import도, content import도, runtime logic도 없는 순수 상수 파일이다.
+- `matchOutcomeAdapter.ts`는 player ID를 Application shared constants(`../shared/playerIds.js`)에서 import하며, `gameSession/index.ts`는 더 이상 import하지 않는다.
+- 이를 통해 storySession → gameSession runtime coupling이 제거된다.
+- `FinalResult` type-only import는 여전히 `matchOutcomeAdapter.ts`에만 국한된다 — 이 파일의 유일한 남은 engine 의존성이다.
+- 엔진은 변경되지 않았다.
+- `gameSession/index.ts`의 public export(`HUMAN_PLAYER_ID`, `AI_PLAYER_ID`, `createGameSession`, `createIdleSession`)는 변경되지 않았다 — `createGameSession.ts`가 `shared/playerIds.ts`에서 상수를 import한 뒤 그대로 re-export하는 방식으로 호환성을 유지한다.
+
 ---
 
 ## 7. Proposed StorySession State Shape

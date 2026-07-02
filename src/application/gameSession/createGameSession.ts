@@ -2,9 +2,9 @@ import type { GameSessionState } from './gameSessionTypes.js';
 import type { RandomProvider } from '../../engine/rng/randomProvider.js';
 import { newGame } from '../../engine/state/newGame.js';
 import { buildGameViewModel } from './gameViewModel.js';
+import { HUMAN_PLAYER_ID, AI_PLAYER_ID } from '../shared/playerIds.js';
 
-export const HUMAN_PLAYER_ID = 'human';
-export const AI_PLAYER_ID = 'ai';
+export { HUMAN_PLAYER_ID, AI_PLAYER_ID } from '../shared/playerIds.js';
 
 /**
  * Creates a new active game session with human vs. AI players.

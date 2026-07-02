@@ -540,6 +540,29 @@ See `docs/19_story_system_architecture.md` §12-E for the recommended path ratio
 
 ---
 
+### M7-PR2A — Player ID Boundary Refactor
+
+**Goal:** Move `HUMAN_PLAYER_ID` / `AI_PLAYER_ID` to an Application Layer shared constants file so `storySession` does not import `gameSession/index` for player identity.
+
+| Deliverable | Notes |
+|---|---|
+| `src/application/shared/playerIds.ts` | New shared constants file — `HUMAN_PLAYER_ID`, `AI_PLAYER_ID`; no engine or content imports |
+| `createGameSession.ts` imports/re-exports shared player IDs | `gameSession/index.ts` export list unchanged — still re-exports `HUMAN_PLAYER_ID`/`AI_PLAYER_ID` from `createGameSession.js` |
+| `matchOutcomeAdapter.ts` imports shared player IDs instead of `gameSession/index` | Removes the `storySession → gameSession/index → createGameSession → engine runtime` indirect coupling |
+| `matchOutcomeAdapter.test.ts` updated | Imports player IDs from `shared/playerIds.js` |
+| `docs/20` boundary note updated | Documents the new player ID import path |
+
+**Constraints:** Boundary refactor only. No engine changes, no `StorySession` state, no UI, no persistence, no production content.
+
+**Result:**
+- `src/application/shared/playerIds.ts` added — sole source of `HUMAN_PLAYER_ID` / `AI_PLAYER_ID` for the Application Layer.
+- `createGameSession.ts` no longer defines the constants directly — it imports and re-exports them from `../shared/playerIds.js`. `gameSession/index.ts` was not modified; its public export list continues to work unchanged.
+- `matchOutcomeAdapter.ts` now imports `HUMAN_PLAYER_ID` / `AI_PLAYER_ID` from `../shared/playerIds.js` — it no longer imports `gameSession/index.ts` at all. Its only remaining engine dependency is the type-only `FinalResult` import.
+- No behavior change: player ID values (`'human'`, `'ai'`), `createGameSession` logic, and `newGame` call shape are all unchanged.
+- All 7 existing `matchOutcomeAdapter.test.ts` tests preserved and passing.
+
+---
+
 ### M7-PR3 — StorySession State
 
 **Goal:** Add a minimal `StorySession` state that tracks `StoryProgress` and current `StoryViewModel` within the Application Layer.
