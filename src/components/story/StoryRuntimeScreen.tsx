@@ -9,31 +9,34 @@ import {
 } from '../../application/storySession/index.js';
 import type { GameViewModel } from '../../application/gameSession/index.js';
 import type { StorageService } from '../../application/storage/StorageService.js';
-import { sampleStory } from '../../content/stories/sample/sampleStory.js';
+import type { StoryDefinition } from '../../content/schemas/storySchema.js';
 import { GameSessionScreen } from '../game/index.js';
 import { StoryNodePanel } from './StoryNodePanel.js';
 
 /**
  * Container for the M7 minimal Story Runtime shell.
  *
- * Owns StorySessionState for `sampleStory` (a validation fixture — not
- * production content) and drives it entirely through the Application Layer's
- * pure state-transition helpers. Never traverses StoryDefinition.nodes and
- * never evaluates an UnlockCondition itself — both stay inside
- * storyProgression.ts / storySessionState.ts.
+ * Owns StorySessionState for the injected `storyDefinition` and drives it
+ * entirely through the Application Layer's pure state-transition helpers.
+ * Never traverses StoryDefinition.nodes and never evaluates an
+ * UnlockCondition itself — both stay inside storyProgression.ts /
+ * storySessionState.ts. Does not discover or load story content itself —
+ * the caller is responsible for selecting a StoryDefinition (see
+ * docs/23_content_loader_architecture.md §8).
  *
  * No StoryProgress persistence here — that is deferred until this runtime
  * flow is proven (see docs/20_story_runtime_architecture.md §8).
  */
 interface StoryRuntimeScreenProps {
   readonly storageService: StorageService;
+  readonly storyDefinition: StoryDefinition;
 }
 
-export function StoryRuntimeScreen({ storageService }: StoryRuntimeScreenProps) {
-  const [storySession, setStorySession] = useState(() => createStorySession(sampleStory));
+export function StoryRuntimeScreen({ storageService, storyDefinition }: StoryRuntimeScreenProps) {
+  const [storySession, setStorySession] = useState(() => createStorySession(storyDefinition));
 
   function handleContinue() {
-    setStorySession((prev) => continueStorySession(prev, sampleStory));
+    setStorySession((prev) => continueStorySession(prev, storyDefinition));
   }
 
   function handleRequestMatch() {
@@ -41,15 +44,15 @@ export function StoryRuntimeScreen({ storageService }: StoryRuntimeScreenProps) 
   }
 
   function handleSelectChoice(choiceId: string) {
-    setStorySession((prev) => selectStoryChoice(prev, sampleStory, choiceId));
+    setStorySession((prev) => selectStoryChoice(prev, storyDefinition, choiceId));
   }
 
   function handleRestartStory() {
-    setStorySession(createStorySession(sampleStory));
+    setStorySession(createStorySession(storyDefinition));
   }
 
   function handleMatchComplete(finalResult: NonNullable<GameViewModel['finalResult']>) {
-    setStorySession((prev) => completeStoryMatch(prev, sampleStory, buildMatchOutcome(finalResult)));
+    setStorySession((prev) => completeStoryMatch(prev, storyDefinition, buildMatchOutcome(finalResult)));
   }
 
   // No dedicated "cancel match request" helper exists in storySessionState.ts

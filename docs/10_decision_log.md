@@ -6,6 +6,24 @@ Entries are listed in reverse chronological order (newest first).
 
 ---
 
+## 2026-07-02 - M9: StoryRuntimeScreen Definition Injection (M9-PR3)
+
+**Decision**
+`StoryRuntimeScreen` no longer imports `sampleStory` directly. It receives a `storyDefinition: StoryDefinition` prop and uses it for every story session transition. `App.tsx` resolves the default story via the M9-PR2 registry (`getStoryCatalog()` / `getStoryDefinition()`) and passes the result down.
+
+**Reason**
+M9-PR2 built the registry in isolation; M9-PR3 wires it to the one place that still hardcoded concrete content. Injecting `storyDefinition` (rather than a `storyId` for `StoryRuntimeScreen` to resolve itself) keeps runtime UI focused on session state and keeps content discovery in the parent/Application boundary, per `docs/23` §8.
+
+**Impact**
+- `StoryRuntimeScreen` no longer imports the registry loader or any concrete story file — it is a pure function of the injected `StoryDefinition` plus its own `StorySessionState`.
+- `App.tsx` is the only place that calls `getStoryCatalog()` / `getStoryDefinition()`; it renders a minimal fallback if no story is registered.
+- Player-visible Story Mode flow (dialogue → match → result → story end) is unchanged; Free Match is unaffected. Verified manually end-to-end.
+- No story selection UI added — still deferred to an optional M9-PR4.
+- No engine or production-content changes. `StoryProgress` persistence remains deferred.
+- The project is now closer to the state M9-H1 needs to review the loader boundary before production content begins.
+
+---
+
 ## 2026-07-02 - M9: Story Content Registry Implemented (M9-PR2)
 
 **Decision**
