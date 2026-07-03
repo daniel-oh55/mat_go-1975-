@@ -205,3 +205,11 @@ This PR does not:
 - Option B is rejected for now.
 - Layer 1 graph validation should be implemented before production content — proposed as **M11-PR4**.
 - M11-H1 should happen after M11-PR4, not before.
+
+---
+
+## 14. M11-PR4 Implementation Note
+
+- `validateStoryDefinition` (`src/content/validation/storyDefinitionValidation.ts`) implements §7's Layer 1 scope exactly. `sampleStory` and every registered story definition pass.
+- Option C (§5) is unchanged by this PR — no production content, no `sampleStory` expansion, no registry change.
+- Next: **M11-H1 — Content Authoring Boundary Review**, the step this document's §11 sequence always pointed to after M11-PR4.
