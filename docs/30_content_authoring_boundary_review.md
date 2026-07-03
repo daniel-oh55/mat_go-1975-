@@ -193,3 +193,10 @@ Not approved yet:
 - Default story selection change
 - Story selection UI
 - Multi-story save
+
+---
+
+## 11. M12-PR1 Planning Note
+
+- `docs/31_first_production_story_scope_handoff.md` applied the `docs/27` §8 handoff format to the first production story candidate (a small Chungcheong bus terminal/market story), proposed a `storyId`/`nodeId` naming policy, and recommended (without finalizing) resolutions for the default-story-selection and single-slot-save risks flagged in §9 above.
+- Production story **implementation** remains not approved — `docs/31` explicitly defers the default-story-selection and single-slot-save decisions to M12-PR2/PR3 preconditions, consistent with this document's §9 risk table.

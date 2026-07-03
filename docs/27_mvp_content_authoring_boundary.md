@@ -259,3 +259,9 @@ This PR does not:
 
 - `docs/30_content_authoring_boundary_review.md` signed off this document alongside `docs/28`/`docs/29`/M11-PR4 — **M11 content authoring boundary approved for MVP continuation**, no blocker found.
 - Production content is approved for **M12-PR1 planning only** (using this document's §8 handoff format for the first time), not for direct implementation.
+
+---
+
+## 18. M12-PR1 Note
+
+- §8's handoff format was applied for the first time in `docs/31_first_production_story_scope_handoff.md`, scoping a small first production story. Implementation is not yet approved — see `docs/31` for M12-PR2/PR3 preconditions.

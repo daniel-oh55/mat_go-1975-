@@ -973,6 +973,25 @@ See `docs/27_mvp_content_authoring_boundary.md` for the full plan.
 
 ---
 
+## 3c. Milestone 12 Proposed PRs — First Production Story
+
+See `docs/31_first_production_story_scope_handoff.md` for the full plan.
+
+### M12-PR1 — First Production Story Scope / Handoff Plan
+
+**Goal:** Apply the `docs/27` §8 content handoff format to the first production story candidate, defining its scope, node outline, and naming policy, before any implementation.
+
+**Constraints:** Documentation/planning/handoff only. No `src` changes. No `StoryDefinition` file, `storyRegistry`/`sampleStory`/`App.tsx` change, or default-story-selection implementation.
+
+**Result:**
+- `docs/31_first_production_story_scope_handoff.md` added — first production story scoped to one region (a small Chungcheong bus terminal/market), one NPC (`terminal-regular-01`), one match, 6 nodes, 0 choice nodes by default, and win/default endings converging on a single `end` node; proposed `storyId`: `chungcheong-terminal-01`, with `nodeId`s prefixed by the `storyId`; a tone-sample-only dialogue draft (not full dialogue); a schema-mapping check confirming no new schema field is needed.
+- Documents the default-story-selection risk (`App.tsx`'s registry-order-dependent default) and the single-slot `StoryProgress` save risk as **required M12-PR2 preconditions**, each with a recommended option (production-status-preferred default helper; single slot retained on the premise `sampleStory` is never the player-facing default) — recommended, not finalized, per this document's own scope.
+- Claude drafting guardrails defined for the next drafting pass (tone, length, no 사주-affects-match-result, schema-fit requirement).
+- Proposed M12 PR sequence: **M12-PR2 — First Production Story Draft Review**, **M12-PR3 — Default Story Selection Decision**, **M12-PR4 — First Production Story Implementation**, **M12-H1 — First Production Story Review**.
+- No `src` changes in this PR. `npx vitest run` (644 tests, unchanged), `npx tsc --noEmit`, and `npm run build` all pass (baseline unaffected).
+
+---
+
 ## 4. Milestone 2 Proposed PRs
 
 ### M2-PR1 — Engine Types and Card Model
