@@ -6,6 +6,22 @@ Entries are listed in reverse chronological order (newest first).
 
 ---
 
+## 2026-07-03 - M11: Content Authoring Boundary Signed Off, M12-PR1 Planning Approved (M11-H1)
+
+**Decision**
+The MVP content authoring boundary built across M11-PR1–PR4 is approved for MVP continuation — see `docs/30_content_authoring_boundary_review.md` for the full 33-item checklist and sign-off. No blocker was found. M12 may begin with **M12-PR1 — First Production Story Scope / Handoff Plan** (planning only). Production story *implementation* is explicitly not approved yet.
+
+**Reason**
+M9 signed off content loading, M10 signed off persistence, and M11 needed the same explicit sign-off for content authoring rules before any production story is written — especially since two structural risks (`App.tsx`'s single-entry-only-safe default-story resolution, and the single-slot `matgo.v1.storyProgress` save key) remain genuinely unresolved and would become real the moment a second story is registered. Rather than resolving them speculatively, this review confirms they are known, tracked, and gated: they don't block *planning* the first production story, but do block *implementing* it.
+
+**Impact**
+- Approved: `docs/27` authoring boundary, `docs/28` validation review, `docs/29` strategy decision, M11-PR4's Layer 1 graph validation, `sampleStory` remaining a validation fixture.
+- Not yet approved: production story implementation, a second `storyRegistry` entry, a default-story-selection change, story selection UI, multi-story save.
+- Default story selection and single-slot save are recorded as explicit blockers before M12-PR2 (implementation), not before M12-PR1 (planning) — `docs/30` §9's risk table is the reference for this distinction going forward.
+- Next: **M12-PR1 — First Production Story Scope / Handoff Plan**, docs-only, using the `docs/27` §8 handoff format for the first time.
+
+---
+
 ## 2026-07-03 - M11: Layer 1 Story Graph Validation Implemented Before Production Content (M11-PR4)
 
 **Decision**

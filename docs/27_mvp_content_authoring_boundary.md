@@ -252,3 +252,10 @@ This PR does not:
 
 - `docs/29_first_mvp_story_strategy_decision.md` decided §10's options: **Option C selected for M11** (no production content, `sampleStory` unchanged); Option A confirmed as the preferred long-term direction, gated on explicit prerequisites (Layer 1 validation, a default-story rule, a single-slot-save review, among others); Option B rejected.
 - Layer 1 graph validation is decided to land before production content, as a new **M11-PR4 — Minimal Story Graph Validation**, ahead of M11-H1.
+
+---
+
+## 17. M11-H1 Review Note
+
+- `docs/30_content_authoring_boundary_review.md` signed off this document alongside `docs/28`/`docs/29`/M11-PR4 — **M11 content authoring boundary approved for MVP continuation**, no blocker found.
+- Production content is approved for **M12-PR1 planning only** (using this document's §8 handoff format for the first time), not for direct implementation.

@@ -958,6 +958,19 @@ See `docs/27_mvp_content_authoring_boundary.md` for the full plan.
 - `npx vitest run` (644 tests, +13), `npx tsc --noEmit`, and `npm run build` all pass.
 - Next: **M11-H1 — Content Authoring Boundary Review**, now able to evaluate the content authoring boundary (`docs/27`, `docs/28`, `docs/29`) with Layer 1 validation already in place.
 
+### M11-H1 — Content Authoring Boundary Review
+
+**Goal:** Sign off whether the MVP content authoring boundary built across M11-PR1–PR4 is safe enough to begin production content planning.
+
+**Constraints:** Documentation/review/sign-off only. No `src`/schema/validator/`storyRegistry`/`sampleStory` changes. No production content.
+
+**Result:**
+- `docs/30_content_authoring_boundary_review.md` added — a 33-item boundary checklist across M11-PR1–PR4 (mostly PASS, several intentionally-DEFERRED), verification basis per file, current state summary, findings, decisions, and sign-off. No blocker found.
+- **M11 MVP Content Authoring Boundary is approved for MVP continuation.** `docs/27`'s authoring rules, `docs/28`'s validation review, `docs/29`'s Option C selection (Option A preferred long-term, Option B rejected), and M11-PR4's Layer 1 graph validation are all confirmed consistent and in place.
+- Production content is **not** approved for direct implementation — only for M12-PR1 planning. Recommended: **M12-PR1 — First Production Story Scope / Handoff Plan** (docs-only, uses the `docs/27` §8 handoff format for the first time, no `src` content).
+- A risk table (`docs/30` §9) distinguishes blockers-before-planning from blockers-before-implementation: the default-story selection rule and the single-slot save assumption are confirmed as real, tracked, unresolved risks that must be resolved before a second story is registered (M12-PR2), but do not block M12-PR1 planning itself.
+- No `src` changes in this PR. `npx vitest run` (644 tests), `npx tsc --noEmit`, and `npm run build` all pass.
+
 ---
 
 ## 4. Milestone 2 Proposed PRs
