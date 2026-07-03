@@ -6,6 +6,22 @@ Entries are listed in reverse chronological order (newest first).
 
 ---
 
+## 2026-07-03 - M12: First Production Story Scoped and Handed Off, Implementation Not Yet Approved (M12-PR1)
+
+**Decision**
+The first production story is scoped as a small Chungcheong bus terminal/market story (`storyId` proposal: `chungcheong-terminal-01`) — one NPC, one match, 6 nodes, no choice nodes by default — using the `docs/27` §8 content handoff format for the first time. Default story selection and single-slot save strategies are recommended (production-status-preferred default; single slot retained on the premise `sampleStory` is never the player-facing default) but explicitly left as **M12-PR2 preconditions**, not finalized here.
+
+**Reason**
+The first production story is exactly the case `docs/29`/`docs/30` flagged as risky: the moment it's registered, `App.tsx`'s registry-order-dependent default and the single-slot `matgo.v1.storyProgress` key both stop being safe by accident. Scoping the story and recommending (without finalizing) how those risks get resolved lets drafting proceed against a fixed target, while keeping the actual risk decisions as an explicit gate before implementation rather than something assumed away by a planning document.
+
+**Impact**
+- No `src` changes — no `StoryDefinition` file, no `storyRegistry` entry, no `sampleStory`/`App.tsx` change.
+- A Claude drafting pass can now proceed against a fixed scope, node outline, and tone guardrails (`docs/31` §9), rather than an open-ended brief.
+- M12-PR2 (draft review) and M12-PR3 (default-story/save decision) are both required before M12-PR4 (implementation) — implementation is still not approved.
+- `docs/31` §6's naming policy (`storyId` with no status prefix; `nodeId`s prefixed by `storyId`) is the reference for the eventual production story's IDs, subject to final review at implementation time.
+
+---
+
 ## 2026-07-03 - M11: Content Authoring Boundary Signed Off, M12-PR1 Planning Approved (M11-H1)
 
 **Decision**
