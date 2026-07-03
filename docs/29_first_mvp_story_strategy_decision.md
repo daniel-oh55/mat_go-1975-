@@ -213,3 +213,10 @@ This PR does not:
 - `validateStoryDefinition` (`src/content/validation/storyDefinitionValidation.ts`) implements §7's Layer 1 scope exactly. `sampleStory` and every registered story definition pass.
 - Option C (§5) is unchanged by this PR — no production content, no `sampleStory` expansion, no registry change.
 - Next: **M11-H1 — Content Authoring Boundary Review**, the step this document's §11 sequence always pointed to after M11-PR4.
+
+---
+
+## 15. M11-H1 Review Note
+
+- `docs/30_content_authoring_boundary_review.md` confirmed Option C remains approved for M11, and Option A remains the long-term direction gated by this document's §6 prerequisites.
+- Next: **M12-PR1 — First Production Story Scope / Handoff Plan**, planning-only, not yet the Option A execution PR itself.

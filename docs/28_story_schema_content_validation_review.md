@@ -207,3 +207,10 @@ This PR does not:
 - `src/content/validation/storyDefinitionValidation.ts` implements §7's pseudo-design almost exactly: `ValidationResult { valid, errors }` and `validateStoryDefinition(definition)` covering every §5 Layer 1 check. `validateStoryRegistry` was **not** added, per §6's own recommendation to keep the PR small — Layer 2 (registry integrity) remains covered by the existing M9-PR2 `hasDuplicateStoryId` test.
 - Scope is strictly Layer 1 — no region/NPC/art/BGM/reward validation (Layer 4, still not applicable per §4), no import-boundary automation (Layer 3, still "automate later"), no `UnlockCondition` evaluation.
 - `sampleStory` and every registered story definition pass validation, confirming the tool works against the one real content file that exists today.
+
+---
+
+## 16. M11-H1 Review Note
+
+- `docs/30_content_authoring_boundary_review.md` approved Layer 1 graph validation as a sufficient pre-content safety net — confirmed cycle-safe, dependency-clean, and passing against `sampleStory` and every registered story.
+- Layer 2/3/4 remain deferred/manual, unchanged from this document's own §5/§6 recommendations — no automation added in the review.
