@@ -945,6 +945,19 @@ See `docs/27_mvp_content_authoring_boundary.md` for the full plan.
 - PR sequence adjusted: **M11-PR4 — Minimal Story Graph Validation** now lands before **M11-H1 — Content Authoring Boundary Review** (previously H1 was to follow PR3 directly), so the boundary review can evaluate the validation safety net rather than its absence.
 - No `src` changes in this PR. `npx vitest run` (631 tests, unchanged), `npx tsc --noEmit`, and `npm run build` all pass (baseline unaffected).
 
+### M11-PR4 — Minimal Story Graph Validation
+
+**Goal:** Implement Layer 1 `StoryDefinition` graph-integrity validation (`docs/28` §5/§7's pseudo-design), before any production story content is added.
+
+**Constraints:** Content Layer only. No schema/registry/`sampleStory` changes. No production content. No `App.tsx`/`StoryRuntimeScreen`/persistence/engine changes.
+
+**Result:**
+- `src/content/validation/storyDefinitionValidation.ts` added — `ValidationResult { valid, errors }` and `validateStoryDefinition(definition)`, a pure function checking: non-empty `storyId`, non-empty `nodes`, non-empty and unique `nodeId`s, `startNodeId` existence, dialogue/match `next` resolution, choice `nextNodeId` resolution, and at least one `end` node reachable from `startNodeId` via a cycle-safe BFS traversal (`UnlockCondition` ignored — this is graph structure validation, not runtime unlock evaluation). Type-only import from `storySchema.ts` only — no engine/application/components/platform/registry/concrete-story import.
+- `src/content/validation/storyDefinitionValidation.test.ts` added — 13 tests: `sampleStory` and every registered story definition pass; each of the 8 invalid-graph cases individually rejected with a message fragment matching its check; a reachable end through a choice edge passes; a cycle with a reachable end passes without infinite-looping.
+- No production content, no `sampleStory`/`storyRegistry`/schema change, no UI/persistence/engine wiring — confirmed by unchanged production bundle size.
+- `npx vitest run` (644 tests, +13), `npx tsc --noEmit`, and `npm run build` all pass.
+- Next: **M11-H1 — Content Authoring Boundary Review**, now able to evaluate the content authoring boundary (`docs/27`, `docs/28`, `docs/29`) with Layer 1 validation already in place.
+
 ---
 
 ## 4. Milestone 2 Proposed PRs

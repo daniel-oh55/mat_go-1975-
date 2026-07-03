@@ -199,3 +199,11 @@ This PR does not:
 
 - `docs/29_first_mvp_story_strategy_decision.md` confirmed this document's §6 recommendation: Layer 1 graph validation lands **before** production content, not after.
 - Next PR is now fixed as **M11-PR4 — Minimal Story Graph Validation** (implementing this document's §7 pseudo-design), inserted ahead of M11-H1.
+
+---
+
+## 15. M11-PR4 Implementation Note
+
+- `src/content/validation/storyDefinitionValidation.ts` implements §7's pseudo-design almost exactly: `ValidationResult { valid, errors }` and `validateStoryDefinition(definition)` covering every §5 Layer 1 check. `validateStoryRegistry` was **not** added, per §6's own recommendation to keep the PR small — Layer 2 (registry integrity) remains covered by the existing M9-PR2 `hasDuplicateStoryId` test.
+- Scope is strictly Layer 1 — no region/NPC/art/BGM/reward validation (Layer 4, still not applicable per §4), no import-boundary automation (Layer 3, still "automate later"), no `UnlockCondition` evaluation.
+- `sampleStory` and every registered story definition pass validation, confirming the tool works against the one real content file that exists today.

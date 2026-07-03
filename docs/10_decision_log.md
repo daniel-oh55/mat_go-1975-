@@ -6,6 +6,22 @@ Entries are listed in reverse chronological order (newest first).
 
 ---
 
+## 2026-07-03 - M11: Layer 1 Story Graph Validation Implemented Before Production Content (M11-PR4)
+
+**Decision**
+`src/content/validation/storyDefinitionValidation.ts` implements `validateStoryDefinition`, checking `StoryDefinition` graph-structure integrity (non-empty/unique IDs, resolvable `next`/`choices` links, at least one reachable `end` node) as decided in M11-PR3. `sampleStory` and every registered story definition pass. No production content is added; no schema, registry, or `sampleStory` change is made.
+
+**Reason**
+M11-PR3 decided Layer 1 validation must exist before production content, not after, since a broken graph link directly blocks player progress and is otherwise invisible until a player reaches the exact broken branch. Building it now, against `sampleStory`'s small and stable shape, validates the tool itself before it matters for anything higher-stakes.
+
+**Impact**
+- Any future content PR (starting with the first production story, once Option A's prerequisites from `docs/29` §6 are met) can now be checked with `validateStoryDefinition` before merging.
+- The validator is intentionally narrow: no region/NPC/art/BGM/reward validation, no persistence-impact-note automation, no `UnlockCondition` evaluation — those remain manual or explicitly out of scope per `docs/28`'s layer classification.
+- Production content and story selection UI remain deferred, unchanged from M11-PR3.
+- Next: **M11-H1 — Content Authoring Boundary Review**, which can now evaluate `docs/27`/`docs/28`/`docs/29` together with this validation safety net already in place, and judge whether M12 may begin first-production-story planning.
+
+---
+
 ## 2026-07-03 - M11: First MVP Story Strategy Decided — Option C Selected, Production Content Still Deferred (M11-PR3)
 
 **Decision**
